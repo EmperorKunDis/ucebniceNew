@@ -1,0 +1,158 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// NextAuth models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String?   @unique
+  emailVerified DateTime?
+  name          String?
+  image         String?
+  password      String?   // Pro credentials login
+  username      String?   @unique
+  
+  // Game-like attributes
+  xp            Int       @default(0)
+  level         Int       @default(1)
+  currentStreak Int       @default(0)
+  longestStreak Int       @default(0)
+  
+  // Metadata
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
+  completedLessons CompletedLesson[]
+  achievements  UserAchievement[]
+  lessonProgress LessonProgress[]
+  cognitiveGlitches CognitiveGlitchAttempt[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Application specific models
+
+model Lesson {
+  id          String   @id @default(cuid())
+  chapterId   String   // Maps to chapter.id from chapters.ts
+  title       String
+  description String?
+  xpReward    Int      @default(100)
+  difficulty  String   // beginner, intermediate, advanced
+  order       Int      // Order within the course
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  completedBy CompletedLesson[]
+  progress    LessonProgress[]
+}
+
+model CompletedLesson {
+  id          String   @id @default(cuid())
+  userId      String
+  lessonId    String
+  completedAt DateTime @default(now())
+  xpEarned    Int
+  
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, lessonId])
+}
+
+model LessonProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  lessonId    String
+  progress    Int      @default(0) // 0-100
+  lastUpdated DateTime @default(now())
+  
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, lessonId])
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  badgeId     String   @unique // Maps to BADGES constant
+  name        String
+  description String
+  icon        String
+  xpReward    Int
+  rarity      String   // common, uncommon, rare, epic, legendary
+  
+  createdAt   DateTime @default(now())
+  
+  users       UserAchievement[]
+}
+
+model UserAchievement {
+  id           String   @id @default(cuid())
+  userId       String
+  achievementId String
+  unlockedAt   DateTime @default(now())
+  
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement  Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, achievementId])
+}
+
+model CognitiveGlitchAttempt {
+  id          String   @id @default(cuid())
+  userId      String
+  challengeId String   // Maps to glitch challenge id
+  correct     Boolean
+  hintUsed    Boolean  @default(false)
+  timeElapsed Int      // in seconds
+  xpEarned    Int
+  attemptedAt DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
