@@ -41,25 +41,25 @@ export function LightningBackground({
 
     // Lightning bolt class
     class LightningBolt {
-      x: number
-      y: number
-      targetX: number
-      targetY: number
-      segments: { x: number; y: number }[]
-      alpha: number
-      life: number
-      maxLife: number
-      thickness: number
+      x: number = 0
+      y: number = 0
+      targetX: number = 0
+      targetY: number = 0
+      segments: { x: number; y: number }[] = []
+      alpha: number = 0
+      life: number = 0
+      maxLife: number = 0
+      thickness: number = 0
 
       constructor() {
         this.reset()
       }
 
       reset() {
-        this.x = Math.random() * canvas.width
+        this.x = Math.random() * (canvas?.width ?? 800)
         this.y = 0
         this.targetX = this.x + (Math.random() - 0.5) * 400
-        this.targetY = canvas.height
+        this.targetY = canvas?.height ?? 600
         this.segments = this.generateSegments()
         this.life = 0
         this.maxLife = 60 + Math.random() * 60
@@ -106,11 +106,16 @@ export function LightningBackground({
       }
 
       draw(ctx: CanvasRenderingContext2D) {
+        if (this.segments.length === 0) return
+
         ctx.beginPath()
-        ctx.moveTo(this.segments[0].x, this.segments[0].y)
-        
+        ctx.moveTo(this.segments[0]?.x ?? 0, this.segments[0]?.y ?? 0)
+
         for (let i = 1; i < this.segments.length; i++) {
-          ctx.lineTo(this.segments[i].x, this.segments[i].y)
+          const seg = this.segments[i]
+          if (seg) {
+            ctx.lineTo(seg.x, seg.y)
+          }
         }
         
         // Main bolt

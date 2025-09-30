@@ -10,9 +10,6 @@ import {
   TrendingUp,
   Users,
   Calendar,
-  Filter,
-  Star,
-  Zap,
   ChevronRight
 } from 'lucide-react'
 
@@ -82,16 +79,6 @@ export default function LeaderboardPage() {
   
   // Simulace pozice current usera
   const userPosition = 24
-  const userEntry: LeaderboardEntry = {
-    rank: userPosition,
-    username: currentUser || 'You',
-    xp: xp,
-    level: level,
-    badges: badges.length,
-    streak: 0,
-    change: 'up',
-    changeValue: 3
-  }
   
   const getRankIcon = (rank: number) => {
     switch(rank) {
@@ -115,7 +102,7 @@ export default function LeaderboardPage() {
     { value: 'all-time', label: 'Celkově', icon: <Trophy className="w-4 h-4" /> },
     { value: 'monthly', label: 'Měsíční', icon: <Calendar className="w-4 h-4" /> },
     { value: 'weekly', label: 'Týdenní', icon: <TrendingUp className="w-4 h-4" /> },
-    { value: 'daily', label: 'Denní', icon: <Star className="w-4 h-4" /> }
+    { value: 'daily', label: 'Denní', icon: <Users className="w-4 h-4" /> }
   ]
   
   return (
@@ -221,7 +208,7 @@ export default function LeaderboardPage() {
                         <span className="text-gray-400">{entry.badges}</span>
                       </Stack>
                       <Stack direction="row" gap={1} align="center">
-                        <Zap className="w-3 h-3 text-orange-400" />
+                        <Trophy className="w-3 h-3 text-orange-400" />
                         <span className="text-gray-400">{entry.streak}d</span>
                       </Stack>
                     </Stack>

@@ -3,12 +3,12 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { GlassSurface } from '@/components/ui/glass-surface'
-import { Stack } from '@/components/ui/stack'
+import { Stack } from '@/components/layout'
 import { Box } from '@/components/ui/box'
 import { Button } from '@/components/ui/button'
 import { ElectricBorder } from '@/components/ui/electric-border'
 import { useUserStore } from '@/store/user-store'
-import { Menu, X, ChevronDown } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -21,7 +21,6 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: 'Domů', href: '/' },
-  { label: 'Lekce', href: '/lessons' },
   { label: 'Kapitoly', href: '/chapters' },
   { label: 'Dashboard', href: '/dashboard', showWhenAuth: true },
   { label: 'Apex Aréna', href: '/arena' },
@@ -46,7 +45,7 @@ export function Navigation() {
         <GlassSurface className="px-6 py-4" borderRadius={16} blur={20} backgroundOpacity={0.02} opacity={0.95}>
           <Stack direction="row" justify="between" align="center">
             <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Učebnice AI
+              Učebnice
             </Link>
 
             {/* Desktop navigation */}

@@ -1,4 +1,4 @@
-import { Box, Stack } from '@/components/ui';
+import { Box, Stack } from '@/components/layout';
 import Link from 'next/link';
 import { Trophy, Star, Lock } from 'lucide-react';
 import { BADGES, COLORS } from '@/lib/constants';
@@ -13,10 +13,13 @@ export default function AchievementsPage() {
   const unlockedBadges = ['first-step', 'glitch-hunter']; // Mock data
 
   const badgesByRarity = Object.entries(BADGES).reduce((acc, [key, badge]) => {
-    if (!acc[badge.rarity]) acc[badge.rarity] = [];
-    acc[badge.rarity].push({ ...badge, key });
+    const rarity = badge.rarity;
+    if (!acc[rarity]) {
+      acc[rarity] = [];
+    }
+    acc[rarity]!.push({ ...badge, key });
     return acc;
-  }, {} as Record<string, typeof BADGES[keyof typeof BADGES] & { key: string }[]>);
+  }, {} as Record<string, (typeof BADGES[keyof typeof BADGES] & { key: string })[]>);
 
   return (
     <Box className="min-h-screen bg-gray-900">

@@ -1,14 +1,17 @@
 'use client';
 
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Chapter } from '@/data/chapters';
 import { ChapterHeader } from './ChapterHeader';
 import { ChapterContent } from './ChapterContent';
 import { VideoPlayer } from './VideoPlayer';
 import { NotebookLinks } from './NotebookLinks';
 import { ChapterNavigation } from './ChapterNavigation';
-import { Box, Stack } from '@/components/ui';
-import { Book, Video, FileText, ChevronDown, ChevronRight } from 'lucide-react';
+import { Box, Stack } from '@/components/layout';
+import { PageLayout } from '@/components/layout/page-layout';
+import { GlassSurface } from '@/components/ui/glass-surface';
+import { Book, FileText, ChevronDown, PlayCircle } from 'lucide-react';
 
 interface ChapterLayoutProps {
   chapter: Chapter;
@@ -16,9 +19,9 @@ interface ChapterLayoutProps {
 
 export function ChapterLayout({ chapter }: ChapterLayoutProps) {
   const [expandedSections, setExpandedSections] = useState({
-    text: true,
+    video: true,  // Video bude default rozbalené
+    text: false,
     lecture: false,
-    video: false,
   });
 
   const toggleSection = (section: keyof typeof expandedSections) => {
@@ -29,25 +32,36 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
   };
 
   return (
-    <Box className="min-h-screen bg-gray-900">
-      <Box className="max-w-7xl mx-auto px-4 py-8">
+    <PageLayout>
+      <Box className="max-w-5xl mx-auto">
         <ChapterHeader chapter={chapter} />
-        
-        <Stack className="mt-8 space-y-6">
-          {/* Rychlé odkazy */}
+
+        <Stack direction="col" gap={6} className="mt-8">
+          {/* Rychlé odkazy na notebooky */}
           <NotebookLinks chapter={chapter} />
 
-          {/* Úvodní text */}
+          {/* Video přednáška */}
+          {chapter.videoFile && (
+            <Section
+              title="Video přednáška"
+              icon={<PlayCircle className="w-5 h-5" />}
+              expanded={expandedSections.video}
+              onToggle={() => toggleSection('video')}
+            >
+              <VideoPlayer videoFile={chapter.videoFile} />
+            </Section>
+          )}
+
+          {/* Studijní materiály - text */}
           <Section
-            title="Úvodní text"
+            title="Studijní materiály"
             icon={<FileText className="w-5 h-5" />}
             expanded={expandedSections.text}
             onToggle={() => toggleSection('text')}
           >
-            <ChapterContent 
-              content={chapter.textFile} 
+            <ChapterContent
+              content={chapter.textFile}
               type="text"
-              chapterId={chapter.id}
             />
           </Section>
 
@@ -58,30 +72,17 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
             expanded={expandedSections.lecture}
             onToggle={() => toggleSection('lecture')}
           >
-            <ChapterContent 
-              content={chapter.lectureFile} 
+            <ChapterContent
+              content={chapter.lectureFile}
               type="lecture"
-              chapterId={chapter.id}
             />
           </Section>
 
-          {/* Video */}
-          {chapter.videoFile && (
-            <Section
-              title="Video přednáška"
-              icon={<Video className="w-5 h-5" />}
-              expanded={expandedSections.video}
-              onToggle={() => toggleSection('video')}
-            >
-              <VideoPlayer videoFile={chapter.videoFile} />
-            </Section>
-          )}
-
-          {/* Navigace */}
+          {/* Navigace mezi kapitolami */}
           <ChapterNavigation currentChapterId={chapter.id} />
         </Stack>
       </Box>
-    </Box>
+    </PageLayout>
   );
 }
 
@@ -95,29 +96,42 @@ interface SectionProps {
 
 function Section({ title, icon, expanded, onToggle, children }: SectionProps) {
   return (
-    <Box className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-      <button
-        onClick={onToggle}
-        className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-700/50 transition-colors"
-      >
-        <div className="flex items-center gap-3">
-          <span className="text-blue-400">{icon}</span>
-          <h2 className="text-xl font-semibold text-gray-100">{title}</h2>
-        </div>
-        {expanded ? (
-          <ChevronDown className="w-5 h-5 text-gray-400" />
-        ) : (
-          <ChevronRight className="w-5 h-5 text-gray-400" />
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+    >
+      <GlassSurface className="overflow-hidden">
+        <button
+          onClick={onToggle}
+          className="w-full px-6 py-4 flex items-center justify-between hover:bg-white/5 transition-colors"
+        >
+          <Stack direction="row" gap={3} align="center">
+            <Box className="text-purple-400">{icon}</Box>
+            <h2 className="text-xl font-semibold text-white">{title}</h2>
+          </Stack>
+          <motion.div
+            animate={{ rotate: expanded ? 180 : 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <ChevronDown className="w-5 h-5 text-gray-400" />
+          </motion.div>
+        </button>
+
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Box className="px-6 pb-6">
+              <Box className="border-t border-gray-700/50 pt-6">
+                {children}
+              </Box>
+            </Box>
+          </motion.div>
         )}
-      </button>
-      
-      {expanded && (
-        <Box className="px-6 pb-6">
-          <Box className="border-t border-gray-700 pt-6">
-            {children}
-          </Box>
-        </Box>
-      )}
-    </Box>
+      </GlassSurface>
+    </motion.div>
   );
 }

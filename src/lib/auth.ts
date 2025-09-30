@@ -13,7 +13,6 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: '/auth/signin',
-    signUp: '/auth/signup',
     error: '/auth/error',
   },
   providers: [
@@ -62,7 +61,7 @@ export const authOptions: NextAuthOptions = {
 
         return {
           id: user.id,
-          email: user.email,
+          email: user.email ?? '',
           name: user.name,
           image: user.image,
         }
@@ -72,10 +71,10 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async session({ token, session }) {
       if (token) {
-        session.user.id = token.id
-        session.user.name = token.name
-        session.user.email = token.email
-        session.user.image = token.picture
+        session.user.id = token.id as string
+        session.user.name = token.name as string | null
+        session.user.email = token.email as string
+        session.user.image = token.picture as string | null
       }
 
       // Načíst dodatečné informace o uživateli z databáze

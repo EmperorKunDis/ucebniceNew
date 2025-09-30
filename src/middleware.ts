@@ -2,7 +2,7 @@ import { withAuth } from 'next-auth/middleware'
 import { NextResponse } from 'next/server'
 
 export default withAuth(
-  function middleware(req) {
+  function middleware(_req) {
     // Middleware logic zde (pokud je potřeba)
     return NextResponse.next()
   },
@@ -31,6 +31,6 @@ export const config = {
     '/onboarding/:path*',
     '/certificate/:path*',
     // Nepoužívat middleware pro tyto cesty:
-    '/((?!api|_next/static|_next/image|favicon.ico|images|auth|chapters|lessons|arena|$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|images|auth|chapters|arena|$).*)',
   ]
 }

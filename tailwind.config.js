@@ -69,8 +69,8 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: ['Roboto', 'system-ui', 'sans-serif'],
-        mono: ['Roboto Mono', 'monospace'],
+        sans: ['var(--font-montserrat)', 'Montserrat', 'system-ui', 'sans-serif'],
+        mono: ['monospace'],
       },
     },
   },

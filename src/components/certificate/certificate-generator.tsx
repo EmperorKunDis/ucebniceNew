@@ -5,8 +5,6 @@ import { motion } from 'framer-motion'
 import { Download, Award, Sparkles, Share2 } from 'lucide-react'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
-import { GlassSurface } from '@/components/ui/glass-surface'
-import { ElectricBorder } from '@/components/ui/electric-border'
 import { useUserStore } from '@/store/user-store'
 
 interface CertificateGeneratorProps {
@@ -239,7 +237,7 @@ export function CertificateGenerator({
       
       {/* Actions */}
       <div className="flex gap-4 justify-center">
-        <ElectricBorder className="rounded-lg">
+        
           <button
             onClick={generatePDF}
             disabled={isGenerating}
@@ -248,7 +246,7 @@ export function CertificateGenerator({
             <Download className="w-5 h-5" />
             {isGenerating ? 'Generování...' : 'Stáhnout PDF'}
           </button>
-        </ElectricBorder>
+        
         
         <button
           onClick={shareOnLinkedIn}

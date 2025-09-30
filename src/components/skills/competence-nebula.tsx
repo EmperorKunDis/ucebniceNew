@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import * as d3 from 'd3'
 import { motion } from 'framer-motion'
-import { Info, ZoomIn, ZoomOut, Maximize2 } from 'lucide-react'
+import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { ElectricBorder } from '@/components/ui/electric-border'
 import { useUserStore } from '@/store/user-store'
@@ -14,19 +14,17 @@ interface CompetenceNebulaProps {
   width?: number
   height?: number
   interactive?: boolean
-  showMiniMap?: boolean
 }
 
-export function CompetenceNebula({ 
-  width = 800, 
+export function CompetenceNebula({
+  width = 800,
   height = 600,
-  interactive = true,
-  showMiniMap = false
+  interactive = true
 }: CompetenceNebulaProps) {
   const svgRef = useRef<SVGSVGElement>(null)
   const [selectedNode, setSelectedNode] = useState<SkillNode | null>(null)
   const [hoveredNode, setHoveredNode] = useState<SkillNode | null>(null)
-  const [zoom, setZoom] = useState(1)
+  const [_zoom, setZoom] = useState(1)
   const { progress } = useUserStore()
   
   // Calculate skill levels based on completed lessons
@@ -124,7 +122,7 @@ export function CompetenceNebula({
       })
       .style('stroke', (d: SkillNode) => {
         const level = getSkillLevel(d.id)
-        return level > 0 ? SKILL_CATEGORIES[d.category].color : '#333'
+        return level > 0 ? (SKILL_CATEGORIES[d.category]?.color ?? '#333') : '#333'
       })
       .style('stroke-width', 2)
       .style('filter', (d: SkillNode) => {
@@ -159,7 +157,7 @@ export function CompetenceNebula({
             .attr('cx', -10 + i * 5)
             .attr('cy', -30)
             .attr('r', 2)
-            .style('fill', SKILL_CATEGORIES[d.category].color)
+            .style('fill', SKILL_CATEGORIES[d.category]?.color ?? '#333')
         }
       }
     })
@@ -167,42 +165,38 @@ export function CompetenceNebula({
     // Add interactivity
     if (interactive) {
       node
-        .on('mouseenter', function(event, d: SkillNode) {
+        .on('mouseenter', function(_event, d: SkillNode) {
           setHoveredNode(d)
+          const level = getSkillLevel(d.id)
           d3.select(this).select('circle')
             .transition()
             .duration(200)
-            .attr('r', (d: SkillNode) => {
-              const level = getSkillLevel(d.id)
-              return 25 + level * 3
-            })
+            .attr('r', 25 + level * 3)
         })
-        .on('mouseleave', function(event, d: SkillNode) {
+        .on('mouseleave', function(_event, d: SkillNode) {
           setHoveredNode(null)
+          const level = getSkillLevel(d.id)
           d3.select(this).select('circle')
             .transition()
             .duration(200)
-            .attr('r', (d: SkillNode) => {
-              const level = getSkillLevel(d.id)
-              return 20 + level * 3
-            })
+            .attr('r', 20 + level * 3)
         })
-        .on('click', function(event, d: SkillNode) {
+        .on('click', function(_event, d: SkillNode) {
           setSelectedNode(d)
         })
       
       // Drag functionality
       const drag = d3.drag<SVGGElement, SkillNode>()
-        .on('start', function(event, d) {
+        .on('start', function(event, d: any) {
           if (!event.active) simulation.alphaTarget(0.3).restart()
           d.fx = d.x
           d.fy = d.y
         })
-        .on('drag', function(event, d) {
+        .on('drag', function(event, d: any) {
           d.fx = event.x
           d.fy = event.y
         })
-        .on('end', function(event, d) {
+        .on('end', function(event, d: any) {
           if (!event.active) simulation.alphaTarget(0)
           d.fx = null
           d.fy = null
@@ -380,7 +374,7 @@ export function CompetenceNebula({
                   <div className="text-4xl">{selectedNode.icon}</div>
                   <div>
                     <h2 className="text-2xl font-bold text-white">{selectedNode.name}</h2>
-                    <p className="text-gray-400">{SKILL_CATEGORIES[selectedNode.category].name}</p>
+                    <p className="text-gray-400">{SKILL_CATEGORIES[selectedNode.category]?.name ?? selectedNode.category}</p>
                   </div>
                 </div>
                 

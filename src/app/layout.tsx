@@ -1,18 +1,12 @@
 import './globals.css'
 import type { Metadata } from 'next'
-import { Roboto, Roboto_Mono } from 'next/font/google'
+import { Montserrat } from 'next/font/google'
 import { Providers } from '@/components/providers'
 
-const roboto = Roboto({ 
+const montserrat = Montserrat({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '700'],
-  variable: '--font-roboto',
-})
-
-const robotoMono = Roboto_Mono({ 
-  subsets: ['latin'],
-  weight: ['400', '700'],
-  variable: '--font-roboto-mono',
+  weight: ['300', '400', '500', '600', '700', '800', '900'],
+  variable: '--font-montserrat',
 })
 
 export const metadata: Metadata = {
@@ -28,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="cs" className={`${roboto.variable} ${robotoMono.variable}`}>
+    <html lang="cs" className={montserrat.variable}>
       <body className="font-sans bg-gray-900 text-gray-100">
         <Providers>
           {children}

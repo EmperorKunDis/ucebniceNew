@@ -100,7 +100,11 @@ export function DecryptedText({
 
         for (let i = nonSpaceChars.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1))
-          ;[nonSpaceChars[i], nonSpaceChars[j]] = [nonSpaceChars[j], nonSpaceChars[i]]
+          const temp = nonSpaceChars[i]
+          if (nonSpaceChars[j] !== undefined && temp !== undefined) {
+            nonSpaceChars[i] = nonSpaceChars[j]
+            nonSpaceChars[j] = temp
+          }
         }
 
         let charIndex = 0
@@ -108,7 +112,7 @@ export function DecryptedText({
           .map(p => {
             if (p.isSpace) return ' '
             if (p.isRevealed) return originalText[p.index]
-            return nonSpaceChars[charIndex++]
+            return nonSpaceChars[charIndex++] ?? ''
           })
           .join('')
       } else {

@@ -3,7 +3,8 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { Box, Stack, Button } from '@/components/ui';
+import { Box, Stack } from '@/components/layout';
+import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { User, Mail, Calendar, Trophy, Zap, Target, Edit2, LogOut } from 'lucide-react';
 import { useUserStore } from '@/store/user-store';
@@ -48,14 +49,14 @@ export default function ProfilePage() {
             </Link>
             
             <Stack direction="row" gap={4}>
-              <Link href="/lessons" className="text-gray-300 hover:text-white transition-colors">
-                Lekce
-              </Link>
               <Link href="/chapters" className="text-gray-300 hover:text-white transition-colors">
                 Kapitoly
               </Link>
               <Link href="/dashboard" className="text-gray-300 hover:text-white transition-colors">
                 Dashboard
+              </Link>
+              <Link href="/arena" className="text-gray-300 hover:text-white transition-colors">
+                Apex Aréna
               </Link>
             </Stack>
           </Stack>
@@ -150,13 +151,13 @@ export default function ProfilePage() {
               
               <Box className="text-center">
                 <Target className="w-8 h-8 text-green-400 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-white">{user.completedLessons.length}</div>
+                <div className="text-2xl font-bold text-white">{user.progress?.length || 0}</div>
                 <div className="text-sm text-gray-400">Dokončených lekcí</div>
               </Box>
               
               <Box className="text-center">
                 <div className="text-3xl mx-auto mb-2">🔥</div>
-                <div className="text-2xl font-bold text-white">{user.currentStreak}</div>
+                <div className="text-2xl font-bold text-white">{user.streak || 0}</div>
                 <div className="text-sm text-gray-400">Denní streak</div>
               </Box>
             </div>

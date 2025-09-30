@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { 
-  Trophy, 
+   
   Calendar,
   Users,
   Clock,
@@ -15,7 +15,7 @@ import {
   Share2,
   Info,
   Target,
-  Briefcase
+  
 } from 'lucide-react'
 
 import { Lightning } from '@/components/ui/lightning'
@@ -96,15 +96,14 @@ const mockTeams: Team[] = [
 ]
 
 export default function HackathonDetailPage() {
-  const params = useParams()
   const router = useRouter()
-  const { username, level } = useUserStore()
+  const { level } = useUserStore()
   const [showRegisterModal, setShowRegisterModal] = useState(false)
   const [selectedTab, setSelectedTab] = useState<'overview' | 'teams' | 'rules'>('overview')
   
-  const hackathonId = params?.hackathonId as string
+  // const hackathonId = params?.hackathonId as string
   const hackathon = mockHackathon // In real app: fetch based on hackathonId
-  const teams = mockTeams.filter(t => t.hackathonId === hackathonId)
+  const teams = mockTeams
   
   const daysUntilStart = Math.ceil((hackathon.startDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
   const daysUntilDeadline = Math.ceil((hackathon.registrationDeadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24))

@@ -55,6 +55,7 @@ export function CognitiveGlitchModal({ isOpen, onClose, onComplete }: CognitiveG
       // Time's up!
       handleTimeUp()
     }
+    return undefined
   }, [isTimerActive, timeRemaining])
   
   const handleTimeUp = () => {
@@ -72,7 +73,7 @@ export function CognitiveGlitchModal({ isOpen, onClose, onComplete }: CognitiveG
     if (selectedAnswer === challenge.correct) {
       // Correct answer
       const baseReward = XP_REWARDS.GLITCH_CHALLENGE
-      const reward = calculateGlitchReward(challenge, baseReward, glitchStreak, showHint)
+      const reward = calculateGlitchReward(challenge, baseReward, glitchStreak, showHint, 60 - timeRemaining)
       
       addXP(reward)
       setGlitchStreak(glitchStreak + 1)
@@ -344,7 +345,8 @@ export function CognitiveGlitchModal({ isOpen, onClose, onComplete }: CognitiveG
                               challenge,
                               XP_REWARDS.GLITCH_CHALLENGE,
                               glitchStreak > 0 ? glitchStreak - 1 : 0,
-                              showHint
+                              showHint,
+                              60 - timeRemaining
                             )
                           } XP
                         </p>

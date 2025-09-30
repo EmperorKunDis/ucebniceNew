@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   ChevronRight, 
@@ -34,7 +34,7 @@ interface OnboardingStep {
 
 export function OnboardingFlow() {
   const router = useRouter()
-  const { username, setUsername, completeOnboarding } = useUserStore()
+  const { setUsername, completeOnboarding } = useUserStore()
   const [currentStep, setCurrentStep] = useState(0)
   const [name, setName] = useState('')
   const [goal, setGoal] = useState<string>('')
@@ -88,8 +88,7 @@ export function OnboardingFlow() {
             <Box as="label" className="block text-sm font-medium text-gray-400">
               Tvé jméno nebo přezdívka
             </Box>
-            <Box
-              as="input"
+            <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -283,9 +282,9 @@ export function OnboardingFlow() {
         unlockedAt: new Date()
       })
       
-      // Navigate to lessons
+      // Navigate to chapters
       setTimeout(() => {
-        router.push('/lessons')
+        router.push('/chapters')
       }, 500)
     } else {
       setTimeout(() => {
@@ -363,20 +362,20 @@ export function OnboardingFlow() {
                 <Stack gap={8}>
                   <Stack gap={4} align="center">
                     <Box className="inline-block">
-                      {steps[currentStep].icon}
+                      {steps[currentStep]?.icon}
                     </Box>
                     <Stack gap={2} align="center">
                       <Box as="h1" className="text-3xl font-bold text-white">
-                        {steps[currentStep].title}
+                        {steps[currentStep]?.title}
                       </Box>
                       <Box as="p" className="text-gray-400">
-                        {steps[currentStep].description}
+                        {steps[currentStep]?.description}
                       </Box>
                     </Stack>
                   </Stack>
-                  
+
                   <Box>
-                    {steps[currentStep].content}
+                    {steps[currentStep]?.content}
                   </Box>
                   
                   {/* Navigation buttons */}

@@ -216,7 +216,12 @@ export function getRandomChallenge(level: number, category?: string): GlitchChal
   }
 
   // Vrátit náhodnou výzvu
-  return availableChallenges[Math.floor(Math.random() * availableChallenges.length)];
+  const randomChallenge = availableChallenges[Math.floor(Math.random() * availableChallenges.length)];
+  if (!randomChallenge) {
+    // Fallback na první dostupnou výzvu
+    return Object.values(challenges).flat()[0] as GlitchChallenge;
+  }
+  return randomChallenge;
 }
 
 // Vypočítat odměnu za glitch

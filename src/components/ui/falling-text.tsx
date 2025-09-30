@@ -51,12 +51,12 @@ export function FallingText({
   useEffect(() => {
     if (trigger === 'auto') {
       setEffectStarted(true)
-      return
+      return undefined
     }
     if (trigger === 'scroll' && containerRef.current) {
       const observer = new IntersectionObserver(
         ([entry]) => {
-          if (entry.isIntersecting) {
+          if (entry?.isIntersecting) {
             setEffectStarted(true)
             observer.disconnect()
           }
@@ -66,6 +66,7 @@ export function FallingText({
       observer.observe(containerRef.current)
       return () => observer.disconnect()
     }
+    return undefined
   }, [trigger])
 
   useEffect(() => {
@@ -105,7 +106,7 @@ export function FallingText({
     const ceiling = Bodies.rectangle(width / 2, -25, width, 50, boundaryOptions)
 
     const wordSpans = textRef.current!.querySelectorAll('.word')
-    const wordBodies = [...wordSpans].map(elem => {
+    const wordBodies = Array.from(wordSpans).map(elem => {
       const rect = elem.getBoundingClientRect()
 
       const x = rect.left - containerRect.left + rect.width / 2
@@ -168,7 +169,7 @@ export function FallingText({
         // eslint-disable-next-line react-hooks/exhaustive-deps
         canvasContainerRef.current.removeChild(render.canvas)
       }
-      World.clear(engine.world as any)
+      World.clear(engine.world as any, false)
       Engine.clear(engine)
     }
   }, [effectStarted, gravity, wireframes, backgroundColor, mouseConstraintStiffness])

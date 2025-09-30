@@ -1,4 +1,5 @@
-import { Box, Stack, Button } from '@/components/ui';
+import { Box, Stack } from '@/components/layout';
+import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Play, Code2, Sparkles, ArrowRight } from 'lucide-react';
 

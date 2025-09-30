@@ -1,104 +1,268 @@
-import { Box, Stack, Grid } from '@/components/ui';
-import { chapters } from '@/data/chapters';
-import { ChapterCard } from '@/components/chapters/ChapterCard';
-import { BookOpen, Brain, Target } from 'lucide-react';
+'use client'
 
-export const metadata = {
-  title: 'Všechny kapitoly | Učebnice programování AI',
-  description: 'Kompletní seznam všech 40 kapitol učebnice programování s AI',
-};
+import { motion } from 'framer-motion'
+import Link from 'next/link'
+import {
+  ChevronRight,
+  Lock,
+  CheckCircle,
+  Clock,
+  Award,
+  Sparkles,
+  BookOpen,
+  Brain,
+  Target,
+  Code
+} from 'lucide-react'
+
+import { PageLayout } from '@/components/layout/page-layout'
+import { GlassSurface } from '@/components/ui/glass-surface'
+import { ElectricBorder } from '@/components/ui/electric-border'
+import { Stack, Grid, Box } from '@/components/layout'
+import { useUserStore } from '@/store/user-store'
+import { chapters } from '@/data/chapters'
 
 export default function ChaptersPage() {
+  const { progress } = useUserStore()
+
+  const getChapterStatus = (chapterId: string) => {
+    const chapterProgress = progress.find(p => p.lessonId === chapterId)
+    return chapterProgress ? 'completed' : 'available'
+  }
+
+  const isChapterLocked = (chapterNumber: number) => {
+    // První kapitola je vždy odemčená
+    if (chapterNumber === 1) return false
+
+    // Kontrola, zda je předchozí kapitola dokončená
+    const previousChapter = chapters.find(ch => {
+      const num = parseInt(ch.id)
+      return num === chapterNumber - 1
+    })
+
+    if (!previousChapter) return false
+
+    return !progress.some(p => p.lessonId === previousChapter.id)
+  }
+
   // Seskupení kapitol do modulů
   const modules = [
     {
       id: 'intro',
+      number: 1,
       title: 'Úvod do umělé inteligence',
       icon: <Brain className="w-6 h-6" />,
       chapters: chapters.slice(0, 10),
-      description: 'Základy AI, historie, budoucnost a filozofie',
+      description: 'Základy AI, historie, vývoj a filozofické otázky moderní umělé inteligence',
     },
     {
       id: 'algorithms',
+      number: 2,
       title: 'Jak AI řeší problémy',
       icon: <Target className="w-6 h-6" />,
       chapters: chapters.slice(10, 20),
-      description: 'Algoritmy, hledání, pravděpodobnost a klasifikace',
+      description: 'Vyhledávací algoritmy, pravděpodobnost, klasifikace a optimalizace',
     },
     {
       id: 'ml',
+      number: 3,
       title: 'Strojové učení',
-      icon: <BookOpen className="w-6 h-6" />,
+      icon: <Code className="w-6 h-6" />,
       chapters: chapters.slice(20, 30),
-      description: 'Zpracování dat, regrese, klasifikace a vizualizace',
+      description: 'Zpracování dat, regrese, klasifikace, vizualizace a praktické projekty',
     },
     {
       id: 'nn',
+      number: 4,
       title: 'Neuronové sítě a budoucnost',
-      icon: <Brain className="w-6 h-6" />,
+      icon: <BookOpen className="w-6 h-6" />,
       chapters: chapters.slice(30, 40),
-      description: 'Neuronové sítě, deep learning, etika a budoucnost AI',
+      description: 'Neuronové sítě, deep learning, etika AI a budoucí trendy',
     },
-  ];
+  ]
+
+  const getModuleProgress = (module: typeof modules[0]) => {
+    const completedChapters = module.chapters.filter(chapter =>
+      progress.some(p => p.lessonId === chapter.id)
+    ).length
+    return {
+      completed: completedChapters,
+      total: module.chapters.length,
+      percentage: (completedChapters / module.chapters.length) * 100
+    }
+  }
 
   return (
-    <Box className="min-h-screen bg-gray-900">
-      <Box className="max-w-7xl mx-auto px-4 py-12">
-        {/* Header */}
-        <Stack className="mb-12 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600 mb-4">
-            Všechny kapitoly
-          </h1>
-          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-            40 kapitol pokrývajících kompletní cestu od základů umělé inteligence až po pokročilé koncepty a etické otázky
-          </p>
+    <PageLayout contentClassName="pt-32">
+      {/* Hero section */}
+      <Box as="section" className="pb-12">
+        <Stack direction="col" gap={4} align="center">
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-5xl font-bold text-center"
+          >
+            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Kapitoly kurzu
+            </span>
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-xl text-gray-400 max-w-2xl text-center"
+          >
+            40 kapitol pokrývajících kompletní cestu od základů umělé inteligence až po pokročilé koncepty.
+            Každá kapitola obsahuje video přednášku, studijní materiály a praktické úlohy.
+            Sbírej XP body a postupuj vlastním tempem!
+          </motion.p>
         </Stack>
-
-        {/* Moduly */}
-        <Stack className="space-y-12">
-          {modules.map((module, index) => (
-            <Box key={module.id}>
-              {/* Module Header */}
-              <Box className="mb-6 pb-4 border-b border-gray-700">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="text-blue-400">{module.icon}</span>
-                  <h2 className="text-2xl font-semibold text-gray-100">
-                    Modul {index + 1}: {module.title}
-                  </h2>
-                </div>
-                <p className="text-gray-400 ml-9">{module.description}</p>
-              </Box>
-
-              {/* Kapitoly v modulu */}
-              <Grid className="grid-cols-1 md:grid-cols-2 gap-4">
-                {module.chapters.map((chapter) => (
-                  <ChapterCard key={chapter.id} chapter={chapter} />
-                ))}
-              </Grid>
-            </Box>
-          ))}
-        </Stack>
-
-        {/* Footer info */}
-        <Box className="mt-16 text-center">
-          <Box className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-2xl p-8 border border-blue-600/30">
-            <h3 className="text-2xl font-semibold text-gray-100 mb-4">
-              Připraveni začít?
-            </h3>
-            <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
-              Každá kapitola obsahuje interaktivní materiály, videa a praktická cvičení. 
-              Projděte si celý kurz postupně nebo si vyberte témata, která vás nejvíce zajímají.
-            </p>
-            <a
-              href="/chapters/01"
-              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
-            >
-              Začít od první kapitoly
-              <BookOpen className="w-5 h-5" />
-            </a>
-          </Box>
-        </Box>
       </Box>
-    </Box>
-  );
+
+      {/* Modules and chapters */}
+      <Box as="section">
+        <Stack direction="col" gap={8}>
+          {modules.map((module, moduleIndex) => {
+            const moduleProgress = getModuleProgress(module)
+
+            return (
+              <motion.div
+                key={module.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: moduleIndex * 0.1 }}
+              >
+                <GlassSurface className="p-8">
+                  {/* Module header */}
+                  <Stack direction="col" gap={4} className="mb-6">
+                    <Stack direction="row" justify="between" align="start" wrap>
+                      <Stack direction="row" gap={3} align="center">
+                        <Box className="text-purple-400">{module.icon}</Box>
+                        <h2 className="text-2xl font-bold text-white">
+                          Modul {module.number}: {module.title}
+                        </h2>
+                      </Stack>
+                      <span className="text-sm text-gray-400">
+                        {moduleProgress.completed}/{moduleProgress.total} kapitol dokončeno
+                      </span>
+                    </Stack>
+                    <p className="text-gray-400">{module.description}</p>
+
+                    {/* Progress bar */}
+                    <Box className="h-2 bg-gray-800 rounded-full overflow-hidden">
+                      <motion.div
+                        className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${moduleProgress.percentage}%` }}
+                        transition={{ duration: 1, ease: 'easeOut' }}
+                      />
+                    </Box>
+                  </Stack>
+
+                  {/* Chapters grid */}
+                  <Grid columns={1} md={2} lg={3} gap={4}>
+                    {module.chapters.map((chapter, chapterIndex) => {
+                      const chapterNumber = parseInt(chapter.id)
+                      const status = getChapterStatus(chapter.id)
+                      const isLocked = isChapterLocked(chapterNumber)
+
+                      return (
+                        <motion.div
+                          key={chapter.id}
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: moduleIndex * 0.1 + chapterIndex * 0.05 }}
+                        >
+                          {isLocked ? (
+                            <Box className="p-4 bg-gray-900/50 border border-gray-800 rounded-lg opacity-50 h-full">
+                              <Stack direction="col" gap={2}>
+                                <Stack direction="row" justify="between" align="center">
+                                  <h3 className="font-semibold text-gray-500">
+                                    {chapter.id}. {chapter.title}
+                                  </h3>
+                                  <Lock className="w-5 h-5 text-gray-600" />
+                                </Stack>
+                                <p className="text-sm text-gray-600">Dokončete předchozí kapitolu</p>
+                              </Stack>
+                            </Box>
+                          ) : (
+                            <ElectricBorder className="rounded-lg h-full">
+                              <Link
+                                href={`/chapters/${chapter.id}`}
+                                className="block p-4 bg-gray-900/50 hover:bg-gray-900/70 transition-all rounded-lg h-full"
+                              >
+                                <Stack direction="col" gap={3} className="h-full">
+                                  <Stack direction="row" justify="between" align="center">
+                                    <h3 className="font-semibold text-white">
+                                      Kapitola {chapter.id}
+                                    </h3>
+                                    {status === 'completed' ? (
+                                      <CheckCircle className="w-5 h-5 text-green-400" />
+                                    ) : (
+                                      <ChevronRight className="w-5 h-5 text-gray-400" />
+                                    )}
+                                  </Stack>
+
+                                  <p className="text-sm font-medium text-white flex-1">{chapter.title}</p>
+
+                                  <p className="text-xs text-gray-500">{chapter.description}</p>
+
+                                  <Stack direction="row" gap={4} align="center" className="text-xs text-gray-500">
+                                    <Stack direction="row" gap={1} align="center">
+                                      <Clock className="w-3 h-3" />
+                                      <span>~20 min</span>
+                                    </Stack>
+                                    <Stack direction="row" gap={1} align="center">
+                                      <Award className="w-3 h-3" />
+                                      <span>50 XP</span>
+                                    </Stack>
+                                    <span className="capitalize px-2 py-0.5 bg-purple-500/20 text-purple-300 rounded">
+                                      střední
+                                    </span>
+                                  </Stack>
+                                </Stack>
+                              </Link>
+                            </ElectricBorder>
+                          )}
+                        </motion.div>
+                      )
+                    })}
+                  </Grid>
+                </GlassSurface>
+              </motion.div>
+            )
+          })}
+        </Stack>
+      </Box>
+
+      {/* Footer CTA */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="mt-12"
+      >
+        <ElectricBorder className="rounded-lg">
+          <GlassSurface className="p-8 text-center">
+            <Stack direction="col" gap={4} align="center">
+              <Sparkles className="w-12 h-12 text-purple-400" />
+              <h3 className="text-2xl font-bold text-white">
+                Připraven začít svou AI cestu?
+              </h3>
+              <p className="text-gray-400 max-w-xl">
+                Projdi všemi 40 kapitolami, získej praktické zkušenosti s umělou inteligencí
+                a staň se součástí naší komunity v Apex Aréně!
+              </p>
+              <Link
+                href="/chapters/01"
+                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:shadow-xl transition-all"
+              >
+                Začít s Kapitolou 1
+              </Link>
+            </Stack>
+          </GlassSurface>
+        </ElectricBorder>
+      </motion.div>
+    </PageLayout>
+  )
 }

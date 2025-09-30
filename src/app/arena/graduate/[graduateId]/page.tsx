@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { 
@@ -11,8 +11,6 @@ import {
   Globe,
   Mail,
   Award,
-  Trophy,
-  Calendar,
   ExternalLink,
   Download,
   Briefcase,
@@ -89,12 +87,12 @@ const skillCategories = {
 }
 
 export default function GraduateDetailPage() {
-  const params = useParams()
+  // const params = useParams()
   const router = useRouter()
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'project' | 'article' | 'certificate'>('all')
-  
-  const graduateId = params?.graduateId as string
-  const graduate = mockGraduate // In real app: fetch based on graduateId
+
+  // const graduateId = params?.graduateId as string
+  const graduate = mockGraduate // In real app: fetch based on graduateId (params.graduateId)
   
   if (!graduate) {
     return <div>Absolvent nenalezen</div>

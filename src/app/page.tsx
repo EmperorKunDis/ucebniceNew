@@ -2,13 +2,12 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Lightning } from '@/components/ui/lightning'
+import { PageLayout } from '@/components/layout/page-layout'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { ElectricBorder } from '@/components/ui/electric-border'
 import { ProfileCard } from '@/components/ui/profile-card'
 import { Button } from '@/components/ui/button'
 import { Stack, Grid, Box } from '@/components/layout'
-import { Navigation } from '@/components/layout/navigation'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { ChevronRight, Code2, Brain, Trophy, Users } from 'lucide-react'
@@ -25,12 +24,7 @@ export default function HomePage() {
     }
   }, [username, onboardingCompleted, router])
   return (
-    <Box className="relative min-h-screen">
-      {/* Animated backgrounds */}
-      <Lightning className="fixed inset-0 z-0" />
-      
-      {/* Navigation */}
-      <Navigation />
+    <PageLayout>
       
       {/* Hero section */}
       <Box as="section" className="relative z-10 min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
@@ -51,8 +45,9 @@ export default function HomePage() {
               </h1>
               
               <p className="text-xl text-gray-300">
-                Prémiový vzdělávací ekosystém, který tě provede od základů až po profesionální úroveň. 
-                S gamifikací, interaktivními lekcemi a reálnými projekty.
+                Prémiový vzdělávací ekosystém, který tě provede od základů až po profesionální úroveň.
+                S AI mentorem dostupným 24/7, gamifikací, interaktivními lekcemi v Google Colab a reálnými projekty.
+                Získej certifikát a prezentuj své dovednosti v Apex Aréně před potenciálními zaměstnavateli.
               </p>
               
               <Stack direction="row" gap={4} wrap>
@@ -82,8 +77,7 @@ export default function HomePage() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="flex justify-center"
           >
-            <ProfileCard 
-              showMiniNebula={true}
+            <ProfileCard
               className="max-w-sm w-full h-[500px]"
             />
           </motion.div>
@@ -173,6 +167,6 @@ export default function HomePage() {
           </GlassSurface>
         </Box>
       </Box>
-    </Box>
+    </PageLayout>
   )
 }

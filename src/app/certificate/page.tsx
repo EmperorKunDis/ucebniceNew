@@ -10,29 +10,27 @@ import { Lightning } from '@/components/ui/lightning'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { CertificateGenerator } from '@/components/certificate/certificate-generator'
 import { useUserStore } from '@/store/user-store'
-import { lessonService } from '@/services/lesson-service'
+import { chapters } from '@/data/chapters'
 
 export default function CertificatePage() {
   const router = useRouter()
-  const { username, level, xp, progress } = useUserStore()
-  const [totalLessons, setTotalLessons] = useState(0)
+  const { progress } = useUserStore()
+  const [totalChapters] = useState(chapters.length)
   const [isEligible, setIsEligible] = useState(false)
-  
+
   useEffect(() => {
     checkEligibility()
   }, [progress])
-  
-  const checkEligibility = async () => {
-    const modules = await lessonService.getAllModules()
-    const total = modules.reduce((sum, module) => sum + module.lessons.length, 0)
-    setTotalLessons(total)
-    
-    // Eligible if completed at least 80% of lessons
+
+  const checkEligibility = () => {
+    const total = chapters.length
+
+    // Eligible if completed at least 80% of chapters
     const completionRate = (progress.length / total) * 100
     setIsEligible(completionRate >= 80)
   }
-  
-  const completionRate = totalLessons > 0 ? (progress.length / totalLessons) * 100 : 0
+
+  const completionRate = totalChapters > 0 ? (progress.length / totalChapters) * 100 : 0
   
   return (
     <div className="min-h-screen relative">
@@ -139,7 +137,7 @@ export default function CertificatePage() {
                   Ještě nemáš nárok na certifikát
                 </h2>
                 <p className="text-gray-300 mb-6">
-                  Pro získání certifikátu musíš dokončit alespoň 80% všech lekcí.
+                  Pro získání certifikátu musíš dokončit alespoň 80% všech kapitol.
                 </p>
                 
                 {/* Progress bar */}
@@ -160,12 +158,12 @@ export default function CertificatePage() {
                 
                 <div className="space-y-3">
                   <p className="text-gray-400">
-                    Dokončil/a jsi {progress.length} z {totalLessons} lekcí.
-                    Zbývá ti ještě {Math.ceil(totalLessons * 0.8) - progress.length} lekcí.
+                    Dokončil/a jsi {progress.length} z {totalChapters} kapitol.
+                    Zbývá ti ještě {Math.ceil(totalChapters * 0.8) - progress.length} kapitol.
                   </p>
                   
                   <Link
-                    href="/lessons"
+                    href="/chapters"
                     className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all"
                   >
                     Pokračovat v učení

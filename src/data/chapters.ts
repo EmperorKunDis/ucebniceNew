@@ -543,13 +543,13 @@ export function getChapterById(id: string): Chapter | undefined {
 export function getNextChapter(currentId: string): Chapter | null {
   const currentIndex = chapters.findIndex(ch => ch.id === currentId);
   if (currentIndex === -1 || currentIndex === chapters.length - 1) return null;
-  return chapters[currentIndex + 1];
+  return chapters[currentIndex + 1] ?? null;
 }
 
 export function getPreviousChapter(currentId: string): Chapter | null {
   const currentIndex = chapters.findIndex(ch => ch.id === currentId);
   if (currentIndex <= 0) return null;
-  return chapters[currentIndex - 1];
+  return chapters[currentIndex - 1] ?? null;
 }
 
 // Cesty k souborům

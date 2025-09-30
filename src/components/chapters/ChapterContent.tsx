@@ -1,17 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Box } from '@/components/ui';
+import { Box } from '@/components/layout';
 import { Loader2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 interface ChapterContentProps {
   content: string;
   type: 'text' | 'lecture';
-  chapterId: string;
 }
 
-export function ChapterContent({ content, type, chapterId }: ChapterContentProps) {
+export function ChapterContent({ content, type }: ChapterContentProps) {
   const [markdownContent, setMarkdownContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,15 +20,14 @@ export function ChapterContent({ content, type, chapterId }: ChapterContentProps
       try {
         setLoading(true);
         setError(null);
-        
-        // Konstruovat cestu k souboru
-        const basePath = type === 'text' ? '/texty/' : '/prednasky/';
-        const response = await fetch(basePath + content);
-        
+
+        // Cesta k souboru - vždy z /prednasky
+        const response = await fetch(`/prednasky/${content}`);
+
         if (!response.ok) {
           throw new Error(`Nepodařilo se načíst obsah: ${response.status}`);
         }
-        
+
         const text = await response.text();
         setMarkdownContent(text);
       } catch (err) {
@@ -90,13 +88,13 @@ export function ChapterContent({ content, type, chapterId }: ChapterContentProps
             <em className="text-gray-200 italic">{children}</em>
           ),
           blockquote: ({ children }) => (
-            <blockquote className="border-l-4 border-blue-500 pl-4 py-2 my-4 bg-gray-800/50 rounded-r">
+            <blockquote className="border-l-4 border-purple-500 pl-4 py-2 my-4 bg-gray-800/50 rounded-r">
               {children}
             </blockquote>
           ),
-          code: ({ inline, children }) => {
+          code: ({ inline, children }: any) => {
             return inline ? (
-              <code className="bg-gray-800 text-blue-300 px-1 py-0.5 rounded text-sm font-mono">
+              <code className="bg-gray-800 text-purple-300 px-1 py-0.5 rounded text-sm font-mono">
                 {children}
               </code>
             ) : (
@@ -107,11 +105,11 @@ export function ChapterContent({ content, type, chapterId }: ChapterContentProps
           },
           hr: () => <hr className="border-gray-700 my-8" />,
           a: ({ href, children }) => (
-            <a 
-              href={href} 
-              target="_blank" 
+            <a
+              href={href}
+              target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-400 hover:text-blue-300 underline"
+              className="text-purple-400 hover:text-purple-300 underline"
             >
               {children}
             </a>

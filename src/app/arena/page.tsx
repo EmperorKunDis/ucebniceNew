@@ -1,33 +1,28 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { 
-  Trophy, 
-  Calendar,
+import {
+  Trophy,
   Users,
-  Clock,
-  Award,
-  Plus,
   Search,
-  Filter,
   ChevronRight,
   ExternalLink,
   Briefcase,
   Star,
-  Code
+  Code,
+  Calendar,
+  Clock
 } from 'lucide-react'
 
-import { Lightning } from '@/components/ui/lightning'
+import { PageLayout } from '@/components/layout/page-layout'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { ElectricBorder } from '@/components/ui/electric-border'
 import { Button } from '@/components/ui/button'
-import { Box } from '@/components/ui/box'
-import { Stack } from '@/components/ui/stack'
-import { Grid } from '@/components/ui/grid'
-import { useUserStore } from '@/store/user-store'
-import { Hackathon, Graduate, Team, Project } from '@/types/arena'
+import { Box, Stack, Grid } from '@/components/layout'
+// import { useUserStore } from '@/store/user-store'
+import { Hackathon, Graduate } from '@/types/arena'
 
 // Mock data for hackathons
 const mockHackathons: Hackathon[] = [
@@ -129,7 +124,7 @@ export default function ArenaPage() {
   const [activeTab, setActiveTab] = useState<TabType>('hackathons')
   const [searchQuery, setSearchQuery] = useState('')
   const [filterStatus, setFilterStatus] = useState<'all' | 'upcoming' | 'active' | 'completed'>('all')
-  const { username, level } = useUserStore()
+  // const { username, level } = useUserStore()
   
   const filteredHackathons = mockHackathons.filter(hack => {
     if (filterStatus !== 'all' && hack.status !== filterStatus) return false
@@ -145,235 +140,206 @@ export default function ArenaPage() {
   })
   
   return (
-    <Box className="min-h-screen relative">
-      <Lightning />
-      
-      {/* Navigation */}
-      <Box as="nav" className="fixed top-0 left-0 right-0 z-50 p-4">
-        <Box className="max-w-7xl mx-auto">
-          <GlassSurface className="p-6" borderRadius={16} blur={20} backgroundOpacity={0.02} opacity={0.95}>
-            <Stack direction="row" justify="between" align="center">
-              <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                Učebnice AI
-              </Link>
-              
-              <Stack direction="row" gap={6}>
-                <Link href="/lessons" className="text-gray-300 hover:text-white transition-colors">
-                  Lekce
-                </Link>
-                <Link href="/dashboard" className="text-gray-300 hover:text-white transition-colors">
-                  Dashboard
-                </Link>
-                <Link href="/profile" className="text-gray-300 hover:text-white transition-colors">
-                  Profil
-                </Link>
-              </Stack>
-            </Stack>
+    <PageLayout>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center mb-12"
+      >
+        <h1 className="text-5xl font-bold text-white mb-4">
+          Apex Aréna
+        </h1>
+        <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+          Místo, kde se setkávají talentovaní vývojáři, soutěží v hackathonech a prezentují své dovednosti potenciálním zaměstnavatelům.
+          Propoj se s komunitou, získej hodnotnou zpětnou vazbu od odborníků a otevři si dveře ke kariérním příležitostem.
+        </p>
+      </motion.div>
+
+      {/* Tabs */}
+      <Stack justify="center" className="mb-8">
+        <GlassSurface className="inline-flex p-1">
+          <Button
+            variant={activeTab === 'hackathons' ? 'primary' : 'ghost'}
+            onClick={() => setActiveTab('hackathons')}
+            className="rounded-lg"
+          >
+            <Trophy className="w-5 h-5 mr-2" />
+            Hackathony
+          </Button>
+          <Button
+            variant={activeTab === 'graduates' ? 'primary' : 'ghost'}
+            onClick={() => setActiveTab('graduates')}
+            className="rounded-lg"
+          >
+            <Star className="w-5 h-5 mr-2" />
+            Absolventi
+          </Button>
+          <Button
+            variant={activeTab === 'my-teams' ? 'primary' : 'ghost'}
+            onClick={() => setActiveTab('my-teams')}
+            className="rounded-lg"
+          >
+            <Users className="w-5 h-5 mr-2" />
+            Moje týmy
+          </Button>
+        </GlassSurface>
+      </Stack>
+
+      {/* Search and filters */}
+      <Stack
+        direction="row"
+        gap={4}
+        className="mb-8 max-w-3xl mx-auto flex-col sm:flex-row"
+      >
+        <Box className="flex-1">
+          <GlassSurface className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder={activeTab === 'hackathons' ? 'Hledat hackathony...' : 'Hledat absolventy...'}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-transparent pl-12 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none"
+            />
           </GlassSurface>
         </Box>
-      </Box>
-      
-      {/* Hero section */}
-      <Box as="section" className="relative z-10 pt-24 pb-12 px-4">
-        <Box className="max-w-7xl mx-auto">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-12"
-          >
-            <h1 className="text-5xl font-bold text-white mb-4">
-              Apex Aréna
-            </h1>
-            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-              Místo kde se setkávají talentovaní vývojáři, soutěží v hackathonech a prezentují své dovednosti světu.
-            </p>
-          </motion.div>
-          
-          {/* Tabs */}
-          <Stack justify="center" className="mb-8">
-            <GlassSurface className="inline-flex p-1">
-              <Button
-                variant={activeTab === 'hackathons' ? 'primary' : 'ghost'}
-                onClick={() => setActiveTab('hackathons')}
-                className="rounded-lg"
+
+        {activeTab === 'hackathons' && (
+          <GlassSurface className="inline-flex p-1">
+            <Button
+              variant={filterStatus === 'all' ? 'primary' : 'ghost'}
+              size="sm"
+              onClick={() => setFilterStatus('all')}
+              className="rounded"
+            >
+              Vše
+            </Button>
+            <Button
+              variant={filterStatus === 'upcoming' ? 'primary' : 'ghost'}
+              size="sm"
+              onClick={() => setFilterStatus('upcoming')}
+              className="rounded"
+            >
+              Nadcházející
+            </Button>
+            <Button
+              variant={filterStatus === 'active' ? 'primary' : 'ghost'}
+              size="sm"
+              onClick={() => setFilterStatus('active')}
+              className="rounded"
+            >
+              Probíhající
+            </Button>
+            <Button
+              variant={filterStatus === 'completed' ? 'primary' : 'ghost'}
+              size="sm"
+              onClick={() => setFilterStatus('completed')}
+              className="rounded"
+            >
+              Ukončené
+            </Button>
+          </GlassSurface>
+        )}
+      </Stack>
+
+      {/* Content */}
+      <Box>
+        {activeTab === 'hackathons' && (
+          <Grid columns={1} md={2} gap={6}>
+            {filteredHackathons.map((hackathon, i) => (
+              <motion.div
+                key={hackathon.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
               >
-                <Trophy className="w-5 h-5 mr-2" />
-                Hackathony
-              </Button>
-              <Button
-                variant={activeTab === 'graduates' ? 'primary' : 'ghost'}
-                onClick={() => setActiveTab('graduates')}
-                className="rounded-lg"
-              >
-                <Star className="w-5 h-5 mr-2" />
-                Absolventi
-              </Button>
-              <Button
-                variant={activeTab === 'my-teams' ? 'primary' : 'ghost'}
-                onClick={() => setActiveTab('my-teams')}
-                className="rounded-lg"
-              >
-                <Users className="w-5 h-5 mr-2" />
-                Moje týmy
-              </Button>
-            </GlassSurface>
-          </Stack>
-          
-          {/* Search and filters */}
-          <Stack 
-            direction="row" 
-            gap={4} 
-            className="mb-8 max-w-3xl mx-auto flex-col sm:flex-row"
-          >
-            <Box className="flex-1">
-              <GlassSurface className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder={activeTab === 'hackathons' ? 'Hledat hackathony...' : 'Hledat absolventy...'}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-transparent pl-12 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none"
-                />
-              </GlassSurface>
-            </Box>
-            
-            {activeTab === 'hackathons' && (
-              <GlassSurface className="inline-flex p-1">
-                <Button
-                  variant={filterStatus === 'all' ? 'primary' : 'ghost'}
-                  size="sm"
-                  onClick={() => setFilterStatus('all')}
-                  className="rounded"
-                >
-                  Vše
-                </Button>
-                <Button
-                  variant={filterStatus === 'upcoming' ? 'primary' : 'ghost'}
-                  size="sm"
-                  onClick={() => setFilterStatus('upcoming')}
-                  className="rounded"
-                >
-                  Nadcházející
-                </Button>
-                <Button
-                  variant={filterStatus === 'active' ? 'primary' : 'ghost'}
-                  size="sm"
-                  onClick={() => setFilterStatus('active')}
-                  className="rounded"
-                >
-                  Probíhající
-                </Button>
-                <Button
-                  variant={filterStatus === 'completed' ? 'primary' : 'ghost'}
-                  size="sm"
-                  onClick={() => setFilterStatus('completed')}
-                  className="rounded"
-                >
-                  Ukončené
-                </Button>
-              </GlassSurface>
-            )}
-          </Stack>
-          
-          {/* Content */}
-          <Box className="max-w-7xl mx-auto">
-            {activeTab === 'hackathons' && (
-              <Grid columns={1} md={2} gap={6}>
-                {filteredHackathons.map((hackathon, i) => (
-                  <motion.div
-                    key={hackathon.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.1 }}
+                <ElectricBorder className="h-full rounded-lg">
+                  <GlassSurface className="p-6 h-full">
+                <Stack direction="col" gap={4}>
+                  <Stack direction="row" justify="between" align="start">
+                    <Box>
+                      <h3 className="text-2xl font-bold text-white mb-2">{hackathon.title}</h3>
+                      <p className="text-gray-400">{hackathon.theme}</p>
+                    </Box>
+                    <Box className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      hackathon.status === 'upcoming' ? 'bg-blue-500/20 text-blue-300' :
+                      hackathon.status === 'active' ? 'bg-green-500/20 text-green-300' :
+                      'bg-gray-500/20 text-gray-300'
+                    }`}>
+                      {hackathon.status === 'upcoming' ? 'Nadcházející' :
+                       hackathon.status === 'active' ? 'Probíhá' : 'Ukončeno'}
+                    </Box>
+                  </Stack>
+                  
+                  <p className="text-gray-300">{hackathon.description}</p>
+                  
+                  <Stack direction="col" gap={3}>
+                    <Stack direction="row" gap={2} align="center" className="text-sm text-gray-400">
+                      <Calendar className="w-4 h-4" />
+                      <span>
+                  {hackathon.startDate.toLocaleDateString('cs-CZ')} - {hackathon.endDate.toLocaleDateString('cs-CZ')}
+                      </span>
+                    </Stack>
+                    <Stack direction="row" gap={2} align="center" className="text-sm text-gray-400">
+                      <Users className="w-4 h-4" />
+                      <span>Max. {hackathon.maxTeamSize} členů v týmu</span>
+                    </Stack>
+                    <Stack direction="row" gap={2} align="center" className="text-sm text-gray-400">
+                      <Clock className="w-4 h-4" />
+                      <span>Registrace do: {hackathon.registrationDeadline.toLocaleDateString('cs-CZ')}</span>
+                    </Stack>
+                  </Stack>
+                  
+                  <Box>
+                    <h4 className="text-sm font-semibold text-white mb-2">Ceny:</h4>
+                    <Stack gap={2}>
+                      {hackathon.prizes.slice(0, 3).map((prize) => (
+                  <Stack key={prize.place} direction="row" justify="between" className="text-sm">
+                    <span className="text-gray-400">{prize.place}. místo</span>
+                    <span className="text-purple-300 font-medium">{prize.value}</span>
+                  </Stack>
+                      ))}
+                    </Stack>
+                  </Box>
+                  
+                  <Stack direction="row" justify="between" align="center">
+                    <Stack direction="row" className="-space-x-2">
+                      {hackathon.sponsors.slice(0, 3).map((sponsor, i) => (
+                  <Box
+                    key={i}
+                    className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs text-white border-2 border-gray-900"
+                    title={sponsor}
                   >
-                    <ElectricBorder className="h-full rounded-lg">
-                      <GlassSurface className="p-6 h-full">
-                        <Stack direction="col" gap={4}>
-                          <Stack direction="row" justify="between" align="start">
-                            <Box>
-                              <h3 className="text-2xl font-bold text-white mb-2">{hackathon.title}</h3>
-                              <p className="text-gray-400">{hackathon.theme}</p>
-                            </Box>
-                            <Box className={`px-3 py-1 rounded-full text-sm font-medium ${
-                              hackathon.status === 'upcoming' ? 'bg-blue-500/20 text-blue-300' :
-                              hackathon.status === 'active' ? 'bg-green-500/20 text-green-300' :
-                              'bg-gray-500/20 text-gray-300'
-                            }`}>
-                              {hackathon.status === 'upcoming' ? 'Nadcházející' :
-                               hackathon.status === 'active' ? 'Probíhá' : 'Ukončeno'}
-                            </Box>
-                          </Stack>
-                          
-                          <p className="text-gray-300">{hackathon.description}</p>
-                          
-                          <Stack direction="col" gap={3}>
-                            <Stack direction="row" gap={2} align="center" className="text-sm text-gray-400">
-                              <Calendar className="w-4 h-4" />
-                              <span>
-                                {hackathon.startDate.toLocaleDateString('cs-CZ')} - {hackathon.endDate.toLocaleDateString('cs-CZ')}
-                              </span>
-                            </Stack>
-                            <Stack direction="row" gap={2} align="center" className="text-sm text-gray-400">
-                              <Users className="w-4 h-4" />
-                              <span>Max. {hackathon.maxTeamSize} členů v týmu</span>
-                            </Stack>
-                            <Stack direction="row" gap={2} align="center" className="text-sm text-gray-400">
-                              <Clock className="w-4 h-4" />
-                              <span>Registrace do: {hackathon.registrationDeadline.toLocaleDateString('cs-CZ')}</span>
-                            </Stack>
-                          </Stack>
-                          
-                          <Box>
-                            <h4 className="text-sm font-semibold text-white mb-2">Ceny:</h4>
-                            <Stack gap={2}>
-                              {hackathon.prizes.slice(0, 3).map((prize) => (
-                                <Stack key={prize.place} direction="horizontal" justify="between" className="text-sm">
-                                  <span className="text-gray-400">{prize.place}. místo</span>
-                                  <span className="text-purple-300 font-medium">{prize.value}</span>
-                                </Stack>
-                              ))}
-                            </Stack>
-                          </Box>
-                          
-                          <Stack direction="row" justify="between" align="center">
-                            <Stack direction="row" className="-space-x-2">
-                              {hackathon.sponsors.slice(0, 3).map((sponsor, i) => (
-                                <Box
-                                  key={i}
-                                  className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs text-white border-2 border-gray-900"
-                                  title={sponsor}
-                                >
-                                  {sponsor.charAt(0)}
-                                </Box>
-                              ))}
-                              {hackathon.sponsors.length > 3 && (
-                                <Box className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs text-white border-2 border-gray-900">
-                                  +{hackathon.sponsors.length - 3}
-                                </Box>
-                              )}
-                            </Stack>
-                            
-                            <Button
-                              asChild
-                              size="sm"
-                            >
-                              <Link href={`/arena/hackathon/${hackathon.id}`}>
-                                Více info
-                                <ChevronRight className="w-4 h-4 ml-2" />
-                              </Link>
-                            </Button>
-                          </Stack>
-                        </Stack>
-                      </GlassSurface>
-                    </ElectricBorder>
-                  </motion.div>
+                    {sponsor.charAt(0)}
+                  </Box>
+                      ))}
+                      {hackathon.sponsors.length > 3 && (
+                  <Box className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs text-white border-2 border-gray-900">
+                    +{hackathon.sponsors.length - 3}
+                  </Box>
+                      )}
+                    </Stack>
+                    
+                    <Button
+                      asChild
+                      size="sm"
+                    >
+                      <Link href={`/arena/hackathon/${hackathon.id}`}>
+                  Více info
+                  <ChevronRight className="w-4 h-4 ml-2" />
+                      </Link>
+                    </Button>
+                  </Stack>
+                </Stack>
+                  </GlassSurface>
+                </ElectricBorder>
+              </motion.div>
                 ))}
                 
                 {filteredHackathons.length === 0 && (
-                  <Box className="col-span-2 text-center py-12">
-                    <p className="text-gray-400">Žádné hackathony nebyly nalezeny</p>
-                  </Box>
+              <Box className="col-span-2 text-center py-12">
+                <p className="text-gray-400">Žádné hackathony nebyly nalezeny</p>
+              </Box>
                 )}
               </Grid>
             )}
@@ -381,98 +347,98 @@ export default function ArenaPage() {
             {activeTab === 'graduates' && (
               <Grid columns={1} md={2} lg={3} gap={6}>
                 {filteredGraduates.map((graduate, i) => (
-                  <motion.div
-                    key={graduate.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: i * 0.1 }}
+              <motion.div
+                key={graduate.id}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.1 }}
+              >
+                <GlassSurface className="p-6 h-full">
+                  <Stack direction="col" gap={4}>
+                <Stack direction="col" align="center">
+                  <Box className="w-24 h-24 mb-3 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-3xl font-bold text-white">
+                    {graduate.fullName.split(' ').map(n => n[0]).join('')}
+                  </Box>
+                  <h3 className="text-xl font-bold text-white">{graduate.fullName}</h3>
+                  <p className="text-gray-400">@{graduate.username}</p>
+                </Stack>
+                
+                <p className="text-sm text-gray-300 line-clamp-3">{graduate.bio}</p>
+                
+                <Stack direction="col" gap={3}>
+                  <Stack direction="row" justify="between" className="text-sm">
+                    <span className="text-gray-400">Absolvoval</span>
+                    <span className="text-white">{graduate.graduatedAt.toLocaleDateString('cs-CZ')}</span>
+                  </Stack>
+                  <Stack direction="row" justify="between" className="text-sm">
+                    <span className="text-gray-400">Hackathon výhry</span>
+                    <span className="text-purple-300 font-medium">{graduate.hackathonWins}</span>
+                  </Stack>
+                  {graduate.lookingForWork && (
+                    <Stack direction="row" gap={2} align="center" className="text-sm text-green-400">
+                      <Briefcase className="w-4 h-4" />
+                      <span>Hledá práci</span>
+                    </Stack>
+                  )}
+                </Stack>
+                
+                <Box>
+                  <h4 className="text-sm font-semibold text-white mb-2">Dovednosti:</h4>
+                  <Stack direction="row" wrap gap={2}>
+                    {graduate.skills.slice(0, 5).map((skill) => (
+                      <Box
+                  key={skill}
+                  className="px-2 py-1 bg-purple-500/20 text-purple-300 text-xs rounded-full"
+                      >
+                  {skill}
+                      </Box>
+                    ))}
+                    {graduate.skills.length > 5 && (
+                      <Box className="px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded-full">
+                  +{graduate.skills.length - 5}
+                      </Box>
+                    )}
+                  </Stack>
+                </Box>
+                
+                <Stack direction="row" gap={2}>
+                  {graduate.github && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="flex-1"
+                      asChild
+                    >
+                      <a
+                  href={graduate.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                      >
+                  <Code className="w-4 h-4 mr-2" />
+                  GitHub
+                      </a>
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    className="flex-1"
+                    asChild
                   >
-                    <GlassSurface className="p-6 h-full">
-                      <Stack direction="col" gap={4}>
-                        <Stack direction="col" align="center">
-                          <Box className="w-24 h-24 mb-3 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-3xl font-bold text-white">
-                            {graduate.fullName.split(' ').map(n => n[0]).join('')}
-                          </Box>
-                          <h3 className="text-xl font-bold text-white">{graduate.fullName}</h3>
-                          <p className="text-gray-400">@{graduate.username}</p>
-                        </Stack>
-                        
-                        <p className="text-sm text-gray-300 line-clamp-3">{graduate.bio}</p>
-                        
-                        <Stack direction="col" gap={3}>
-                          <Stack direction="row" justify="between" className="text-sm">
-                            <span className="text-gray-400">Absolvoval</span>
-                            <span className="text-white">{graduate.graduatedAt.toLocaleDateString('cs-CZ')}</span>
-                          </Stack>
-                          <Stack direction="row" justify="between" className="text-sm">
-                            <span className="text-gray-400">Hackathon výhry</span>
-                            <span className="text-purple-300 font-medium">{graduate.hackathonWins}</span>
-                          </Stack>
-                          {graduate.lookingForWork && (
-                            <Stack direction="row" gap={2} align="center" className="text-sm text-green-400">
-                              <Briefcase className="w-4 h-4" />
-                              <span>Hledá práci</span>
-                            </Stack>
-                          )}
-                        </Stack>
-                        
-                        <Box>
-                          <h4 className="text-sm font-semibold text-white mb-2">Dovednosti:</h4>
-                          <Stack direction="row" wrap gap={2}>
-                            {graduate.skills.slice(0, 5).map((skill) => (
-                              <Box
-                                key={skill}
-                                className="px-2 py-1 bg-purple-500/20 text-purple-300 text-xs rounded-full"
-                              >
-                                {skill}
-                              </Box>
-                            ))}
-                            {graduate.skills.length > 5 && (
-                              <Box className="px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded-full">
-                                +{graduate.skills.length - 5}
-                              </Box>
-                            )}
-                          </Stack>
-                        </Box>
-                        
-                        <Stack direction="row" gap={2}>
-                          {graduate.github && (
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              className="flex-1"
-                              asChild
-                            >
-                              <a
-                                href={graduate.github}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <Code className="w-4 h-4 mr-2" />
-                                GitHub
-                              </a>
-                            </Button>
-                          )}
-                          <Button
-                            size="sm"
-                            className="flex-1"
-                            asChild
-                          >
-                            <Link href={`/arena/graduate/${graduate.id}`}>
-                              Profil
-                              <ExternalLink className="w-4 h-4 ml-2" />
-                            </Link>
-                          </Button>
-                        </Stack>
-                      </Stack>
-                    </GlassSurface>
-                  </motion.div>
+                    <Link href={`/arena/graduate/${graduate.id}`}>
+                      Profil
+                      <ExternalLink className="w-4 h-4 ml-2" />
+                    </Link>
+                  </Button>
+                </Stack>
+                  </Stack>
+                </GlassSurface>
+              </motion.div>
                 ))}
                 
                 {filteredGraduates.length === 0 && (
-                  <Box className="col-span-full text-center py-12">
-                    <p className="text-gray-400">Žádní absolventi nebyli nalezeni</p>
-                  </Box>
+              <Box className="col-span-full text-center py-12">
+                <p className="text-gray-400">Žádní absolventi nebyli nalezeni</p>
+              </Box>
                 )}
               </Grid>
             )}
@@ -480,26 +446,24 @@ export default function ArenaPage() {
             {activeTab === 'my-teams' && (
               <Box className="max-w-4xl mx-auto">
                 <GlassSurface className="p-8 text-center">
-                  <Stack direction="col" align="center" gap={4}>
-                    <Users className="w-16 h-16 text-gray-600" />
-                    <h3 className="text-2xl font-bold text-white">Zatím nejsi členem žádného týmu</h3>
-                    <p className="text-gray-400">
-                      Připoj se k hackathonu a vytvoř nebo se připoj k týmu!
-                    </p>
-                    <Button
-                      onClick={() => setActiveTab('hackathons')}
-                      className="mt-2"
-                    >
-                      Procházet hackathony
-                      <ChevronRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </Stack>
+              <Stack direction="col" align="center" gap={4}>
+                <Users className="w-16 h-16 text-gray-600" />
+                <h3 className="text-2xl font-bold text-white">Zatím nejsi členem žádného týmu</h3>
+                <p className="text-gray-400">
+                  Připoj se k hackathonu a vytvoř nebo se připoj k týmu!
+                </p>
+                <Button
+                  onClick={() => setActiveTab('hackathons')}
+                  className="mt-2"
+                >
+                  Procházet hackathony
+                  <ChevronRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Stack>
                 </GlassSurface>
               </Box>
             )}
           </Box>
-        </Box>
-      </Box>
-    </Box>
+    </PageLayout>
   )
 }

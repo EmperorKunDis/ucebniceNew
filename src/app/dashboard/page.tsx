@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import {
-  Trophy,
   Target,
   Flame,
   Calendar,
@@ -12,20 +11,17 @@ import {
   Award,
   Users,
   ChevronRight,
-  Star,
-  Zap,
   FileCheck
 } from 'lucide-react'
 
-import { Lightning } from '@/components/ui/lightning'
+import { PageLayout } from '@/components/layout/page-layout'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { ProfileCard } from '@/components/ui/profile-card'
 import { ElectricBorder } from '@/components/ui/electric-border'
 import { Button } from '@/components/ui/button'
 import { Stack, Grid, Box } from '@/components/layout'
 import { useUserStore } from '@/store/user-store'
-import { lessonService } from '@/services/lesson-service'
-import { BADGES, XP_REWARDS } from '@/lib/constants'
+import { chapters } from '@/data/chapters'
 
 interface LeaderboardEntry {
   rank: number
@@ -51,9 +47,8 @@ export default function DashboardPage() {
 
   useEffect(() => {
     // Functions to load stats and generate activity
-    const loadStats = async () => {
-      const modules = await lessonService.getAllModules()
-      const total = modules.reduce((sum, module) => sum + module.lessons.length, 0)
+    const loadStats = () => {
+      const total = chapters.length
       setTotalLessons(total)
     }
     const generateWeeklyActivity = () => {
@@ -69,39 +64,9 @@ export default function DashboardPage() {
   const currentLevelXP = Math.pow(level - 1, 2) * 100
   const progressToNextLevel = ((xp - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100
   const weekDays = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne']
-  const getActivityOpacityClass = (value: number) => {
-    if (value >= 5) return 'opacity-100'
-    if (value === 4) return 'opacity-80'
-    if (value === 3) return 'opacity-60'
-    if (value === 2) return 'opacity-40'
-    return 'opacity-20'
-  }
 
   return (
-    <Box className="min-h-screen relative overflow-x-hidden bg-black">
-      <Lightning className="fixed inset-0 z-0" />
-
-      {/* Navigation */}
-      <Box as="nav" className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 lg:px-8 py-4">
-        <Box className="max-w-7xl mx-auto">
-          <GlassSurface className="px-6 py-4" borderRadius={16} blur={20}>
-            <Stack direction="row" justify="between" align="center">
-              <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                Učebnice AI
-              </Link>
-              <Stack direction="row" gap={4} align="center">
-                <Link href="/lessons" className="text-gray-300 hover:text-white transition-colors">Lekce</Link>
-                <Link href="/arena" className="text-gray-300 hover:text-white transition-colors">Apex Aréna</Link>
-                <Link href="/profile" className="text-gray-300 hover:text-white transition-colors">Profil</Link>
-              </Stack>
-            </Stack>
-          </GlassSurface>
-        </Box>
-      </Box>
-
-      {/* Main content */}
-      <Box as="main" className="relative z-10 pt-28 pb-16 px-4 sm:px-6 lg:px-8">
-        <Box className="max-w-7xl mx-auto">
+    <PageLayout>
           {/* Welcome section */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <Stack direction="col" gap={2} className="mb-8">
@@ -109,7 +74,7 @@ export default function DashboardPage() {
                 Vítej zpět, {username || 'Student'}!
               </h1>
               <p className="text-lg sm:text-xl text-gray-400">
-                Pokračuj ve své cestě k mistrovství v programování.
+                Pokračuj ve své cestě k mistrovství v programování. Tvůj pokrok je impozantní - každá dokončená lekce tě posouvá blíž k tvým cílům. Udržuj své tempo a nezapomeň na pravidelnost!
               </p>
             </Stack>
           </motion.div>
@@ -121,7 +86,7 @@ export default function DashboardPage() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <ProfileCard showMiniNebula={true} className="h-full" />
+              <ProfileCard className="h-full" />
             </motion.div>
             
             <motion.div
@@ -196,7 +161,7 @@ export default function DashboardPage() {
                   <Calendar className="w-6 h-6 text-purple-400" />
                   <h2 className="text-2xl font-bold text-white">Týdenní aktivita</h2>
                 </Stack>
-                <Grid columns={7} gap={2}>
+                <div className="grid grid-cols-7 gap-2">
                   {weeklyActivity.map((activity, i) => (
                     <Stack key={i} direction="col" gap={2} align="center">
                       <p className="text-xs text-gray-400">{weekDays[i]}</p>
@@ -209,7 +174,7 @@ export default function DashboardPage() {
                       />
                     </Stack>
                   ))}
-                </Grid>
+                </div>
               </Stack>
             </GlassSurface>
           </motion.div>
@@ -337,8 +302,6 @@ export default function DashboardPage() {
               </GlassSurface>
             </motion.div>
           </Grid>
-        </Box>
-      </Box>
-    </Box>
+    </PageLayout>
   )
 }
