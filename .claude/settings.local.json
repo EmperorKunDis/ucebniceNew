@@ -22,7 +22,8 @@
       "Bash(ipconfig:*)",
       "Bash(npm run analyze:*)",
       "Bash(npm run dev:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
