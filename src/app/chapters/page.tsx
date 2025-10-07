@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import {
@@ -12,18 +13,43 @@ import {
   BookOpen,
   Brain,
   Target,
-  Code
+  Code,
 } from 'lucide-react'
 
-import { PageLayout } from '@/components/layout/page-layout'
+import { UnifiedPageLayout } from '@/components/layout/unified-page-layout'
+import { SectionHeader } from '@/components/ui/section-header'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { ElectricBorder } from '@/components/ui/electric-border'
 import { Stack, Grid, Box } from '@/components/layout'
-import { useUserStore } from '@/store/user-store'
 import { chapters } from '@/data/chapters'
 
+interface LessonProgress {
+  lessonId: string
+  progress: number
+}
+
 export default function ChaptersPage() {
-  const { progress } = useUserStore()
+  const [progress, setProgress] = useState<LessonProgress[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    // Fetch fresh progress data from API
+    const fetchProgress = async () => {
+      try {
+        const response = await fetch('/api/user/stats')
+        if (response.ok) {
+          const data = await response.json()
+          setProgress(data.progress || [])
+        }
+      } catch (error) {
+        console.error('Error fetching progress:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchProgress()
+  }, [])
 
   const getChapterStatus = (chapterId: string) => {
     const chapterProgress = progress.find(p => p.lessonId === chapterId)
@@ -81,43 +107,38 @@ export default function ChaptersPage() {
     },
   ]
 
-  const getModuleProgress = (module: typeof modules[0]) => {
+  const getModuleProgress = (module: (typeof modules)[0]) => {
     const completedChapters = module.chapters.filter(chapter =>
       progress.some(p => p.lessonId === chapter.id)
     ).length
     return {
       completed: completedChapters,
       total: module.chapters.length,
-      percentage: (completedChapters / module.chapters.length) * 100
+      percentage: (completedChapters / module.chapters.length) * 100,
     }
   }
 
+  // Najít další kapitolu k dokončení
+  const getNextChapter = () => {
+    // Pokud žádný progress, vrať první kapitolu
+    if (progress.length === 0) {
+      return chapters[0]
+    }
+
+    // Najdi první nedokončenou kapitolu
+    const nextChapter = chapters.find(chapter => !progress.some(p => p.lessonId === chapter.id))
+
+    // Pokud jsou všechny dokončené, vrať poslední
+    return nextChapter || chapters[chapters.length - 1]
+  }
+
+  const nextChapter = getNextChapter()
+
   return (
-    <PageLayout contentClassName="pt-32">
-      {/* Hero section */}
-      <Box as="section" className="pb-12">
-        <Stack direction="col" gap={4} align="center">
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-5xl font-bold text-center"
-          >
-            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Kapitoly kurzu
-            </span>
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-xl text-gray-400 max-w-2xl text-center"
-          >
-            40 kapitol pokrývajících kompletní cestu od základů umělé inteligence až po pokročilé koncepty.
-            Každá kapitola obsahuje video přednášku, studijní materiály a praktické úlohy.
-            Sbírej XP body a postupuj vlastním tempem!
-          </motion.p>
-        </Stack>
-      </Box>
+    <UnifiedPageLayout maxWidth="7xl">
+      <SectionHeader subtitle="40 kapitol pokrývajících kompletní cestu od základů umělé inteligence až po pokročilé koncepty. Každá kapitola obsahuje video přednášku, studijní materiály a praktické úlohy. Sbírej XP body a postupuj vlastním tempem!">
+        Kapitoly kurzu
+      </SectionHeader>
 
       {/* Modules and chapters */}
       <Box as="section">
@@ -165,6 +186,7 @@ export default function ChaptersPage() {
                       const chapterNumber = parseInt(chapter.id)
                       const status = getChapterStatus(chapter.id)
                       const isLocked = isChapterLocked(chapterNumber)
+                      const isNext = nextChapter?.id === chapter.id
 
                       return (
                         <motion.div
@@ -182,19 +204,32 @@ export default function ChaptersPage() {
                                   </h3>
                                   <Lock className="w-5 h-5 text-gray-600" />
                                 </Stack>
-                                <p className="text-sm text-gray-600">Dokončete předchozí kapitolu</p>
+                                <p className="text-sm text-gray-600">
+                                  Dokončete předchozí kapitolu
+                                </p>
                               </Stack>
                             </Box>
                           ) : (
-                            <ElectricBorder className="rounded-lg h-full">
+                            <ElectricBorder
+                              className={`rounded-lg h-full ${isNext ? 'border-2 border-yellow-400' : ''}`}
+                            >
                               <Link
                                 href={`/chapters/${chapter.id}`}
-                                className="block p-4 bg-gray-900/50 hover:bg-gray-900/70 transition-all rounded-lg h-full"
+                                className={`block p-4 transition-all rounded-lg h-full ${
+                                  isNext
+                                    ? 'bg-gradient-to-br from-yellow-500/20 to-orange-500/20 hover:from-yellow-500/30 hover:to-orange-500/30'
+                                    : 'bg-gray-900/50 hover:bg-gray-900/70'
+                                }`}
                               >
                                 <Stack direction="col" gap={3} className="h-full">
                                   <Stack direction="row" justify="between" align="center">
                                     <h3 className="font-semibold text-white">
                                       Kapitola {chapter.id}
+                                      {isNext && (
+                                        <span className="ml-2 text-xs px-2 py-0.5 bg-yellow-400/30 text-yellow-300 rounded">
+                                          Pokračovat zde
+                                        </span>
+                                      )}
                                     </h3>
                                     {status === 'completed' ? (
                                       <CheckCircle className="w-5 h-5 text-green-400" />
@@ -203,11 +238,18 @@ export default function ChaptersPage() {
                                     )}
                                   </Stack>
 
-                                  <p className="text-sm font-medium text-white flex-1">{chapter.title}</p>
+                                  <p className="text-sm font-medium text-white flex-1">
+                                    {chapter.title}
+                                  </p>
 
                                   <p className="text-xs text-gray-500">{chapter.description}</p>
 
-                                  <Stack direction="row" gap={4} align="center" className="text-xs text-gray-500">
+                                  <Stack
+                                    direction="row"
+                                    gap={4}
+                                    align="center"
+                                    className="text-xs text-gray-500"
+                                  >
                                     <Stack direction="row" gap={1} align="center">
                                       <Clock className="w-3 h-3" />
                                       <span>~20 min</span>
@@ -247,22 +289,49 @@ export default function ChaptersPage() {
             <Stack direction="col" gap={4} align="center">
               <Sparkles className="w-12 h-12 text-purple-400" />
               <h3 className="text-2xl font-bold text-white">
-                Připraven začít svou AI cestu?
+                {progress.length === 0
+                  ? 'Připraven začít svou AI cestu?'
+                  : progress.length === chapters.length
+                    ? 'Gratulujeme k dokončení všech kapitol!'
+                    : 'Pokračuj ve své cestě!'}
               </h3>
               <p className="text-gray-400 max-w-xl">
-                Projdi všemi 40 kapitolami, získej praktické zkušenosti s umělou inteligencí
-                a staň se součástí naší komunity v Apex Aréně!
+                {progress.length === 0
+                  ? 'Projdi všemi 40 kapitolami, získej praktické zkušenosti s umělou inteligencí a staň se součástí naší komunity v Apex Aréně!'
+                  : progress.length === chapters.length
+                    ? 'Dokončil jsi všechny kapitoly! Prozkoumej Apex Arénu nebo získej certifikát.'
+                    : `Dokončil jsi ${progress.length} z ${chapters.length} kapitol. Pokračuj s další kapitolou!`}
               </p>
-              <Link
-                href="/chapters/01"
-                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:shadow-xl transition-all"
-              >
-                Začít s Kapitolou 1
-              </Link>
+              {nextChapter && progress.length < chapters.length && (
+                <Link
+                  href={`/chapters/${nextChapter.id}`}
+                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:shadow-xl transition-all"
+                >
+                  {progress.length === 0
+                    ? `Začít s Kapitolou ${nextChapter.id}`
+                    : `Pokračovat s Kapitolou ${nextChapter.id}`}
+                </Link>
+              )}
+              {progress.length === chapters.length && (
+                <Stack direction="row" gap={4}>
+                  <Link
+                    href="/arena"
+                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:shadow-xl transition-all"
+                  >
+                    Apex Aréna
+                  </Link>
+                  <Link
+                    href="/certificate"
+                    className="px-6 py-3 bg-gradient-to-r from-yellow-600 to-orange-600 text-white rounded-lg font-semibold hover:shadow-xl transition-all"
+                  >
+                    Získat certifikát
+                  </Link>
+                </Stack>
+              )}
             </Stack>
           </GlassSurface>
         </ElectricBorder>
       </motion.div>
-    </PageLayout>
+    </UnifiedPageLayout>
   )
 }

@@ -16,6 +16,8 @@ export { FallingText } from './falling-text'
 export { FuzzyText } from './fuzzy-text'
 export { FluidGlass } from './fluid-glass'
 export { FluidGlassSimple } from './fluid-glass-simple'
+export { StatCard } from './stat-card'
+export { SectionHeader } from './section-header'
 
 // Typy
 export type { BoxProps } from './box'

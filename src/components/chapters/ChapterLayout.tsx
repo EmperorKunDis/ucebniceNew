@@ -1,51 +1,60 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { Chapter } from '@/data/chapters';
-import { ChapterHeader } from './ChapterHeader';
-import { ChapterContent } from './ChapterContent';
-import { VideoPlayer } from './VideoPlayer';
-import { NotebookLinks } from './NotebookLinks';
-import { ChapterNavigation } from './ChapterNavigation';
-import { Box, Stack } from '@/components/layout';
-import { PageLayout } from '@/components/layout/page-layout';
-import { GlassSurface } from '@/components/ui/glass-surface';
-import { Button } from '@/components/ui/button';
-import { Book, FileText, ChevronDown, PlayCircle, CheckCircle, Loader2, Trophy, Zap } from 'lucide-react';
+import { useState } from 'react'
+import { motion } from 'framer-motion'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import { Chapter } from '@/data/chapters'
+import { ChapterHeader } from './ChapterHeader'
+import { ChapterContent } from './ChapterContent'
+import { VideoPlayer } from './VideoPlayer'
+import { NotebookLinks } from './NotebookLinks'
+import { ChapterNavigation } from './ChapterNavigation'
+import { Box, Stack } from '@/components/layout'
+import { PageLayout } from '@/components/layout/page-layout'
+import { GlassSurface } from '@/components/ui/glass-surface'
+import { Button } from '@/components/ui/button'
+import {
+  Book,
+  FileText,
+  ChevronDown,
+  PlayCircle,
+  CheckCircle,
+  Loader2,
+  Trophy,
+  Zap,
+} from 'lucide-react'
 
 interface ChapterLayoutProps {
-  chapter: Chapter;
+  chapter: Chapter
 }
 
 export function ChapterLayout({ chapter }: ChapterLayoutProps) {
-  const { data: session } = useSession();
-  const router = useRouter();
+  const { data: session } = useSession()
+  const router = useRouter()
   const [expandedSections, setExpandedSections] = useState({
-    video: true,  // Video bude default rozbalené
+    video: true, // Video bude default rozbalené
     text: false,
     lecture: false,
-  });
-  const [completing, setCompleting] = useState(false);
-  const [completed, setCompleted] = useState(false);
-  const [completionData, setCompletionData] = useState<any>(null);
+  })
+  const [completing, setCompleting] = useState(false)
+  const [completed, setCompleted] = useState(false)
+  const [completionData, setCompletionData] = useState<any>(null)
 
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections(prev => ({
       ...prev,
       [section]: !prev[section],
-    }));
-  };
+    }))
+  }
 
   const handleCompleteChapter = async () => {
     if (!session) {
-      router.push('/auth/signin');
-      return;
+      router.push('/auth/signin')
+      return
     }
 
-    setCompleting(true);
+    setCompleting(true)
     try {
       const response = await fetch('/api/progress/complete-chapter', {
         method: 'POST',
@@ -55,24 +64,24 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
         body: JSON.stringify({
           chapterId: chapter.id,
         }),
-      });
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
       if (response.ok) {
-        setCompleted(true);
-        setCompletionData(data);
+        setCompleted(true)
+        setCompletionData(data)
       } else {
-        console.error('Error completing chapter:', data.error);
-        alert(data.error || 'Nepodařilo se dokončit kapitolu');
+        console.error('Error completing chapter:', data.error)
+        alert(data.error || 'Nepodařilo se dokončit kapitolu')
       }
     } catch (error) {
-      console.error('Error:', error);
-      alert('Něco se pokazilo. Zkuste to znovu.');
+      console.error('Error:', error)
+      alert('Něco se pokazilo. Zkuste to znovu.')
     } finally {
-      setCompleting(false);
+      setCompleting(false)
     }
-  };
+  }
 
   return (
     <PageLayout>
@@ -102,10 +111,7 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
             expanded={expandedSections.text}
             onToggle={() => toggleSection('text')}
           >
-            <ChapterContent
-              content={chapter.textFile}
-              type="text"
-            />
+            <ChapterContent content={chapter.textFile} type="text" />
           </Section>
 
           {/* Kompletní přednáška */}
@@ -115,10 +121,7 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
             expanded={expandedSections.lecture}
             onToggle={() => toggleSection('lecture')}
           >
-            <ChapterContent
-              content={chapter.lectureFile}
-              type="lecture"
-            />
+            <ChapterContent content={chapter.lectureFile} type="lecture" />
           </Section>
 
           {/* Complete Chapter Button */}
@@ -129,9 +132,7 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
                   <h3 className="text-xl font-semibold text-white mb-2">
                     Dokončil jsi tuto kapitolu?
                   </h3>
-                  <p className="text-gray-400 mb-6">
-                    Získej XP a pokroč ve své cestě učení!
-                  </p>
+                  <p className="text-gray-400 mb-6">Získej XP a pokroč ve své cestě učení!</p>
                   <Button
                     onClick={handleCompleteChapter}
                     disabled={completing}
@@ -156,9 +157,7 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
                   <div className="inline-flex items-center justify-center w-16 h-16 bg-green-500/20 rounded-full mb-4">
                     <CheckCircle className="w-8 h-8 text-green-400" />
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-2">
-                    Gratulujeme! 🎉
-                  </h3>
+                  <h3 className="text-2xl font-bold text-white mb-2">Gratulujeme! 🎉</h3>
                   <p className="text-gray-400 mb-4">
                     {completionData?.alreadyCompleted
                       ? 'Tuto kapitolu už máš dokončenou!'
@@ -169,13 +168,17 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
                     <div className="flex gap-4 justify-center items-center flex-wrap mb-6">
                       <div className="flex items-center gap-2 px-4 py-2 bg-yellow-500/20 rounded-lg border border-yellow-500/30">
                         <Zap className="w-5 h-5 text-yellow-400" />
-                        <span className="text-yellow-300 font-medium">+{completionData.xpEarned} XP</span>
+                        <span className="text-yellow-300 font-medium">
+                          +{completionData.xpEarned} XP
+                        </span>
                       </div>
 
                       {completionData.leveledUp && (
                         <div className="flex items-center gap-2 px-4 py-2 bg-purple-500/20 rounded-lg border border-purple-500/30">
                           <Trophy className="w-5 h-5 text-purple-400" />
-                          <span className="text-purple-300 font-medium">Level {completionData.level}</span>
+                          <span className="text-purple-300 font-medium">
+                            Level {completionData.level}
+                          </span>
                         </div>
                       )}
 
@@ -206,10 +209,10 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
                     Zpět na kapitoly
                   </Button>
                   <Button
-                    onClick={() => router.push('/dashboard')}
+                    onClick={() => router.push('/profile')}
                     className="bg-gradient-to-r from-purple-500 to-pink-500"
                   >
-                    Dashboard
+                    Profil
                   </Button>
                 </div>
               )}
@@ -221,23 +224,20 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
         </Stack>
       </Box>
     </PageLayout>
-  );
+  )
 }
 
 interface SectionProps {
-  title: string;
-  icon: React.ReactNode;
-  expanded: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
+  title: string
+  icon: React.ReactNode
+  expanded: boolean
+  onToggle: () => void
+  children: React.ReactNode
 }
 
 function Section({ title, icon, expanded, onToggle, children }: SectionProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-    >
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
       <GlassSurface className="overflow-hidden">
         <button
           onClick={onToggle}
@@ -247,10 +247,7 @@ function Section({ title, icon, expanded, onToggle, children }: SectionProps) {
             <Box className="text-purple-400">{icon}</Box>
             <h2 className="text-xl font-semibold text-white">{title}</h2>
           </Stack>
-          <motion.div
-            animate={{ rotate: expanded ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
-          >
+          <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
             <ChevronDown className="w-5 h-5 text-gray-400" />
           </motion.div>
         </button>
@@ -263,13 +260,11 @@ function Section({ title, icon, expanded, onToggle, children }: SectionProps) {
             transition={{ duration: 0.3 }}
           >
             <Box className="px-6 pb-6">
-              <Box className="border-t border-gray-700/50 pt-6">
-                {children}
-              </Box>
+              <Box className="border-t border-gray-700/50 pt-6">{children}</Box>
             </Box>
           </motion.div>
         )}
       </GlassSurface>
     </motion.div>
-  );
+  )
 }

@@ -5,8 +5,11 @@ import { Providers } from '@/components/providers'
 
 const montserrat = Montserrat({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700', '800', '900'],
+  weight: ['400', '600', '700'],
   variable: '--font-montserrat',
+  display: 'swap',
+  preload: true,
+  adjustFontFallback: true,
 })
 
 export const metadata: Metadata = {
@@ -16,17 +19,11 @@ export const metadata: Metadata = {
   authors: [{ name: 'Martin Švanda' }],
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="cs" className={montserrat.variable}>
       <body className="font-sans bg-gray-900 text-gray-100">
-        <Providers>
-          {children}
-        </Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   )

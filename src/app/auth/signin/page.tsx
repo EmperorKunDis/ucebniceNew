@@ -4,7 +4,12 @@ import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Box, Button, Stack } from '@/components/ui'
+import { motion } from 'framer-motion'
+import { UnifiedPageLayout } from '@/components/layout/unified-page-layout'
+import { GlassSurface } from '@/components/ui/glass-surface'
+import { ElectricBorder } from '@/components/ui/electric-border'
+import { Button } from '@/components/ui/button'
+import { Stack, Box } from '@/components/layout'
 import { Github, Mail, Loader2, ArrowLeft } from 'lucide-react'
 import Image from 'next/image'
 
@@ -30,7 +35,7 @@ export default function SignInPage() {
       if (result?.error) {
         setError('Nesprávný email nebo heslo')
       } else {
-        router.push('/dashboard')
+        router.push('/chapters')
       }
     } catch (error) {
       setError('Něco se pokazilo. Zkuste to znovu.')
@@ -41,152 +46,170 @@ export default function SignInPage() {
 
   const handleOAuthSignIn = (provider: 'google' | 'github') => {
     setIsLoading(true)
-    signIn(provider, { callbackUrl: '/dashboard' })
+    signIn(provider, { callbackUrl: '/chapters' })
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 flex items-center justify-center px-4 relative overflow-hidden">
-      {/* Background effects */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent" />
+    <UnifiedPageLayout showNav={false} maxWidth="4xl">
+      <Box className="flex items-center justify-center min-h-[80vh]">
+        <Box className="w-full max-w-md">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 text-gray-400 hover:text-purple-300 mb-8 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Zpět na hlavní stránku
+            </Link>
 
-      <Box className="w-full max-w-md relative z-10">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-gray-400 hover:text-purple-300 mb-8 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Zpět na hlavní stránku
-        </Link>
+            <GlassSurface className="p-8">
+              <Stack direction="col" gap={6}>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1, duration: 0.5 }}
+                  className="text-center"
+                >
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent mb-2">
+                    Přihlášení
+                  </h1>
+                  <p className="text-gray-300">Vítejte zpět! Přihlaste se ke svému účtu</p>
+                </motion.div>
 
-        <div className="relative">
-          {/* Glass effect container */}
-          <div className="absolute inset-0 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10" />
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-red-500/10 backdrop-blur-sm border border-red-500/30 rounded-lg p-4"
+                  >
+                    <p className="text-red-300 text-sm">{error}</p>
+                  </motion.div>
+                )}
 
-          <div className="relative p-8">
-            <Stack className="space-y-6">
-              <div className="text-center">
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent mb-2">
-                  Přihlášení
-                </h1>
-                <p className="text-gray-300">
-                  Vítejte zpět! Přihlaste se ke svému účtu
-                </p>
-              </div>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, duration: 0.5 }}
+                >
+                  <Stack direction="col" gap={4}>
+                    <Button
+                      onClick={() => handleOAuthSignIn('google')}
+                      variant="secondary"
+                      className="w-full justify-center gap-3 bg-white/5 backdrop-blur-sm border border-white/20 hover:bg-white/10"
+                      disabled={isLoading}
+                    >
+                      <Image src="/images/google-icon.svg" alt="Google" width={20} height={20} />
+                      Pokračovat s Google
+                    </Button>
 
-              {error && (
-                <div className="bg-red-500/10 backdrop-blur-sm border border-red-500/30 rounded-lg p-4">
-                  <p className="text-red-300 text-sm">{error}</p>
+                    <Button
+                      onClick={() => handleOAuthSignIn('github')}
+                      variant="secondary"
+                      className="w-full justify-center gap-3 bg-white/5 backdrop-blur-sm border border-white/20 hover:bg-white/10"
+                      disabled={isLoading}
+                    >
+                      <Github className="w-5 h-5" />
+                      Pokračovat s GitHub
+                    </Button>
+                  </Stack>
+                </motion.div>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-white/10" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-4 bg-transparent text-gray-300">nebo</span>
+                  </div>
                 </div>
-              )}
 
-              <Stack className="space-y-4">
-                <Button
-                  onClick={() => handleOAuthSignIn('google')}
-                  variant="secondary"
-                  className="w-full justify-center gap-3 bg-white/5 backdrop-blur-sm border border-white/20 hover:bg-white/10"
-                  disabled={isLoading}
+                <motion.form
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3, duration: 0.5 }}
+                  onSubmit={handleSubmit}
+                  className="space-y-4"
                 >
-                  <Image
-                    src="/images/google-icon.svg"
-                    alt="Google"
-                    width={20}
-                    height={20}
-                  />
-                  Pokračovat s Google
-                </Button>
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-200 mb-2">
+                      Email
+                    </label>
+                    <input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      className="w-full px-4 py-3 bg-white/5 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                      placeholder="vas@email.cz"
+                      required
+                      disabled={isLoading}
+                    />
+                  </div>
 
-                <Button
-                  onClick={() => handleOAuthSignIn('github')}
-                  variant="secondary"
-                  className="w-full justify-center gap-3 bg-white/5 backdrop-blur-sm border border-white/20 hover:bg-white/10"
-                  disabled={isLoading}
+                  <div>
+                    <label
+                      htmlFor="password"
+                      className="block text-sm font-medium text-gray-200 mb-2"
+                    >
+                      Heslo
+                    </label>
+                    <input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      className="w-full px-4 py-3 bg-white/5 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                      placeholder="••••••••"
+                      required
+                      disabled={isLoading}
+                    />
+                  </div>
+
+                  <ElectricBorder className="rounded-lg">
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      className="w-full justify-center bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                          Přihlašování...
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="w-4 h-4 mr-2" />
+                          Přihlásit se emailem
+                        </>
+                      )}
+                    </Button>
+                  </ElectricBorder>
+                </motion.form>
+
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4, duration: 0.5 }}
+                  className="text-center text-sm"
                 >
-                  <Github className="w-5 h-5" />
-                  Pokračovat s GitHub
-                </Button>
+                  <span className="text-gray-300">Nemáte účet? </span>
+                  <Link
+                    href="/onboarding"
+                    className="text-purple-400 hover:text-purple-300 transition-colors"
+                  >
+                    Zaregistrujte se
+                  </Link>
+                </motion.div>
               </Stack>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-white/10" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-transparent text-gray-300">nebo</span>
-                </div>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-gray-200 mb-2"
-                  >
-                    Email
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 bg-white/5 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                    placeholder="vas@email.cz"
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="password"
-                    className="block text-sm font-medium text-gray-200 mb-2"
-                  >
-                    Heslo
-                  </label>
-                  <input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3 bg-white/5 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                    placeholder="••••••••"
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  variant="primary"
-                  className="w-full justify-center bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                      Přihlašování...
-                    </>
-                  ) : (
-                    <>
-                      <Mail className="w-4 h-4 mr-2" />
-                      Přihlásit se emailem
-                    </>
-                  )}
-                </Button>
-              </form>
-
-              <div className="text-center text-sm">
-                <span className="text-gray-300">Nemáte účet? </span>
-                <Link
-                  href="/auth/signup"
-                  className="text-purple-400 hover:text-purple-300 transition-colors"
-                >
-                  Zaregistrujte se
-                </Link>
-              </div>
-            </Stack>
-          </div>
-        </div>
+            </GlassSurface>
+          </motion.div>
+        </Box>
       </Box>
-    </div>
+    </UnifiedPageLayout>
   )
 }

@@ -2,19 +2,23 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  ChevronRight, 
-  User, 
-  Target, 
-  Sparkles, 
+import {
+  ChevronRight,
+  User,
+  Target,
+  Sparkles,
   Rocket,
   Brain,
   Code,
   Zap,
   Award,
-  Briefcase
+  Briefcase,
+  Mail,
+  Eye,
+  EyeOff,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { ElectricBorder } from '@/components/ui/electric-border'
 import { Lightning } from '@/components/ui/lightning'
@@ -37,10 +41,16 @@ export function OnboardingFlow() {
   const { setUsername, completeOnboarding } = useUserStore()
   const [currentStep, setCurrentStep] = useState(0)
   const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [goal, setGoal] = useState<string>('')
   const [experience, setExperience] = useState<string>('')
   const [isAnimating, setIsAnimating] = useState(false)
-  
+  const [registrationError, setRegistrationError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
   const steps: OnboardingStep[] = [
     {
       id: 0,
@@ -53,24 +63,31 @@ export function OnboardingFlow() {
             <Rocket className="w-16 h-16 text-white" />
           </Box>
           <Box as="p" className="text-lg text-gray-300 text-center">
-            Připrav se na interaktivní cestu světem programování s umělou inteligencí jako tvým průvodcem!
+            Připrav se na interaktivní cestu světem programování s umělou inteligencí jako tvým
+            průvodcem!
           </Box>
           <Grid columns={3} gap={4} className="text-center">
             <Stack gap={1} align="center">
               <Box className="text-3xl font-bold text-purple-400">60+</Box>
-              <Box as="p" className="text-sm text-gray-400">Interaktivních lekcí</Box>
+              <Box as="p" className="text-sm text-gray-400">
+                Interaktivních lekcí
+              </Box>
             </Stack>
             <Stack gap={1} align="center">
               <Box className="text-3xl font-bold text-pink-400">AI</Box>
-              <Box as="p" className="text-sm text-gray-400">Asistent 24/7</Box>
+              <Box as="p" className="text-sm text-gray-400">
+                Asistent 24/7
+              </Box>
             </Stack>
             <Stack gap={1} align="center">
               <Box className="text-3xl font-bold text-yellow-400">XP</Box>
-              <Box as="p" className="text-sm text-gray-400">Gamifikace</Box>
+              <Box as="p" className="text-sm text-gray-400">
+                Gamifikace
+              </Box>
             </Stack>
           </Grid>
         </Stack>
-      )
+      ),
     },
     {
       id: 1,
@@ -91,7 +108,7 @@ export function OnboardingFlow() {
             <input
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={e => setName(e.target.value)}
               placeholder="Např. Jan, CodeMaster, PyNinja..."
               className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 transition-all"
               autoFocus
@@ -101,10 +118,92 @@ export function OnboardingFlow() {
             Toto jméno se bude zobrazovat v žebříčcích a na tvém profilu
           </Box>
         </Stack>
-      )
+      ),
     },
     {
       id: 2,
+      title: 'Vytvoř si účet 📧',
+      description: 'Zaregistruj se a ulož svůj postup',
+      icon: <Mail className="w-8 h-8 text-purple-400" />,
+      content: (
+        <Stack gap={6}>
+          {registrationError && (
+            <Box className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+              <Box as="p" className="text-red-300 text-sm">
+                {registrationError}
+              </Box>
+            </Box>
+          )}
+          <Stack gap={4}>
+            <Stack gap={2}>
+              <Box as="label" className="block text-sm font-medium text-gray-400">
+                Email
+              </Box>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="tvuj@email.cz"
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 transition-all"
+              />
+            </Stack>
+            <Stack gap={2}>
+              <Box as="label" className="block text-sm font-medium text-gray-400">
+                Heslo
+              </Box>
+              <Box className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="Minimálně 6 znaků"
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 transition-all pr-12"
+                />
+                <Box
+                  as="button"
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </Box>
+              </Box>
+            </Stack>
+            <Stack gap={2}>
+              <Box as="label" className="block text-sm font-medium text-gray-400">
+                Potvrzení hesla
+              </Box>
+              <Box className="relative">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  placeholder="Zadej heslo znovu"
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 transition-all pr-12"
+                />
+                <Box
+                  as="button"
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </Box>
+              </Box>
+            </Stack>
+          </Stack>
+          <Box as="p" className="text-sm text-gray-400 text-center">
+            Tvé údaje jsou v bezpečí a slouží pouze pro ukládání tvého postupu
+          </Box>
+        </Stack>
+      ),
+    },
+    {
+      id: 3,
       title: 'Jaký je tvůj cíl? 🎯',
       description: 'Pomůže nám připravit ideální cestu',
       icon: <Target className="w-8 h-8 text-purple-400" />,
@@ -115,11 +214,31 @@ export function OnboardingFlow() {
           </Box>
           <Stack gap={3}>
             {[
-              { value: 'career', label: 'Změna kariéry', icon: <Briefcase className="w-5 h-5" />, description: 'Chci se stát profesionálním vývojářem' },
-              { value: 'skills', label: 'Nové dovednosti', icon: <Brain className="w-5 h-5" />, description: 'Chci se naučit programovat pro své projekty' },
-              { value: 'ai', label: 'AI a ML', icon: <Zap className="w-5 h-5" />, description: 'Zajímá mě umělá inteligence a strojové učení' },
-              { value: 'fun', label: 'Zábava a kreativita', icon: <Sparkles className="w-5 h-5" />, description: 'Chci vytvářet cool věci a bavit se' }
-            ].map((option) => (
+              {
+                value: 'career',
+                label: 'Změna kariéry',
+                icon: <Briefcase className="w-5 h-5" />,
+                description: 'Chci se stát profesionálním vývojářem',
+              },
+              {
+                value: 'skills',
+                label: 'Nové dovednosti',
+                icon: <Brain className="w-5 h-5" />,
+                description: 'Chci se naučit programovat pro své projekty',
+              },
+              {
+                value: 'ai',
+                label: 'AI a ML',
+                icon: <Zap className="w-5 h-5" />,
+                description: 'Zajímá mě umělá inteligence a strojové učení',
+              },
+              {
+                value: 'fun',
+                label: 'Zábava a kreativita',
+                icon: <Sparkles className="w-5 h-5" />,
+                description: 'Chci vytvářet cool věci a bavit se',
+              },
+            ].map(option => (
               <Box
                 key={option.value}
                 as="button"
@@ -133,18 +252,22 @@ export function OnboardingFlow() {
                 <Stack direction="horizontal" gap={3} align="start">
                   <Box className="text-purple-400">{option.icon}</Box>
                   <Stack gap={1}>
-                    <Box as="h3" className="font-semibold text-white">{option.label}</Box>
-                    <Box as="p" className="text-sm text-gray-400">{option.description}</Box>
+                    <Box as="h3" className="font-semibold text-white">
+                      {option.label}
+                    </Box>
+                    <Box as="p" className="text-sm text-gray-400">
+                      {option.description}
+                    </Box>
                   </Stack>
                 </Stack>
               </Box>
             ))}
           </Stack>
         </Stack>
-      )
+      ),
     },
     {
-      id: 3,
+      id: 4,
       title: 'Jaká je tvá zkušenost? 💪',
       description: 'Přizpůsobíme tempo tvým znalostem',
       icon: <Code className="w-8 h-8 text-purple-400" />,
@@ -155,11 +278,31 @@ export function OnboardingFlow() {
           </Box>
           <Stack gap={3}>
             {[
-              { value: 'beginner', label: 'Úplný začátečník', icon: '🌱', description: 'Nikdy jsem neprogramoval/a' },
-              { value: 'some', label: 'Mám základy', icon: '🌳', description: 'Zkusil/a jsem pár tutoriálů nebo kurzů' },
-              { value: 'intermediate', label: 'Středně pokročilý', icon: '🌲', description: 'Umím základy a chci se zlepšit' },
-              { value: 'advanced', label: 'Pokročilý', icon: '🌴', description: 'Programuji pravidelně, chci se specializovat' }
-            ].map((option) => (
+              {
+                value: 'beginner',
+                label: 'Úplný začátečník',
+                icon: '🌱',
+                description: 'Nikdy jsem neprogramoval/a',
+              },
+              {
+                value: 'some',
+                label: 'Mám základy',
+                icon: '🌳',
+                description: 'Zkusil/a jsem pár tutoriálů nebo kurzů',
+              },
+              {
+                value: 'intermediate',
+                label: 'Středně pokročilý',
+                icon: '🌲',
+                description: 'Umím základy a chci se zlepšit',
+              },
+              {
+                value: 'advanced',
+                label: 'Pokročilý',
+                icon: '🌴',
+                description: 'Programuji pravidelně, chci se specializovat',
+              },
+            ].map(option => (
               <Box
                 key={option.value}
                 as="button"
@@ -173,18 +316,22 @@ export function OnboardingFlow() {
                 <Stack direction="horizontal" gap={3} align="start">
                   <Box className="text-2xl">{option.icon}</Box>
                   <Stack gap={1}>
-                    <Box as="h3" className="font-semibold text-white">{option.label}</Box>
-                    <Box as="p" className="text-sm text-gray-400">{option.description}</Box>
+                    <Box as="h3" className="font-semibold text-white">
+                      {option.label}
+                    </Box>
+                    <Box as="p" className="text-sm text-gray-400">
+                      {option.description}
+                    </Box>
                   </Stack>
                 </Stack>
               </Box>
             ))}
           </Stack>
         </Stack>
-      )
+      ),
     },
     {
-      id: 4,
+      id: 5,
       title: 'Vše připraveno! 🎉',
       description: 'Začneme tvou cestu',
       icon: <Award className="w-8 h-8 text-yellow-400" />,
@@ -197,12 +344,12 @@ export function OnboardingFlow() {
             <motion.div
               className="absolute -inset-4"
               animate={{
-                rotate: 360
+                rotate: 360,
               }}
               transition={{
                 duration: 20,
                 repeat: Infinity,
-                ease: "linear"
+                ease: 'linear',
               }}
             >
               {[...Array(8)].map((_, i) => (
@@ -212,13 +359,13 @@ export function OnboardingFlow() {
                   style={{
                     top: '50%',
                     left: '50%',
-                    transform: `rotate(${i * 45}deg) translateX(80px) translateY(-50%)`
+                    transform: `rotate(${i * 45}deg) translateX(80px) translateY(-50%)`,
                   }}
                 />
               ))}
             </motion.div>
           </Box>
-          
+
           <Stack gap={2} align="center">
             <Box as="h2" className="text-2xl font-bold text-white">
               Ahoj {name || 'Student'}! 👋
@@ -227,10 +374,12 @@ export function OnboardingFlow() {
               Tvá cesta k mistrovství v programování začíná právě teď!
             </Box>
           </Stack>
-          
+
           <Box className="bg-white/10 rounded-lg p-4 max-w-md mx-auto">
             <Stack gap={4}>
-              <Box as="h3" className="font-semibold text-white">Co tě čeká:</Box>
+              <Box as="h3" className="font-semibold text-white">
+                Co tě čeká:
+              </Box>
               <Stack gap={2} as="ul" className="text-sm text-gray-300">
                 <Stack direction="horizontal" gap={2} align="center" as="li">
                   <Zap className="w-4 h-4 text-yellow-400" />
@@ -248,29 +397,91 @@ export function OnboardingFlow() {
             </Stack>
           </Box>
         </Stack>
-      )
-    }
+      ),
+    },
   ]
-  
+
   const canProceed = () => {
     switch (currentStep) {
-      case 1: return name.trim().length > 0
-      case 2: return goal !== ''
-      case 3: return experience !== ''
-      default: return true
+      case 1:
+        return name.trim().length > 0
+      case 2: {
+        const emailValid = email.trim().length > 0 && email.includes('@')
+        const passwordValid = password.length >= 6
+        const passwordsMatch = password === confirmPassword
+        return emailValid && passwordValid && passwordsMatch
+      }
+      case 3:
+        return goal !== ''
+      case 4:
+        return experience !== ''
+      default:
+        return true
     }
   }
-  
+
   const handleNext = async () => {
     if (!canProceed()) return
-    
+
     setIsAnimating(true)
-    
+
+    // Handle registration step
+    if (currentStep === 2) {
+      try {
+        setRegistrationError('')
+
+        // Call registration API
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            password,
+          }),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          setRegistrationError(data.error || 'Registrace selhala')
+          setIsAnimating(false)
+          return
+        }
+
+        // Automatically sign in after successful registration
+        const signInResult = await signIn('credentials', {
+          email,
+          password,
+          redirect: false,
+        })
+
+        if (signInResult?.error) {
+          setRegistrationError('Registrace proběhla, ale přihlášení selhalo')
+          setIsAnimating(false)
+          return
+        }
+
+        // Continue to next step
+        setTimeout(() => {
+          setCurrentStep(currentStep + 1)
+          setIsAnimating(false)
+        }, 300)
+      } catch (error) {
+        console.error('Registration error:', error)
+        setRegistrationError('Něco se pokazilo. Zkuste to znovu.')
+        setIsAnimating(false)
+      }
+      return
+    }
+
     if (currentStep === steps.length - 1) {
       // Complete onboarding
       setUsername(name)
       completeOnboarding()
-      
+
       // Add XP for completing onboarding
       const { addXP, addBadge } = useUserStore.getState()
       addXP(50)
@@ -279,9 +490,9 @@ export function OnboardingFlow() {
         name: 'První kroky',
         description: 'Dokončil/a jsi onboarding',
         icon: '🎆',
-        unlockedAt: new Date()
+        unlockedAt: new Date(),
       })
-      
+
       // Navigate to chapters
       setTimeout(() => {
         router.push('/chapters')
@@ -293,7 +504,7 @@ export function OnboardingFlow() {
       }, 300)
     }
   }
-  
+
   const handleBack = () => {
     if (currentStep > 0) {
       setIsAnimating(true)
@@ -303,11 +514,11 @@ export function OnboardingFlow() {
       }, 300)
     }
   }
-  
+
   return (
     <Box className="min-h-screen relative flex items-center justify-center p-4">
       <Lightning />
-      
+
       <Stack gap={8} className="relative z-10 w-full max-w-2xl">
         {/* Progress bar */}
         <Box>
@@ -321,14 +532,17 @@ export function OnboardingFlow() {
               >
                 <Box
                   className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                    index <= currentStep
-                      ? 'bg-purple-500 text-white'
-                      : 'bg-gray-700 text-gray-400'
+                    index <= currentStep ? 'bg-purple-500 text-white' : 'bg-gray-700 text-gray-400'
                   }`}
                 >
                   {index < currentStep ? (
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                   ) : (
                     index + 1
@@ -337,9 +551,7 @@ export function OnboardingFlow() {
                 {index < steps.length - 1 && (
                   <Box
                     className={`flex-1 h-1 mx-2 transition-all ${
-                      index < currentStep
-                        ? 'bg-purple-500'
-                        : 'bg-gray-700'
+                      index < currentStep ? 'bg-purple-500' : 'bg-gray-700'
                     }`}
                   />
                 )}
@@ -347,7 +559,7 @@ export function OnboardingFlow() {
             ))}
           </Stack>
         </Box>
-        
+
         {/* Content */}
         <ElectricBorder className="rounded-lg">
           <GlassSurface className="p-8">
@@ -361,9 +573,7 @@ export function OnboardingFlow() {
               >
                 <Stack gap={8}>
                   <Stack gap={4} align="center">
-                    <Box className="inline-block">
-                      {steps[currentStep]?.icon}
-                    </Box>
+                    <Box className="inline-block">{steps[currentStep]?.icon}</Box>
                     <Stack gap={2} align="center">
                       <Box as="h1" className="text-3xl font-bold text-white">
                         {steps[currentStep]?.title}
@@ -374,10 +584,8 @@ export function OnboardingFlow() {
                     </Stack>
                   </Stack>
 
-                  <Box>
-                    {steps[currentStep]?.content}
-                  </Box>
-                  
+                  <Box>{steps[currentStep]?.content}</Box>
+
                   {/* Navigation buttons */}
                   <Stack direction="horizontal" justify="between">
                     <Button
@@ -388,7 +596,7 @@ export function OnboardingFlow() {
                     >
                       Zpět
                     </Button>
-                    
+
                     <Button
                       onClick={handleNext}
                       disabled={!canProceed()}

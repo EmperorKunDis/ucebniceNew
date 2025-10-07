@@ -1,9 +1,17 @@
 'use client'
 
-import { Lightning } from '@/components/ui/lightning'
+import dynamic from 'next/dynamic'
 import { Navigation } from '@/components/layout/navigation'
 import { Box } from '@/components/layout'
 import { cn } from '@/lib/utils'
+
+// Lazy load WebGL component for better performance
+const Lightning = dynamic(
+  () => import('@/components/ui/lightning').then(mod => ({ default: mod.Lightning })),
+  {
+    ssr: false,
+  }
+)
 
 interface PageLayoutProps {
   children: React.ReactNode
@@ -26,10 +34,7 @@ export function PageLayout({
       {showNavigation && <Navigation />}
       <Box
         as="main"
-        className={cn(
-          'relative z-10 pt-[20vh] pb-16 px-4 sm:px-6 lg:px-8',
-          contentClassName
-        )}
+        className={cn('relative z-10 pt-[20vh] pb-16 px-4 sm:px-6 lg:px-8', contentClassName)}
       >
         <Box className="max-w-7xl mx-auto">{children}</Box>
       </Box>

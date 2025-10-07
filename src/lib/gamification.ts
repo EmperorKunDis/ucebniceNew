@@ -9,20 +9,76 @@ export const XP_PER_CHALLENGE = 150
 export const XP_STREAK_BONUS = 25
 
 // Level system - kvadratický růst
+
+/**
+ * Calculates user level based on total XP using quadratic growth formula
+ * Formula: Level = floor(sqrt(XP / 100)) + 1
+ *
+ * @param xp - Total experience points
+ * @returns Calculated level (minimum 1)
+ *
+ * @example
+ * calculateLevel(0) // returns 1
+ * calculateLevel(100) // returns 2
+ * calculateLevel(400) // returns 3
+ */
 export function calculateLevel(xp: number): number {
   // Level = sqrt(XP / 100)
   return Math.floor(Math.sqrt(xp / 100)) + 1
 }
 
+/**
+ * Calculates the minimum XP required to reach a specific level
+ * Formula: XP = (level - 1)² * 100
+ *
+ * @param level - Target level
+ * @returns Minimum XP required for that level
+ *
+ * @example
+ * getXPForLevel(1) // returns 0
+ * getXPForLevel(2) // returns 100
+ * getXPForLevel(3) // returns 400
+ */
 export function getXPForLevel(level: number): number {
   // XP potřebné pro dosažení levelu
   return Math.pow(level - 1, 2) * 100
 }
 
+/**
+ * Calculates the XP required to reach the next level from current level
+ *
+ * @param currentLevel - Current user level
+ * @returns XP required for next level
+ *
+ * @example
+ * getXPForNextLevel(1) // returns 100 (level 2)
+ * getXPForNextLevel(2) // returns 400 (level 3)
+ */
 export function getXPForNextLevel(currentLevel: number): number {
   return Math.pow(currentLevel, 2) * 100
 }
 
+/**
+ * Calculates detailed progress information towards the next level
+ *
+ * @param xp - Current total XP
+ * @returns Object containing level progress information
+ * @returns {number} currentLevel - User's current level
+ * @returns {number} currentLevelXP - XP at the start of current level
+ * @returns {number} nextLevelXP - XP required for next level
+ * @returns {number} progressXP - XP earned within current level
+ * @returns {number} progressPercent - Percentage progress to next level (0-100)
+ *
+ * @example
+ * getProgressToNextLevel(150)
+ * // returns {
+ * //   currentLevel: 2,
+ * //   currentLevelXP: 100,
+ * //   nextLevelXP: 400,
+ * //   progressXP: 50,
+ * //   progressPercent: 16.67
+ * // }
+ */
 export function getProgressToNextLevel(xp: number): {
   currentLevel: number
   currentLevelXP: number
@@ -41,7 +97,7 @@ export function getProgressToNextLevel(xp: number): {
     currentLevelXP,
     nextLevelXP,
     progressXP,
-    progressPercent
+    progressPercent,
   }
 }
 
@@ -53,7 +109,7 @@ export const BADGES = {
     description: 'Dokončil jsi první kapitolu',
     icon: '🎯',
     xpReward: 50,
-    rarity: 'common'
+    rarity: 'common',
   },
   FIVE_CHAPTERS: {
     id: 'five-chapters',
@@ -61,7 +117,7 @@ export const BADGES = {
     description: 'Dokončil jsi 5 kapitol',
     icon: '📚',
     xpReward: 100,
-    rarity: 'uncommon'
+    rarity: 'uncommon',
   },
   TEN_CHAPTERS: {
     id: 'ten-chapters',
@@ -69,7 +125,7 @@ export const BADGES = {
     description: 'Dokončil jsi 10 kapitol',
     icon: '🎓',
     xpReward: 200,
-    rarity: 'rare'
+    rarity: 'rare',
   },
   ALL_CHAPTERS: {
     id: 'all-chapters',
@@ -77,7 +133,7 @@ export const BADGES = {
     description: 'Dokončil jsi všechny kapitoly',
     icon: '👑',
     xpReward: 500,
-    rarity: 'legendary'
+    rarity: 'legendary',
   },
   WEEK_STREAK: {
     id: 'week-streak',
@@ -85,7 +141,7 @@ export const BADGES = {
     description: 'Udržel jsi 7denní streak',
     icon: '🔥',
     xpReward: 150,
-    rarity: 'uncommon'
+    rarity: 'uncommon',
   },
   MONTH_STREAK: {
     id: 'month-streak',
@@ -93,7 +149,7 @@ export const BADGES = {
     description: 'Udržel jsi 30denní streak',
     icon: '⚡',
     xpReward: 500,
-    rarity: 'epic'
+    rarity: 'epic',
   },
   FIRST_CHALLENGE: {
     id: 'first-challenge',
@@ -101,7 +157,7 @@ export const BADGES = {
     description: 'Splnil jsi první cognitive glitch',
     icon: '🧠',
     xpReward: 75,
-    rarity: 'common'
+    rarity: 'common',
   },
   CHALLENGE_MASTER: {
     id: 'challenge-master',
@@ -109,7 +165,7 @@ export const BADGES = {
     description: 'Splnil jsi všechny cognitive glitches',
     icon: '💎',
     xpReward: 300,
-    rarity: 'epic'
+    rarity: 'epic',
   },
   HACKATHON_WINNER: {
     id: 'hackathon-winner',
@@ -117,7 +173,7 @@ export const BADGES = {
     description: 'Vyhrál jsi hackathon',
     icon: '🏆',
     xpReward: 1000,
-    rarity: 'legendary'
+    rarity: 'legendary',
   },
   GRADUATE: {
     id: 'graduate',
@@ -125,7 +181,7 @@ export const BADGES = {
     description: 'Dokončil jsi Graduate výzvu',
     icon: '🎖️',
     xpReward: 750,
-    rarity: 'epic'
+    rarity: 'epic',
   },
   SPEED_LEARNER: {
     id: 'speed-learner',
@@ -133,7 +189,7 @@ export const BADGES = {
     description: 'Dokončil jsi kapitolu za méně než 10 minut',
     icon: '⚡',
     xpReward: 100,
-    rarity: 'rare'
+    rarity: 'rare',
   },
   PERFECT_SCORE: {
     id: 'perfect-score',
@@ -141,8 +197,8 @@ export const BADGES = {
     description: 'Dosáhl jsi 100% v kvízu',
     icon: '💯',
     xpReward: 125,
-    rarity: 'rare'
-  }
+    rarity: 'rare',
+  },
 } as const
 
 export type BadgeId = keyof typeof BADGES

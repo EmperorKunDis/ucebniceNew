@@ -7,7 +7,22 @@
       "Bash(npm install:*)",
       "Bash(npx prisma migrate dev:*)",
       "Bash(lsof:*)",
-      "Bash(xargs kill:*)"
+      "Bash(xargs kill:*)",
+      "Bash(npm test)",
+      "Bash(npm test:*)",
+      "Bash(npm run test:coverage:*)",
+      "Bash(ANALYZE=true npm run build)",
+      "Bash(export ANALYZE=true)",
+      "Bash(cat:*)",
+      "Bash(npx playwright install:*)",
+      "Bash(find:*)",
+      "Bash(npx husky init:*)",
+      "Bash(chmod:*)",
+      "Bash(npx storybook@latest init:*)",
+      "Bash(ipconfig:*)",
+      "Bash(npm run analyze:*)",
+      "Bash(npm run dev:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

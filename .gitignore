@@ -48,3 +48,5 @@ prisma/.env
 *.swp
 *.swo
 *~
+*storybook.log
+storybook-static

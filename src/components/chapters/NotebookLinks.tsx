@@ -1,27 +1,26 @@
-'use client';
+'use client'
 
-import { Chapter } from '@/data/chapters';
-import { Box, Button, Stack } from '@/components/ui';
-import { BookOpen, Download, Rocket, ExternalLink } from 'lucide-react';
+import { memo } from 'react'
+import { Chapter } from '@/data/chapters'
+import { Box, Button, Stack } from '@/components/ui'
+import { BookOpen, Download, Rocket, ExternalLink } from 'lucide-react'
 
 interface NotebookLinksProps {
-  chapter: Chapter;
+  chapter: Chapter
 }
 
-export function NotebookLinks({ chapter }: NotebookLinksProps) {
-  const colabUrl = chapter.colabNotebook 
+function NotebookLinksComponent({ chapter }: NotebookLinksProps) {
+  const colabUrl = chapter.colabNotebook
     ? `https://colab.research.google.com/github/martinsvanda/ucebnice-programovani/blob/main/colab_notebooks/${chapter.colabNotebook}`
-    : null;
+    : null
 
-  const downloadUrl = chapter.colabNotebook
-    ? `/colab_notebooks/${chapter.colabNotebook}`
-    : null;
+  const downloadUrl = chapter.colabNotebook ? `/colab_notebooks/${chapter.colabNotebook}` : null
 
   return (
     <Box className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-xl p-6">
       <Stack className="space-y-4">
         <h3 className="text-xl font-semibold text-gray-100">Interaktivní materiály</h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* NotebookLM */}
           {chapter.notebookLMUrl && (
@@ -44,12 +43,7 @@ export function NotebookLinks({ chapter }: NotebookLinksProps) {
 
           {/* Google Colab */}
           {colabUrl && (
-            <a
-              href={colabUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group"
-            >
+            <a href={colabUrl} target="_blank" rel="noopener noreferrer" className="group">
               <Button
                 variant="secondary"
                 className="w-full justify-start gap-3 hover:bg-orange-600/20 hover:border-orange-500"
@@ -63,11 +57,7 @@ export function NotebookLinks({ chapter }: NotebookLinksProps) {
 
           {/* Stáhnout notebook */}
           {downloadUrl && (
-            <a
-              href={downloadUrl}
-              download
-              className="group"
-            >
+            <a href={downloadUrl} download className="group">
               <Button
                 variant="secondary"
                 className="w-full justify-start gap-3 hover:bg-green-600/20 hover:border-green-500"
@@ -87,5 +77,8 @@ export function NotebookLinks({ chapter }: NotebookLinksProps) {
         )}
       </Stack>
     </Box>
-  );
+  )
 }
+
+// Memoize to prevent unnecessary re-renders
+export const NotebookLinks = memo(NotebookLinksComponent)

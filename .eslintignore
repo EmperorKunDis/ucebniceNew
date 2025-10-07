@@ -1,0 +1,14 @@
+node_modules/
+.next/
+out/
+public/
+coverage/
+storybook-static/
+*.config.js
+*.config.ts
+*.config.mjs
+.storybook/
+e2e/
+playwright-report/
+test-results/
+src/stories/

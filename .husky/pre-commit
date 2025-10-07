@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# Load nvm if available
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+# Add common npm paths
+export PATH="$HOME/.npm-global/bin:/usr/local/bin:$PATH"
+export PATH="./node_modules/.bin:$PATH"
+
+# Add homebrew paths for M1/M2 Macs
+export PATH="/opt/homebrew/bin:$PATH"
+
+npx lint-staged

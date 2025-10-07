@@ -22,8 +22,8 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: 'Domů', href: '/' },
   { label: 'Kapitoly', href: '/chapters' },
-  { label: 'Dashboard', href: '/dashboard', showWhenAuth: true },
   { label: 'Apex Aréna', href: '/arena' },
+  { label: 'Žebříček', href: '/leaderboard' },
   { label: 'Profil', href: '/profile', showWhenAuth: true },
 ]
 
@@ -42,9 +42,18 @@ export function Navigation() {
   return (
     <Box as="nav" className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 lg:px-8 py-4">
       <Box className="max-w-7xl mx-auto">
-        <GlassSurface className="px-6 py-4" borderRadius={16} blur={20} backgroundOpacity={0.02} opacity={0.95}>
+        <GlassSurface
+          className="px-6 py-4"
+          borderRadius={16}
+          blur={20}
+          backgroundOpacity={0.02}
+          opacity={0.95}
+        >
           <Stack direction="row" justify="between" align="center">
-            <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <Link
+              href="/"
+              className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent"
+            >
               Učebnice
             </Link>
 
@@ -61,9 +70,14 @@ export function Navigation() {
                   {item.label}
                 </Link>
               ))}
-              
+
               {isAuthenticated ? (
-                <Stack direction="row" gap={2} align="center" className="px-3 py-1 bg-white/10 rounded-full">
+                <Stack
+                  direction="row"
+                  gap={2}
+                  align="center"
+                  className="px-3 py-1 bg-white/10 rounded-full"
+                >
                   <Box className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold">
                     {username.charAt(0).toUpperCase()}
                   </Box>
@@ -71,13 +85,8 @@ export function Navigation() {
                 </Stack>
               ) : (
                 <ElectricBorder className="rounded-lg">
-                  <Button
-                    variant="primary"
-                    asChild
-                  >
-                    <Link href="/onboarding">
-                      Začít zdarma
-                    </Link>
+                  <Button variant="primary" asChild>
+                    <Link href="/onboarding">Začít zdarma</Link>
                   </Button>
                 </ElectricBorder>
               )}
@@ -118,9 +127,9 @@ export function Navigation() {
                       {item.label}
                     </Link>
                   ))}
-                  
+
                   <Box className="h-px bg-gray-700 my-2" />
-                  
+
                   {isAuthenticated ? (
                     <Stack direction="row" gap={2} align="center" className="px-4 py-2">
                       <Box className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold">
