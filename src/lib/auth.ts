@@ -16,24 +16,32 @@ export const authOptions: NextAuthOptions = {
     error: '/auth/error',
   },
   providers: [
-    // Google OAuth
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
-    
-    // GitHub OAuth
-    GitHubProvider({
-      clientId: process.env.GITHUB_CLIENT_ID!,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-    }),
-    
+    // Google OAuth (only if credentials are configured)
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      ? [
+          GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          }),
+        ]
+      : []),
+
+    // GitHub OAuth (only if credentials are configured)
+    ...(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET
+      ? [
+          GitHubProvider({
+            clientId: process.env.GITHUB_CLIENT_ID,
+            clientSecret: process.env.GITHUB_CLIENT_SECRET,
+          }),
+        ]
+      : []),
+
     // Email/Password credentials
     CredentialsProvider({
       name: 'credentials',
       credentials: {
         email: { label: 'Email', type: 'email' },
-        password: { label: 'Heslo', type: 'password' }
+        password: { label: 'Heslo', type: 'password' },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -50,10 +58,7 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Uživatel nenalezen')
         }
 
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        )
+        const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
 
         if (!isPasswordValid) {
           throw new Error('Neplatné heslo')
@@ -86,13 +91,13 @@ export const authOptions: NextAuthOptions = {
           currentStreak: true,
           longestStreak: true,
           username: true,
-        }
+        },
       })
 
       if (dbUser) {
         session.user = {
           ...session.user,
-          ...dbUser
+          ...dbUser,
         }
       }
 

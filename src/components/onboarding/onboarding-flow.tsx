@@ -126,80 +126,88 @@ export function OnboardingFlow() {
       description: 'Zaregistruj se a ulož svůj postup',
       icon: <Mail className="w-8 h-8 text-purple-400" />,
       content: (
-        <Stack gap={6}>
-          {registrationError && (
-            <Box className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
-              <Box as="p" className="text-red-300 text-sm">
-                {registrationError}
+        <Box
+          as="form"
+          onSubmit={e => {
+            e.preventDefault()
+            if (canProceed()) handleNext()
+          }}
+        >
+          <Stack gap={6}>
+            {registrationError && (
+              <Box className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+                <Box as="p" className="text-red-300 text-sm">
+                  {registrationError}
+                </Box>
               </Box>
+            )}
+            <Stack gap={4}>
+              <Stack gap={2}>
+                <Box as="label" className="block text-sm font-medium text-gray-400">
+                  Email
+                </Box>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="tvuj@email.cz"
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 transition-all"
+                />
+              </Stack>
+              <Stack gap={2}>
+                <Box as="label" className="block text-sm font-medium text-gray-400">
+                  Heslo
+                </Box>
+                <Box className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="Minimálně 6 znaků"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 transition-all pr-12"
+                  />
+                  <Box
+                    as="button"
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </Box>
+                </Box>
+              </Stack>
+              <Stack gap={2}>
+                <Box as="label" className="block text-sm font-medium text-gray-400">
+                  Potvrzení hesla
+                </Box>
+                <Box className="relative">
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={e => setConfirmPassword(e.target.value)}
+                    placeholder="Zadej heslo znovu"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 transition-all pr-12"
+                  />
+                  <Box
+                    as="button"
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </Box>
+                </Box>
+              </Stack>
+            </Stack>
+            <Box as="p" className="text-sm text-gray-400 text-center">
+              Tvé údaje jsou v bezpečí a slouží pouze pro ukládání tvého postupu
             </Box>
-          )}
-          <Stack gap={4}>
-            <Stack gap={2}>
-              <Box as="label" className="block text-sm font-medium text-gray-400">
-                Email
-              </Box>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="tvuj@email.cz"
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 transition-all"
-              />
-            </Stack>
-            <Stack gap={2}>
-              <Box as="label" className="block text-sm font-medium text-gray-400">
-                Heslo
-              </Box>
-              <Box className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="Minimálně 6 znaků"
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 transition-all pr-12"
-                />
-                <Box
-                  as="button"
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </Box>
-              </Box>
-            </Stack>
-            <Stack gap={2}>
-              <Box as="label" className="block text-sm font-medium text-gray-400">
-                Potvrzení hesla
-              </Box>
-              <Box className="relative">
-                <input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  value={confirmPassword}
-                  onChange={e => setConfirmPassword(e.target.value)}
-                  placeholder="Zadej heslo znovu"
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 transition-all pr-12"
-                />
-                <Box
-                  as="button"
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </Box>
-              </Box>
-            </Stack>
           </Stack>
-          <Box as="p" className="text-sm text-gray-400 text-center">
-            Tvé údaje jsou v bezpečí a slouží pouze pro ukládání tvého postupu
-          </Box>
-        </Stack>
+        </Box>
       ),
     },
     {
@@ -430,6 +438,13 @@ export function OnboardingFlow() {
       try {
         setRegistrationError('')
 
+        // Generate username from name (remove spaces, special chars, lowercase)
+        const username =
+          name
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, '')
+            .substring(0, 20) || 'user' + Date.now()
+
         // Call registration API
         const response = await fetch('/api/auth/register', {
           method: 'POST',
@@ -439,6 +454,7 @@ export function OnboardingFlow() {
           body: JSON.stringify({
             name,
             email,
+            username,
             password,
           }),
         })

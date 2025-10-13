@@ -6,6 +6,8 @@ import { getProgressToNextLevel } from '@/lib/gamification'
 import { applyRateLimit } from '@/lib/api-middleware'
 import { apiLimiter } from '@/lib/rate-limit'
 
+export const dynamic = 'force-dynamic'
+
 /**
  * @swagger
  * /api/user/stats:

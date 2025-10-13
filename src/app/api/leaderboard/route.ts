@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { applyRateLimit } from '@/lib/api-middleware'
 import { apiLimiter } from '@/lib/rate-limit'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     // Apply rate limiting

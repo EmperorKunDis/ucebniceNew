@@ -23,7 +23,8 @@
       "Bash(npm run analyze:*)",
       "Bash(npm run dev:*)",
       "Bash(curl:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(npm start)"
     ],
     "deny": [],
     "ask": []
