@@ -13,14 +13,14 @@ export default withAuth(
         if (req.nextUrl.pathname.startsWith('/auth')) {
           return true
         }
-        
+
         // Pro ostatní chráněné cesty vyžadovat přihlášení
         return !!token
-      }
+      },
     },
     pages: {
       signIn: '/auth/signin',
-    }
+    },
   }
 )
 
@@ -28,9 +28,8 @@ export default withAuth(
 export const config = {
   matcher: [
     '/dashboard/:path*',
-    '/onboarding/:path*',
     '/certificate/:path*',
     // Nepoužívat middleware pro tyto cesty:
-    '/((?!api|_next/static|_next/image|favicon.ico|images|auth|chapters|arena|$).*)',
-  ]
+    '/((?!api|_next/static|_next/image|favicon.ico|images|auth|chapters|arena|onboarding|$).*)',
+  ],
 }
