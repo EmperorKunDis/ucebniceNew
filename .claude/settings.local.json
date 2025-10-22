@@ -24,7 +24,9 @@
       "Bash(npm run dev:*)",
       "Bash(curl:*)",
       "Bash(git add:*)",
-      "Bash(npm start)"
+      "Bash(npm start)",
+      "Bash(cloudflared tunnel:*)",
+      "Read(//Users/martinsvanda/ucebniceNew/**)"
     ],
     "deny": [],
     "ask": []
