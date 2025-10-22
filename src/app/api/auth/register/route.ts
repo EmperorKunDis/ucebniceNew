@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 import { applyRateLimit } from '@/lib/api-middleware'
 import { authLimiter } from '@/lib/rate-limit'
+import { signupSchema, validateRequestBody } from '@/lib/validations'
 
 /**
  * @swagger
@@ -99,13 +100,13 @@ export async function POST(req: NextRequest) {
       return rateLimitResponse
     }
 
-    const body = await req.json()
-    const { name, email, username, password } = body
-
-    // Validace
-    if (!email || !password || !username) {
-      return NextResponse.json({ error: 'Vyplňte všechna povinná pole' }, { status: 400 })
+    // Validate request body with Zod
+    const validation = await validateRequestBody(req, signupSchema)
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 })
     }
+
+    const { name, email, username, password } = validation.data
 
     // Kontrola, zda uživatel již existuje
     const existingUser = await prisma.user.findFirst({

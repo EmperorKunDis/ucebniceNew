@@ -46,17 +46,17 @@ model User {
   image         String?
   password      String?   // Pro credentials login
   username      String?   @unique
-  
+
   // Game-like attributes
   xp            Int       @default(0)
   level         Int       @default(1)
   currentStreak Int       @default(0)
   longestStreak Int       @default(0)
-  
+
   // Metadata
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  
+
   // Relations
   accounts      Account[]
   sessions      Session[]
@@ -64,6 +64,11 @@ model User {
   achievements  UserAchievement[]
   lessonProgress LessonProgress[]
   cognitiveGlitches CognitiveGlitchAttempt[]
+
+  // Indexes for performance
+  @@index([xp])
+  @@index([level])
+  @@index([createdAt])
 }
 
 model VerificationToken {
@@ -84,12 +89,17 @@ model Lesson {
   xpReward    Int      @default(100)
   difficulty  String   // beginner, intermediate, advanced
   order       Int      // Order within the course
-  
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   completedBy CompletedLesson[]
   progress    LessonProgress[]
+
+  // Indexes for performance
+  @@index([chapterId])
+  @@index([difficulty])
+  @@index([order])
 }
 
 model CompletedLesson {
@@ -98,11 +108,14 @@ model CompletedLesson {
   lessonId    String
   completedAt DateTime @default(now())
   xpEarned    Int
-  
+
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  
+
   @@unique([userId, lessonId])
+  @@index([userId])
+  @@index([lessonId])
+  @@index([completedAt])
 }
 
 model LessonProgress {
@@ -111,11 +124,14 @@ model LessonProgress {
   lessonId    String
   progress    Int      @default(0) // 0-100
   lastUpdated DateTime @default(now())
-  
+
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  
+
   @@unique([userId, lessonId])
+  @@index([userId])
+  @@index([lessonId])
+  @@index([lastUpdated])
 }
 
 model Achievement {
@@ -137,11 +153,14 @@ model UserAchievement {
   userId       String
   achievementId String
   unlockedAt   DateTime @default(now())
-  
+
   user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   achievement  Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
-  
+
   @@unique([userId, achievementId])
+  @@index([userId])
+  @@index([achievementId])
+  @@index([unlockedAt])
 }
 
 model CognitiveGlitchAttempt {
@@ -153,6 +172,10 @@ model CognitiveGlitchAttempt {
   timeElapsed Int      // in seconds
   xpEarned    Int
   attemptedAt DateTime @default(now())
-  
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([challengeId])
+  @@index([attemptedAt])
 }
