@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button'
 import { Stack, Box } from '@/components/layout'
 import { Github, Mail, Loader2, ArrowLeft } from 'lucide-react'
 import Image from 'next/image'
+import { signInSchema } from '@/lib/validation-schemas'
+import toast from 'react-hot-toast'
 
 export default function SignInPage() {
   const router = useRouter()
@@ -19,34 +21,68 @@ export default function SignInPage() {
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
     setError(null)
+    setValidationErrors({})
+
+    // Validate form data
+    const validation = signInSchema.safeParse({ email: email.trim(), password })
+
+    if (!validation.success) {
+      const errors: Record<string, string> = {}
+      validation.error.errors.forEach(err => {
+        if (err.path.length > 0) {
+          errors[err.path[0].toString()] = err.message
+        }
+      })
+      setValidationErrors(errors)
+      toast.error('Opravte prosím chyby ve formuláři')
+      return
+    }
+
+    setIsLoading(true)
 
     try {
       const result = await signIn('credentials', {
-        email,
+        email: email.trim(),
         password,
         redirect: false,
       })
 
       if (result?.error) {
         setError('Nesprávný email nebo heslo')
+        toast.error('Nesprávný email nebo heslo')
       } else {
+        toast.success('Přihlášení úspěšné!')
         router.push('/chapters')
       }
     } catch (error) {
       setError('Něco se pokazilo. Zkuste to znovu.')
+      toast.error('Něco se pokazilo. Zkuste to znovu.')
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleOAuthSignIn = (provider: 'google' | 'github') => {
-    setIsLoading(true)
-    signIn(provider, { callbackUrl: '/chapters' })
+  const handleOAuthSignIn = async (provider: 'google' | 'github') => {
+    try {
+      setIsLoading(true)
+      setError(null)
+      const result = await signIn(provider, { callbackUrl: '/chapters', redirect: false })
+
+      if (result?.error) {
+        setError('Přihlášení se nezdařilo. Zkuste to prosím znovu.')
+        setIsLoading(false)
+      }
+      // If successful, NextAuth will handle the redirect
+    } catch (error) {
+      console.error('OAuth error:', error)
+      setError('Něco se pokazilo při přihlášení. Zkuste to znovu.')
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -142,12 +178,27 @@ export default function SignInPage() {
                       id="email"
                       type="email"
                       value={email}
-                      onChange={e => setEmail(e.target.value)}
-                      className="w-full px-4 py-3 bg-white/5 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                      onChange={e => {
+                        setEmail(e.target.value)
+                        if (validationErrors.email) {
+                          setValidationErrors(prev => {
+                            const { email, ...rest } = prev
+                            return rest
+                          })
+                        }
+                      }}
+                      className={`w-full px-4 py-3 bg-white/5 backdrop-blur-sm border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${
+                        validationErrors.email
+                          ? 'border-red-500/50 focus:ring-red-500'
+                          : 'border-white/20'
+                      }`}
                       placeholder="vas@email.cz"
                       required
                       disabled={isLoading}
                     />
+                    {validationErrors.email && (
+                      <p className="mt-1 text-sm text-red-400">{validationErrors.email}</p>
+                    )}
                   </div>
 
                   <div>
@@ -161,12 +212,27 @@ export default function SignInPage() {
                       id="password"
                       type="password"
                       value={password}
-                      onChange={e => setPassword(e.target.value)}
-                      className="w-full px-4 py-3 bg-white/5 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                      onChange={e => {
+                        setPassword(e.target.value)
+                        if (validationErrors.password) {
+                          setValidationErrors(prev => {
+                            const { password, ...rest } = prev
+                            return rest
+                          })
+                        }
+                      }}
+                      className={`w-full px-4 py-3 bg-white/5 backdrop-blur-sm border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${
+                        validationErrors.password
+                          ? 'border-red-500/50 focus:ring-red-500'
+                          : 'border-white/20'
+                      }`}
                       placeholder="••••••••"
                       required
                       disabled={isLoading}
                     />
+                    {validationErrors.password && (
+                      <p className="mt-1 text-sm text-red-400">{validationErrors.password}</p>
+                    )}
                   </div>
 
                   <ElectricBorder className="rounded-lg">

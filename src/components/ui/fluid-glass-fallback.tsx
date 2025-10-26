@@ -1,7 +1,7 @@
 'use client'
 
 import { ReactNode } from 'react'
-import { GlassSurface } from './glass-surface'
+import { GreySurface } from '@/components/ui/grey-surface'
 
 interface FluidGlassFallbackProps {
   children?: ReactNode
@@ -9,7 +9,11 @@ interface FluidGlassFallbackProps {
   mode?: 'lens' | 'bar' | 'cube'
 }
 
-export function FluidGlassFallback({ children, className = '', mode = 'bar' }: FluidGlassFallbackProps) {
+export function FluidGlassFallback({
+  children,
+  className = '',
+  mode = 'bar',
+}: FluidGlassFallbackProps) {
   const props = {
     className,
     width: mode === 'lens' ? 300 : '100%',
@@ -21,10 +25,8 @@ export function FluidGlassFallback({ children, className = '', mode = 'bar' }: F
   }
 
   return (
-    <GlassSurface {...props}>
-      <div className="w-full h-full flex items-center justify-center p-4">
-        {children}
-      </div>
-    </GlassSurface>
+    <GreySurface {...props}>
+      <div className="w-full h-full flex items-center justify-center p-4">{children}</div>
+    </GreySurface>
   )
 }

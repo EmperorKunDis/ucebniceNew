@@ -1,9 +1,9 @@
 // GitHub konfigurace pro odkazy na repozitář
 export const GITHUB_CONFIG = {
-  user: 'martinsvanda',
-  repo: 'ucebnice-programovani',
+  user: 'EmperorKunDis',
+  repo: 'JupyterNotebooks',
   branch: 'main',
-  baseUrl: 'https://github.com'
+  baseUrl: 'https://github.com',
 }
 
 // XP odměny za různé akce
@@ -13,7 +13,7 @@ export const XP_REWARDS = {
   GLITCH_CHALLENGE: 50,
   STREAK_BONUS: 20,
   PERFECT_QUIZ: 150,
-  FIRST_TRY_BONUS: 30
+  FIRST_TRY_BONUS: 30,
 }
 
 // Definice odznaků a achievementů
@@ -25,7 +25,7 @@ export const BADGES = {
     description: 'Dokončil/a jsi svou první lekci',
     icon: '👣',
     xpReward: 50,
-    rarity: 'common'
+    rarity: 'common',
   },
   WEEK_WARRIOR: {
     id: 'week-warrior',
@@ -33,9 +33,9 @@ export const BADGES = {
     description: 'Udržel/a jsi 7denní streak',
     icon: '🔥',
     xpReward: 100,
-    rarity: 'uncommon'
+    rarity: 'uncommon',
   },
-  
+
   // Cognitive Glitch odznaky
   GLITCH_HUNTER: {
     id: 'glitch-hunter',
@@ -43,7 +43,7 @@ export const BADGES = {
     description: 'Vyřešil/a jsi Cognitive Glitch výzvu',
     icon: '🎯',
     xpReward: 75,
-    rarity: 'uncommon'
+    rarity: 'uncommon',
   },
   GLITCH_MASTER: {
     id: 'glitch-master',
@@ -51,9 +51,9 @@ export const BADGES = {
     description: 'Vyřešil/a jsi 10 Cognitive Glitch výzev',
     icon: '🧠',
     xpReward: 200,
-    rarity: 'rare'
+    rarity: 'rare',
   },
-  
+
   // Progress odznaky
   HALFWAY_THERE: {
     id: 'halfway-there',
@@ -61,7 +61,7 @@ export const BADGES = {
     description: 'Dokončil/a jsi 50% kurzu',
     icon: '🌓',
     xpReward: 150,
-    rarity: 'uncommon'
+    rarity: 'uncommon',
   },
   COURSE_COMPLETE: {
     id: 'course-complete',
@@ -69,9 +69,9 @@ export const BADGES = {
     description: 'Dokončil/a jsi celý kurz',
     icon: '🎓',
     xpReward: 500,
-    rarity: 'legendary'
+    rarity: 'legendary',
   },
-  
+
   // Speciální odznaky
   PERFECT_SCORE: {
     id: 'perfect-score',
@@ -79,7 +79,7 @@ export const BADGES = {
     description: '100% úspěšnost ve všech kvízech modulu',
     icon: '💯',
     xpReward: 120,
-    rarity: 'rare'
+    rarity: 'rare',
   },
   SPEED_DEMON: {
     id: 'speed-demon',
@@ -87,7 +87,7 @@ export const BADGES = {
     description: 'Dokončil/a jsi lekci pod 10 minut',
     icon: '⚡',
     xpReward: 80,
-    rarity: 'uncommon'
+    rarity: 'uncommon',
   },
   NIGHT_OWL: {
     id: 'night-owl',
@@ -95,7 +95,7 @@ export const BADGES = {
     description: 'Studoval/a jsi po půlnoci',
     icon: '🦉',
     xpReward: 60,
-    rarity: 'common'
+    rarity: 'common',
   },
   EARLY_BIRD: {
     id: 'early-bird',
@@ -103,8 +103,8 @@ export const BADGES = {
     description: 'Začal/a jsi lekci před 6:00',
     icon: '🐦',
     xpReward: 60,
-    rarity: 'common'
-  }
+    rarity: 'common',
+  },
 }
 
 // Konfigurace Cognitive Glitch systému
@@ -117,8 +117,8 @@ export const GLITCH_CONFIG = {
   DIFFICULTY_SCALING: {
     beginner: { min: 1, max: 3 },
     intermediate: { min: 3, max: 6 },
-    advanced: { min: 5, max: 10 }
-  }
+    advanced: { min: 5, max: 10 },
+  },
 }
 
 // Level systém
@@ -138,8 +138,8 @@ export const LEVEL_CONFIG = {
     70: 'Legenda',
     80: 'Mýtus',
     90: 'Transcendent',
-    100: 'AI Architekt'
-  }
+    100: 'AI Architekt',
+  },
 }
 
 // Barvy pro různé prvky UI
@@ -149,16 +149,191 @@ export const COLORS = {
     uncommon: '#22c55e', // green-500
     rare: '#3b82f6', // blue-500
     epic: '#a855f7', // purple-500
-    legendary: '#f59e0b' // amber-500
+    legendary: '#f59e0b', // amber-500
   },
   difficulty: {
     beginner: '#22c55e', // green-500
     intermediate: '#f59e0b', // amber-500
-    advanced: '#ef4444' // red-500
+    advanced: '#ef4444', // red-500
   },
   progress: {
     incomplete: '#475569', // gray-600
     inProgress: '#3b82f6', // blue-500
-    complete: '#22c55e' // green-500
-  }
+    complete: '#22c55e', // green-500
+  },
 }
+
+// ========================================
+// PAGINATION & API LIMITS
+// ========================================
+
+export const PAGINATION = {
+  /** Default number of items per page */
+  DEFAULT_PAGE_SIZE: 20,
+  /** Maximum items per page */
+  MAX_PAGE_SIZE: 100,
+  /** Default limit for achievements in stats API */
+  ACHIEVEMENTS_LIMIT: 10,
+  /** Default limit for progress items in stats API */
+  PROGRESS_LIMIT: 20,
+  /** Default limit for recent completions */
+  RECENT_COMPLETIONS_LIMIT: 5,
+  /** Maximum recent completions to fetch */
+  MAX_RECENT_COMPLETIONS: 20,
+  /** Leaderboard items per page */
+  LEADERBOARD_SIZE: 100,
+} as const
+
+// ========================================
+// RATE LIMITING
+// ========================================
+
+export const RATE_LIMITS = {
+  /** API requests per hour per user */
+  API_REQUESTS_PER_HOUR: 100,
+  /** Authentication attempts per hour per IP */
+  AUTH_ATTEMPTS_PER_HOUR: 10,
+  /** Password reset requests per hour per email */
+  PASSWORD_RESET_PER_HOUR: 3,
+} as const
+
+// ========================================
+// VALIDATION RULES
+// ========================================
+
+export const VALIDATION = {
+  PASSWORD: {
+    MIN_LENGTH: 8,
+    MAX_LENGTH: 100,
+    REQUIRE_UPPERCASE: true,
+    REQUIRE_NUMBER: true,
+    REQUIRE_SPECIAL_CHAR: false,
+  },
+  EMAIL: {
+    MAX_LENGTH: 255,
+  },
+  USERNAME: {
+    MIN_LENGTH: 3,
+    MAX_LENGTH: 20,
+    PATTERN: /^[a-z0-9]+$/,
+  },
+  NAME: {
+    MIN_LENGTH: 2,
+    MAX_LENGTH: 50,
+    PATTERN: /^[a-zA-ZáčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ\s]+$/,
+  },
+  BIO: {
+    MAX_LENGTH: 500,
+  },
+} as const
+
+// ========================================
+// TIME & DATES
+// ========================================
+
+export const TIME = {
+  /** Milliseconds in one day */
+  ONE_DAY_MS: 24 * 60 * 60 * 1000,
+  /** Milliseconds in one hour */
+  ONE_HOUR_MS: 60 * 60 * 1000,
+  /** Milliseconds in one week */
+  ONE_WEEK_MS: 7 * 24 * 60 * 60 * 1000,
+  /** Milliseconds in 30 days (approximate month) */
+  THIRTY_DAYS_MS: 30 * 24 * 60 * 60 * 1000,
+  /** Toast notification duration in ms */
+  TOAST_DURATION: 4000,
+  /** Redirect delay after success in ms */
+  REDIRECT_DELAY: 1000,
+} as const
+
+// ========================================
+// LEADERBOARD
+// ========================================
+
+export const LEADERBOARD = {
+  PERIODS: {
+    DAILY: 'daily',
+    WEEKLY: 'weekly',
+    MONTHLY: 'monthly',
+    ALL_TIME: 'all-time',
+  },
+  /** Number of top users to display */
+  TOP_USERS_COUNT: 100,
+} as const
+
+// ========================================
+// XP & ACHIEVEMENTS (Extended)
+// ========================================
+
+export const XP = {
+  /** XP awarded for completing onboarding */
+  ONBOARDING_COMPLETE: 50,
+  /** XP awarded per chapter completion */
+  PER_CHAPTER: 100,
+  /** XP divisor for level calculation (level = sqrt(xp / XP_PER_LEVEL) + 1) */
+  PER_LEVEL: 100,
+} as const
+
+export const BADGE_IDS = {
+  ONBOARDING_COMPLETE: 'onboarding-complete',
+  FIRST_CHAPTER: 'first-chapter',
+  STREAK_7: 'streak-7',
+  STREAK_30: 'streak-30',
+  CHAPTERS_10: 'chapters-10',
+} as const
+
+// ========================================
+// ERROR & SUCCESS MESSAGES (Czech)
+// ========================================
+
+export const ERROR_MESSAGES = {
+  UNAUTHORIZED: 'Nejste přihlášeni',
+  FORBIDDEN: 'Nemáte oprávnění k této akci',
+  NOT_FOUND: 'Požadovaný zdroj nebyl nalezen',
+  INTERNAL_ERROR: 'Něco se pokazilo. Zkuste to znovu.',
+  VALIDATION_ERROR: 'Opravte prosím chyby ve formuláři',
+  RATE_LIMIT: 'Příliš mnoho požadavků. Zkuste to později.',
+  NETWORK_ERROR: 'Chyba připojení. Zkontrolujte internetové připojení.',
+} as const
+
+export const SUCCESS_MESSAGES = {
+  CHAPTER_COMPLETE: 'Kapitola dokončena! 🎉',
+  ONBOARDING_COMPLETE: 'Gratulujeme! Onboarding dokončen!',
+  PROFILE_UPDATED: 'Profil byl úspěšně aktualizován',
+  LOGIN_SUCCESS: 'Přihlášení úspěšné!',
+  LOGOUT_SUCCESS: 'Byli jste úspěšně odhlášeni',
+  ACHIEVEMENT_UNLOCKED: 'Nový odznak odemčen!',
+} as const
+
+// ========================================
+// ROUTES
+// ========================================
+
+export const ROUTES = {
+  HOME: '/',
+  CHAPTERS: '/chapters',
+  PROFILE: '/profile',
+  LEADERBOARD: '/leaderboard',
+  ACHIEVEMENTS: '/achievements',
+  ARENA: '/arena',
+  CERTIFICATE: '/certificate',
+  AUTH: {
+    SIGNIN: '/auth/signin',
+    SIGNUP: '/auth/signup',
+    SIGNOUT: '/auth/signout',
+  },
+  ONBOARDING: '/onboarding',
+  API: {
+    ONBOARDING_COMPLETE: '/api/onboarding/complete',
+    COMPLETE_CHAPTER: '/api/progress/complete-chapter',
+    USER_STATS: '/api/user/stats',
+    LEADERBOARD: '/api/leaderboard',
+  },
+} as const
+
+// ========================================
+// TYPE EXPORTS
+// ========================================
+
+export type LeaderboardPeriod = keyof typeof LEADERBOARD.PERIODS
+export type BadgeId = (typeof BADGE_IDS)[keyof typeof BADGE_IDS]

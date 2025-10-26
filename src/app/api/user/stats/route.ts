@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { getProgressToNextLevel } from '@/lib/gamification'
 import { applyRateLimit } from '@/lib/api-middleware'
 import { apiLimiter } from '@/lib/rate-limit'
+import { PAGINATION } from '@/lib/constants'
 
 export const dynamic = 'force-dynamic'
 
@@ -144,15 +145,34 @@ export async function GET(request: NextRequest) {
       return rateLimitResponse
     }
 
+    // Get pagination parameters from query string
+    const { searchParams } = new URL(request.url)
+    const achievementsLimit = parseInt(
+      searchParams.get('achievementsLimit') || String(PAGINATION.ACHIEVEMENTS_LIMIT)
+    )
+    const progressLimit = parseInt(
+      searchParams.get('progressLimit') || String(PAGINATION.PROGRESS_LIMIT)
+    )
+    const recentLimit = parseInt(
+      searchParams.get('recentLimit') || String(PAGINATION.RECENT_COMPLETIONS_LIMIT)
+    )
+
+    // Validate limits (prevent excessive queries)
+    const safeAchievementsLimit = Math.min(Math.max(achievementsLimit, 1), PAGINATION.MAX_PAGE_SIZE)
+    const safeProgressLimit = Math.min(Math.max(progressLimit, 1), PAGINATION.MAX_PAGE_SIZE)
+    const safeRecentLimit = Math.min(Math.max(recentLimit, 1), PAGINATION.MAX_RECENT_COMPLETIONS)
+
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       include: {
-        completedLessons: {
-          include: {
-            lesson: true,
+        _count: {
+          select: {
+            completedLessons: true,
+            achievements: true,
           },
         },
         achievements: {
+          take: safeAchievementsLimit,
           include: {
             achievement: true,
           },
@@ -161,8 +181,12 @@ export async function GET(request: NextRequest) {
           },
         },
         lessonProgress: {
+          take: safeProgressLimit,
           include: {
             lesson: true,
+          },
+          orderBy: {
+            lastUpdated: 'desc',
           },
         },
       },
@@ -172,13 +196,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
+    // Fetch recent completions separately with proper sorting in database
+    const recentCompletions = await prisma.completedLesson.findMany({
+      where: {
+        userId: session.user.id,
+      },
+      take: safeRecentLimit,
+      orderBy: {
+        completedAt: 'desc',
+      },
+      include: {
+        lesson: true,
+      },
+    })
+
     // Calculate level progress
     const levelProgress = getProgressToNextLevel(user.xp)
-
-    // Get recent completions
-    const recentCompletions = user.completedLessons
-      .sort((a, b) => b.completedAt.getTime() - a.completedAt.getTime())
-      .slice(0, 5)
 
     // Format response
     return NextResponse.json({
@@ -195,8 +228,8 @@ export async function GET(request: NextRequest) {
         createdAt: user.createdAt,
       },
       stats: {
-        completedChapters: user.completedLessons.length,
-        totalAchievements: user.achievements.length,
+        completedChapters: user._count.completedLessons,
+        totalAchievements: user._count.achievements,
         currentStreak: user.currentStreak,
         longestStreak: user.longestStreak,
         levelProgress,
@@ -218,11 +251,24 @@ export async function GET(request: NextRequest) {
         xpEarned: c.xpEarned,
       })),
       progress: user.lessonProgress.map(p => ({
-        lessonId: p.lessonId,
+        lessonId: p.lesson.chapterId, // Return chapterId instead of database ID
         lessonTitle: p.lesson.title,
         progress: p.progress,
         lastUpdated: p.lastUpdated,
       })),
+      pagination: {
+        achievements: {
+          returned: user.achievements.length,
+          total: user._count.achievements,
+        },
+        progress: {
+          returned: user.lessonProgress.length,
+          total: user.lessonProgress.length,
+        },
+        recentCompletions: {
+          returned: recentCompletions.length,
+        },
+      },
     })
   } catch (error) {
     console.error('Error fetching user stats:', error)

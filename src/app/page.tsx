@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { PageLayout } from '@/components/layout/page-layout'
 import { GlassSurface } from '@/components/ui/glass-surface'
+import { GreySurface } from '@/components/ui/grey-surface'
 import { ElectricBorder } from '@/components/ui/electric-border'
 import { Button } from '@/components/ui/button'
 import { Stack, Grid, Box } from '@/components/layout'
@@ -12,6 +13,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { ChevronRight, Code2, Brain, Trophy, Users } from 'lucide-react'
 import { useUserStore } from '@/store/user-store'
+import { usePerformanceCheck } from '@/hooks/use-performance-check'
 
 // Lazy load heavy components
 const ProfileCard = dynamic(
@@ -27,13 +29,12 @@ const ProfileCard = dynamic(
 export default function HomePage() {
   const router = useRouter()
   const { username, onboardingCompleted } = useUserStore()
+  const hasGoodPerformance = usePerformanceCheck()
 
-  useEffect(() => {
-    // Redirect to onboarding if user hasn't completed it
-    if (username && !onboardingCompleted) {
-      router.push('/onboarding')
-    }
-  }, [username, onboardingCompleted, router])
+  // Surface component based on performance
+  const HeroSurface = hasGoodPerformance ? GlassSurface : GreySurface
+
+  // Removed auto-redirect - let users browse freely first
   return (
     <PageLayout>
       {/* Hero section */}
@@ -138,13 +139,13 @@ export default function HomePage() {
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
               >
-                <GlassSurface className="p-6 sm:p-8 h-full hover:scale-105 transition-transform">
+                <GreySurface className="p-6 sm:p-8 h-full hover:scale-105 transition-transform">
                   <Stack direction="col" gap={4}>
                     <Box className="text-purple-400">{feature.icon}</Box>
                     <h3 className="text-xl font-semibold text-white">{feature.title}</h3>
                     <p className="text-gray-400">{feature.description}</p>
                   </Stack>
-                </GlassSurface>
+                </GreySurface>
               </motion.div>
             ))}
           </Grid>
@@ -154,7 +155,7 @@ export default function HomePage() {
       {/* CTA section */}
       <Box as="section" className="relative z-10 py-24 px-4">
         <Box className="max-w-4xl mx-auto">
-          <GlassSurface className="p-8 sm:p-12">
+          <GreySurface className="p-8 sm:p-12">
             <Stack direction="col" gap={6} align="center">
               <h2 className="text-4xl font-bold text-center">
                 <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
@@ -174,7 +175,7 @@ export default function HomePage() {
                 </Link>
               </ElectricBorder>
             </Stack>
-          </GlassSurface>
+          </GreySurface>
         </Box>
       </Box>
     </PageLayout>

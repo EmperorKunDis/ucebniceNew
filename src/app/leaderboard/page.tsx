@@ -119,8 +119,14 @@ export default function LeaderboardPage() {
   if (isLoading) {
     return (
       <UnifiedPageLayout maxWidth="7xl">
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="w-12 h-12 animate-spin text-purple-400" />
+        <div
+          className="flex items-center justify-center min-h-[60vh]"
+          role="status"
+          aria-live="polite"
+          aria-busy="true"
+        >
+          <Loader2 className="w-12 h-12 animate-spin text-purple-400" aria-hidden="true" />
+          <span className="sr-only">Načítání žebříčku...</span>
         </div>
       </UnifiedPageLayout>
     )
@@ -134,7 +140,7 @@ export default function LeaderboardPage() {
 
       {/* Period selector */}
       <Stack justify="center">
-        <GlassSurface className="inline-flex p-1">
+        <GlassSurface className="inline-flex p-1" role="group" aria-label="Výběr období žebříčku">
           {periodOptions.map(option => (
             <Button
               key={option.value}
@@ -142,8 +148,10 @@ export default function LeaderboardPage() {
               size="sm"
               onClick={() => setPeriod(option.value as LeaderboardPeriod)}
               className="gap-2"
+              aria-pressed={period === option.value}
+              aria-label={`Zobrazit ${option.label.toLowerCase()} žebříček`}
             >
-              {option.icon}
+              <span aria-hidden="true">{option.icon}</span>
               {option.label}
             </Button>
           ))}
@@ -158,7 +166,14 @@ export default function LeaderboardPage() {
         <>
           {/* Top 3 podium */}
           {leaderboard.length >= 3 && (
-            <Grid columns={1} md={3} gap={4} className="max-w-4xl mx-auto">
+            <Grid
+              columns={1}
+              md={3}
+              gap={4}
+              className="max-w-4xl mx-auto"
+              role="list"
+              aria-label="Top 3 uživatelé"
+            >
               {leaderboard.slice(0, 3).map((entry, i) => (
                 <motion.div
                   key={i}
@@ -166,12 +181,17 @@ export default function LeaderboardPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.1 }}
                   className={i === 0 ? 'md:order-2' : i === 1 ? 'md:order-1' : 'md:order-3'}
+                  role="listitem"
                 >
                   <ElectricBorder className="rounded-lg">
                     <GlassSurface
                       className={`p-6 text-center bg-gradient-to-br ${getRankColor(entry.rank)}`}
+                      aria-label={`${entry.rank}. místo: ${entry.username}, Level ${entry.level}, ${entry.xp.toLocaleString()} XP`}
                     >
-                      <Box className={`mb-4 ${i === 0 ? 'transform scale-125' : ''}`}>
+                      <Box
+                        className={`mb-4 ${i === 0 ? 'transform scale-125' : ''}`}
+                        aria-hidden="true"
+                      >
                         {getRankIcon(entry.rank)}
                       </Box>
                       <Box className="w-20 h-20 mx-auto mb-3 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-2xl font-bold text-white">
@@ -185,11 +205,11 @@ export default function LeaderboardPage() {
                       </Box>
                       <Stack direction="row" justify="center" gap={4} className="mt-3 text-xs">
                         <Stack direction="row" gap={1} align="center">
-                          <Trophy className="w-3 h-3 text-yellow-400" />
+                          <Trophy className="w-3 h-3 text-yellow-400" aria-hidden="true" />
                           <span className="text-gray-400">{entry.badges}</span>
                         </Stack>
                         <Stack direction="row" gap={1} align="center">
-                          <Trophy className="w-3 h-3 text-orange-400" />
+                          <Trophy className="w-3 h-3 text-orange-400" aria-hidden="true" />
                           <span className="text-gray-400">{entry.streak}d</span>
                         </Stack>
                       </Stack>
@@ -204,13 +224,14 @@ export default function LeaderboardPage() {
           {leaderboard.length > 3 && (
             <Box className="max-w-4xl mx-auto">
               <GlassSurface className="p-6">
-                <Stack direction="col" gap={2}>
+                <Stack direction="col" gap={2} role="list" aria-label="Žebříček místo 4 a níže">
                   {leaderboard.slice(3).map((entry, i) => (
                     <motion.div
                       key={i}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.05 }}
+                      role="listitem"
                     >
                       <Box
                         className={`p-4 rounded-lg transition-all ${
@@ -218,6 +239,8 @@ export default function LeaderboardPage() {
                             ? 'bg-purple-500/20 border-2 border-purple-500/50'
                             : 'bg-white/5 hover:bg-white/10'
                         }`}
+                        aria-label={`${entry.rank}. místo: ${entry.username}${entry.username === currentUsername ? ' (Ty)' : ''}, Level ${entry.level}, ${entry.xp.toLocaleString()} XP, ${entry.badges} odznaků, ${entry.streak} denní série`}
+                        aria-current={entry.username === currentUsername ? 'true' : undefined}
                       >
                         <Stack direction="row" align="center" gap={4}>
                           <Box className="w-12 text-center">
@@ -266,11 +289,15 @@ export default function LeaderboardPage() {
                               className={`flex items-center gap-1 ${
                                 entry.change === 'up' ? 'text-green-400' : 'text-red-400'
                               }`}
+                              aria-label={`${entry.change === 'up' ? 'Vzestup' : 'Pokles'} o ${entry.changeValue} míst`}
                             >
                               <TrendingUp
                                 className={`w-4 h-4 ${entry.change === 'down' ? 'rotate-180' : ''}`}
+                                aria-hidden="true"
                               />
-                              <span className="text-sm">{entry.changeValue}</span>
+                              <span className="text-sm" aria-hidden="true">
+                                {entry.changeValue}
+                              </span>
                             </Box>
                           )}
                         </Stack>
@@ -298,9 +325,9 @@ export default function LeaderboardPage() {
         </p>
         <ElectricBorder className="inline-block rounded-lg">
           <Button variant="primary" size="lg" asChild>
-            <Link href="/chapters">
+            <Link href="/chapters" aria-label="Pokračovat v učení - přejít na kapitoly">
               Pokračovat v učení
-              <ChevronRight className="w-5 h-5 ml-2" />
+              <ChevronRight className="w-5 h-5 ml-2" aria-hidden="true" />
             </Link>
           </Button>
         </ElectricBorder>

@@ -18,7 +18,7 @@ import {
 
 import { UnifiedPageLayout } from '@/components/layout/unified-page-layout'
 import { SectionHeader } from '@/components/ui/section-header'
-import { GlassSurface } from '@/components/ui/glass-surface'
+import { GreySurface } from '@/components/ui/grey-surface'
 import { ElectricBorder } from '@/components/ui/electric-border'
 import { Stack, Grid, Box } from '@/components/layout'
 import { chapters } from '@/data/chapters'
@@ -153,7 +153,7 @@ export default function ChaptersPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: moduleIndex * 0.1 }}
               >
-                <GlassSurface className="p-8">
+                <GreySurface className="p-8">
                   {/* Module header */}
                   <Stack direction="col" gap={4} className="mb-6">
                     <Stack direction="row" justify="between" align="start" wrap>
@@ -270,7 +270,7 @@ export default function ChaptersPage() {
                       )
                     })}
                   </Grid>
-                </GlassSurface>
+                </GreySurface>
               </motion.div>
             )
           })}
@@ -285,7 +285,7 @@ export default function ChaptersPage() {
         className="mt-12"
       >
         <ElectricBorder className="rounded-lg">
-          <GlassSurface className="p-8 text-center">
+          <GreySurface className="p-8 text-center">
             <Stack direction="col" gap={4} align="center">
               <Sparkles className="w-12 h-12 text-purple-400" />
               <h3 className="text-2xl font-bold text-white">
@@ -329,7 +329,7 @@ export default function ChaptersPage() {
                 </Stack>
               )}
             </Stack>
-          </GlassSurface>
+          </GreySurface>
         </ElectricBorder>
       </motion.div>
     </UnifiedPageLayout>

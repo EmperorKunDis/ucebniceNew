@@ -4,6 +4,7 @@ import { memo } from 'react'
 import { Chapter } from '@/data/chapters'
 import { Box, Button, Stack } from '@/components/ui'
 import { BookOpen, Download, Rocket, ExternalLink } from 'lucide-react'
+import { GITHUB_CONFIG } from '@/lib/constants'
 
 interface NotebookLinksProps {
   chapter: Chapter
@@ -11,7 +12,7 @@ interface NotebookLinksProps {
 
 function NotebookLinksComponent({ chapter }: NotebookLinksProps) {
   const colabUrl = chapter.colabNotebook
-    ? `https://colab.research.google.com/github/martinsvanda/ucebnice-programovani/blob/main/colab_notebooks/${chapter.colabNotebook}`
+    ? `https://colab.research.google.com/github/${GITHUB_CONFIG.user}/${GITHUB_CONFIG.repo}/blob/${GITHUB_CONFIG.branch}/${chapter.colabNotebook}`
     : null
 
   const downloadUrl = chapter.colabNotebook ? `/colab_notebooks/${chapter.colabNotebook}` : null

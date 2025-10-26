@@ -5,11 +5,12 @@ import { useSession } from 'next-auth/react'
 import { UnifiedPageLayout } from '@/components/layout/unified-page-layout'
 import { SectionHeader } from '@/components/ui/section-header'
 import { StatCard } from '@/components/ui/stat-card'
-import { GlassSurface } from '@/components/ui/glass-surface'
+import { GreySurface } from '@/components/ui/grey-surface'
 import { ElectricBorder } from '@/components/ui/electric-border'
 import { Stack, Grid, Box } from '@/components/layout'
 import { Trophy, Star, Lock, Award, Loader2 } from 'lucide-react'
-import { BADGES, COLORS } from '@/lib/constants'
+import { BADGES } from '@/lib/gamification'
+import { COLORS } from '@/lib/constants'
 import { motion } from 'framer-motion'
 
 export default function AchievementsPage() {
@@ -137,7 +138,7 @@ export default function AchievementsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 + rarityIndex * 0.1, duration: 0.5 }}
               >
-                <GlassSurface className="p-8">
+                <GreySurface className="p-8">
                   <Stack direction="row" gap={3} align="center" className="mb-6">
                     <div
                       className="w-3 h-3 rounded-full"
@@ -195,7 +196,7 @@ export default function AchievementsPage() {
                       )
                     })}
                   </Grid>
-                </GlassSurface>
+                </GreySurface>
               </motion.div>
             )
           }

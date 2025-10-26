@@ -47,7 +47,7 @@ module.exports = {
         'fade-in': 'fadeIn 0.5s ease-in-out',
         'slide-up': 'slideUp 0.3s ease-out',
         'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
-        'float': 'float 6s ease-in-out infinite',
+        float: 'float 6s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -69,7 +69,7 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: ['var(--font-montserrat)', 'Montserrat', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-exo2)', 'Exo 2', 'system-ui', 'sans-serif'],
         mono: ['monospace'],
       },
     },

@@ -1,19 +1,24 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import toast from 'react-hot-toast'
 import { Chapter } from '@/data/chapters'
 import { ChapterHeader } from './ChapterHeader'
 import { ChapterContent } from './ChapterContent'
 import { VideoPlayer } from './VideoPlayer'
 import { NotebookLinks } from './NotebookLinks'
 import { ChapterNavigation } from './ChapterNavigation'
+import { QuestionCard } from './QuestionCard'
+import { ProjectSubmission } from './ProjectSubmission'
+import { ModuleTestModal } from '../tests/ModuleTestModal'
 import { Box, Stack } from '@/components/layout'
 import { PageLayout } from '@/components/layout/page-layout'
-import { GlassSurface } from '@/components/ui/glass-surface'
+import { GreySurface } from '@/components/ui/grey-surface'
 import { Button } from '@/components/ui/button'
+import { getModuleTest } from '@/data/module-tests'
 import {
   Book,
   FileText,
@@ -23,7 +28,11 @@ import {
   Loader2,
   Trophy,
   Zap,
+  HelpCircle,
+  Upload,
+  Star,
 } from 'lucide-react'
+import { getChapterQuestions } from '@/data/questions'
 
 interface ChapterLayoutProps {
   chapter: Chapter
@@ -36,16 +45,110 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
     video: true, // Video bude default rozbalené
     text: false,
     lecture: false,
+    questions: false,
+    project: false,
   })
   const [completing, setCompleting] = useState(false)
   const [completed, setCompleted] = useState(false)
   const [completionData, setCompletionData] = useState<any>(null)
+  const [stars, setStars] = useState(0)
+  const [questionAnswers, setQuestionAnswers] = useState<Map<string, boolean>>(new Map())
+  const [loading, setLoading] = useState(true)
+  const [showModuleTest, setShowModuleTest] = useState(false)
+  const [moduleTestNumber, setModuleTestNumber] = useState<number | null>(null)
+
+  const questions = getChapterQuestions(chapter.id)
+
+  // Check if this chapter triggers a module test (10, 20, 30, 40)
+  const isModuleEndChapter = ['10', '20', '30', '40'].includes(chapter.id)
+  const getModuleNumber = (chapterId: string) => {
+    if (chapterId === '10') return 1
+    if (chapterId === '20') return 2
+    if (chapterId === '30') return 3
+    if (chapterId === '40') return 4
+    return null
+  }
+
+  // Load chapter progress on mount
+  useEffect(() => {
+    async function loadProgress() {
+      if (!session) {
+        setLoading(false)
+        return
+      }
+
+      try {
+        const response = await fetch(`/api/chapters/progress?chapterId=${chapter.id}`)
+        const data = await response.json()
+
+        if (response.ok) {
+          setStars(data.stars || 0)
+          setCompleted(data.completed)
+          if (data.completed) {
+            setCompletionData({ alreadyCompleted: true })
+          }
+
+          // Load question answers
+          const answersMap = new Map<string, boolean>()
+          data.questionAnswers?.forEach((qa: any) => {
+            answersMap.set(qa.questionId, qa.correct)
+          })
+          setQuestionAnswers(answersMap)
+        }
+      } catch (error) {
+        console.error('Error loading chapter progress:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadProgress()
+  }, [chapter.id, session])
 
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections(prev => ({
       ...prev,
       [section]: !prev[section],
     }))
+  }
+
+  const handleAnswerQuestion = async (questionId: string, answerIndex: number) => {
+    if (!session) {
+      router.push('/auth/signin')
+      return { correct: false, explanation: 'Musíš být přihlášen', xpEarned: 0 }
+    }
+
+    try {
+      const response = await fetch('/api/questions/answer', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chapterId: chapter.id,
+          questionId,
+          answerIndex,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setQuestionAnswers(prev => new Map(prev).set(questionId, data.correct))
+
+        if (data.allQuestionsCompleted) {
+          setStars(prev => Math.max(prev, 2))
+          toast.success('Všechny otázky správně! Získal jsi druhou hvězdičku! 🌟')
+        }
+
+        return data
+      }
+
+      return { correct: false, explanation: data.error, xpEarned: 0 }
+    } catch (error) {
+      console.error('Error answering question:', error)
+      return { correct: false, explanation: 'Chyba při odesílání odpovědi', xpEarned: 0 }
+    }
   }
 
   const handleCompleteChapter = async () => {
@@ -71,20 +174,56 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
       if (response.ok) {
         setCompleted(true)
         setCompletionData(data)
+        setStars(data.stars || 1)
+        toast.success('Kapitola dokončena! 🎉')
+
+        // Show module test if this is chapter 10, 20, 30, or 40
+        if (isModuleEndChapter) {
+          const modNum = getModuleNumber(chapter.id)
+          if (modNum && getModuleTest(modNum)) {
+            setModuleTestNumber(modNum)
+            setTimeout(() => {
+              setShowModuleTest(true)
+            }, 1500)
+          }
+        }
       } else {
         console.error('Error completing chapter:', data.error)
-        alert(data.error || 'Nepodařilo se dokončit kapitolu')
+        toast.error(data.error || 'Nepodařilo se dokončit kapitolu')
       }
     } catch (error) {
       console.error('Error:', error)
-      alert('Něco se pokazilo. Zkuste to znovu.')
+      toast.error('Něco se pokazilo. Zkuste to znovu.')
     } finally {
       setCompleting(false)
     }
   }
 
+  const handleTestComplete = (result: any) => {
+    toast.success(`Test dokončen! +${result.xpEarned} XP, ${result.stars} hvězdiček! 🎉`)
+    setShowModuleTest(false)
+    setModuleTestNumber(null)
+  }
+
+  const handleTestAbandon = () => {
+    toast.info('Test ukončen')
+    setShowModuleTest(false)
+    setModuleTestNumber(null)
+  }
+
+  const moduleTest = moduleTestNumber ? getModuleTest(moduleTestNumber) : null
+
   return (
     <PageLayout>
+      {/* Module Test Modal */}
+      {showModuleTest && moduleTest && (
+        <ModuleTestModal
+          moduleTest={moduleTest}
+          onComplete={handleTestComplete}
+          onAbandon={handleTestAbandon}
+        />
+      )}
+
       <Box className="max-w-5xl mx-auto">
         <ChapterHeader chapter={chapter} />
 
@@ -104,16 +243,6 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
             </Section>
           )}
 
-          {/* Studijní materiály - text */}
-          <Section
-            title="Studijní materiály"
-            icon={<FileText className="w-5 h-5" />}
-            expanded={expandedSections.text}
-            onToggle={() => toggleSection('text')}
-          >
-            <ChapterContent content={chapter.textFile} type="text" />
-          </Section>
-
           {/* Kompletní přednáška */}
           <Section
             title="Kompletní přednáška"
@@ -124,15 +253,79 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
             <ChapterContent content={chapter.lectureFile} type="lecture" />
           </Section>
 
+          {/* Studijní materiály - Questions */}
+          {questions.length > 0 && (
+            <Section
+              title={`Otázky k procvičení (${questions.length})`}
+              icon={<HelpCircle className="w-5 h-5" />}
+              expanded={expandedSections.questions}
+              onToggle={() => toggleSection('questions')}
+            >
+              <div className="space-y-4">
+                <p className="text-gray-400 mb-6">
+                  Odpověz správně na všechny otázky a získej druhou hvězdičku! 🌟
+                </p>
+                {questions.map((question, index) => (
+                  <QuestionCard
+                    key={question.id}
+                    question={question}
+                    questionNumber={index + 1}
+                    onAnswer={handleAnswerQuestion}
+                    alreadyAnswered={questionAnswers.has(question.id)}
+                    correctAnswer={questionAnswers.get(question.id)}
+                  />
+                ))}
+              </div>
+            </Section>
+          )}
+
+          {/* Project Submission */}
+          {session && (
+            <Section
+              title="Odevzdej svůj projekt"
+              icon={<Upload className="w-5 h-5" />}
+              expanded={expandedSections.project}
+              onToggle={() => toggleSection('project')}
+            >
+              <div className="space-y-4">
+                <p className="text-gray-400 mb-6">
+                  Nahraj odkaz na svůj projekt a získej třetí hvězdičku! 🌟
+                </p>
+                <ProjectSubmission chapterId={chapter.id} />
+              </div>
+            </Section>
+          )}
+
           {/* Complete Chapter Button */}
           {session && (
-            <GlassSurface className="p-6">
+            <GreySurface className="p-6">
               {!completed && !completionData ? (
                 <div className="text-center">
                   <h3 className="text-xl font-semibold text-white mb-2">
                     Dokončil jsi tuto kapitolu?
                   </h3>
-                  <p className="text-gray-400 mb-6">Získej XP a pokroč ve své cestě učení!</p>
+                  <p className="text-gray-400 mb-4">Získej XP a pokroč ve své cestě učení!</p>
+
+                  {/* Star Progress */}
+                  {stars > 0 && (
+                    <div className="mb-6 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-lg p-4">
+                      <p className="text-sm text-gray-300 mb-2">Tvůj pokrok:</p>
+                      <div className="flex items-center justify-center gap-2">
+                        {[1, 2, 3].map(starNum => (
+                          <Star
+                            key={starNum}
+                            className={`w-6 h-6 ${starNum <= stars ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
+                          />
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-400 mt-2">
+                        {stars === 1 && 'Zodpověz všechny otázky pro 2. hvězdičku!'}
+                        {stars === 2 && 'Odevzdej projekt pro 3. hvězdičku!'}
+                        {stars === 3 && 'Kompletní! Získal jsi všechny 3 hvězdičky! 🎉'}
+                      </p>
+                    </div>
+                  )}
+
                   <Button
                     onClick={handleCompleteChapter}
                     disabled={completing}
@@ -163,6 +356,27 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
                       ? 'Tuto kapitolu už máš dokončenou!'
                       : 'Úspěšně jsi dokončil tuto kapitolu!'}
                   </p>
+
+                  {/* Star Display */}
+                  {stars > 0 && (
+                    <div className="mb-6 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-lg p-4">
+                      <p className="text-sm text-gray-300 mb-2">Tvoje hvězdičky:</p>
+                      <div className="flex items-center justify-center gap-2 mb-2">
+                        {[1, 2, 3].map(starNum => (
+                          <Star
+                            key={starNum}
+                            className={`w-8 h-8 ${starNum <= stars ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
+                          />
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-400">
+                        {stars === 1 && 'Získal jsi 1/3 hvězdičky - zodpověz otázky pro více!'}
+                        {stars === 2 &&
+                          'Získal jsi 2/3 hvězdičky - odevzdej projekt pro kompletní!'}
+                        {stars === 3 && 'Perfektní! Získal jsi všechny 3 hvězdičky! 🎉'}
+                      </p>
+                    </div>
+                  )}
 
                   {completionData && !completionData.alreadyCompleted && (
                     <div className="flex gap-4 justify-center items-center flex-wrap mb-6">
@@ -216,7 +430,7 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
                   </Button>
                 </div>
               )}
-            </GlassSurface>
+            </GreySurface>
           )}
 
           {/* Navigace mezi kapitolami */}
@@ -238,7 +452,7 @@ interface SectionProps {
 function Section({ title, icon, expanded, onToggle, children }: SectionProps) {
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-      <GlassSurface className="overflow-hidden">
+      <GreySurface className="overflow-hidden">
         <button
           onClick={onToggle}
           className="w-full px-6 py-4 flex items-center justify-between hover:bg-white/5 transition-colors"
@@ -264,7 +478,7 @@ function Section({ title, icon, expanded, onToggle, children }: SectionProps) {
             </Box>
           </motion.div>
         )}
-      </GlassSurface>
+      </GreySurface>
     </motion.div>
   )
 }

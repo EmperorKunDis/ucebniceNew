@@ -6,6 +6,7 @@ export { Grid } from './grid'
 // UI komponenty
 export { Button } from './button'
 export { GlassSurface } from './glass-surface'
+export { GreySurface } from './grey-surface'
 export { ElectricBorder } from './electric-border'
 export { Lightning } from './lightning'
 export { LightningBackground } from './lightning-background'

@@ -7,6 +7,8 @@ export const XP_PER_CHAPTER = 100
 export const XP_PER_QUIZ = 50
 export const XP_PER_CHALLENGE = 150
 export const XP_STREAK_BONUS = 25
+export const XP_PER_QUESTION = 10 // XP for each correct question answer
+export const XP_PER_PROJECT = 50 // XP for submitting a project
 
 // Level system - kvadratický růst
 
@@ -198,6 +200,126 @@ export const BADGES = {
     icon: '💯',
     xpReward: 125,
     rarity: 'rare',
+  },
+  ONBOARDING_COMPLETE: {
+    id: 'onboarding-complete',
+    name: 'První kroky',
+    description: 'Dokončil/a jsi onboarding',
+    icon: '🎆',
+    xpReward: 50,
+    rarity: 'common',
+  },
+  FIRST_STAR_TWO: {
+    id: 'first-star-two',
+    name: 'Znalec',
+    description: 'Získal jsi druhou hvězdičku v kapitole',
+    icon: '⭐',
+    xpReward: 75,
+    rarity: 'common',
+  },
+  FIRST_STAR_THREE: {
+    id: 'first-star-three',
+    name: 'Projekťák',
+    description: 'Získal jsi třetí hvězdičku v kapitole',
+    icon: '🌟',
+    xpReward: 100,
+    rarity: 'uncommon',
+  },
+  FIVE_PERFECT_CHAPTERS: {
+    id: 'five-perfect-chapters',
+    name: 'Hvězdný student',
+    description: 'Získal jsi všechny 3 hvězdičky v 5 kapitolách',
+    icon: '✨',
+    xpReward: 250,
+    rarity: 'rare',
+  },
+  ALL_THREE_STARS: {
+    id: 'all-three-stars',
+    name: 'Mistr dokonalosti',
+    description: 'Získal jsi všechny 3 hvězdičky ve všech kapitolách',
+    icon: '💫',
+    xpReward: 1000,
+    rarity: 'legendary',
+  },
+  QUESTION_MASTER: {
+    id: 'question-master',
+    name: 'Kvízový šampion',
+    description: 'Odpověděl jsi správně na 50 otázek',
+    icon: '🤔',
+    xpReward: 150,
+    rarity: 'uncommon',
+  },
+  PROJECT_STARTER: {
+    id: 'project-starter',
+    name: 'První projekt',
+    description: 'Odevzdal jsi svůj první projekt',
+    icon: '🚀',
+    xpReward: 100,
+    rarity: 'common',
+  },
+  PROJECT_ENTHUSIAST: {
+    id: 'project-enthusiast',
+    name: 'Projektový nadšenec',
+    description: 'Odevzdal jsi 10 projektů',
+    icon: '💻',
+    xpReward: 300,
+    rarity: 'rare',
+  },
+  TEST_ACE: {
+    id: 'test-ace',
+    name: 'As testů',
+    description: 'Dokončil jsi modulový test s 90%+ úspěšností',
+    icon: '🎯',
+    xpReward: 150,
+    rarity: 'uncommon',
+  },
+  SPEED_DEMON: {
+    id: 'speed-demon',
+    name: 'Rychlík',
+    description: 'Dokončil jsi test pod 5 minut s plným počtem bodů',
+    icon: '⚡',
+    xpReward: 200,
+    rarity: 'rare',
+  },
+  MODULE_MASTER: {
+    id: 'module-master',
+    name: 'Mistr modulu',
+    description: 'Získal jsi 3 hvězdičky v modulovém testu',
+    icon: '🏆',
+    xpReward: 250,
+    rarity: 'rare',
+  },
+  ALL_MODULES_PERFECT: {
+    id: 'all-modules-perfect',
+    name: 'Perfekcionista',
+    description: 'Získal jsi 3 hvězdičky ve všech 4 modulových testech',
+    icon: '👑',
+    xpReward: 1000,
+    rarity: 'legendary',
+  },
+  STUDENT_OF_WEEK: {
+    id: 'student-of-week',
+    name: 'Student týdne',
+    description: 'Dokončil jsi nejvíce kapitol a testů tento týden',
+    icon: '📅',
+    xpReward: 500,
+    rarity: 'epic',
+  },
+  STUDENT_OF_MONTH: {
+    id: 'student-of-month',
+    name: 'Student měsíce',
+    description: 'Dokončil jsi nejvíce kapitol a testů tento měsíc',
+    icon: '🗓️',
+    xpReward: 1500,
+    rarity: 'legendary',
+  },
+  STUDENT_OF_YEAR: {
+    id: 'student-of-year',
+    name: 'Student roku',
+    description: 'Dokončil jsi nejvíce kapitol a testů tento rok',
+    icon: '🏅',
+    xpReward: 5000,
+    rarity: 'legendary',
   },
 } as const
 

@@ -11,6 +11,7 @@ import {
 } from '@/lib/gamification'
 import { applyRateLimit } from '@/lib/api-middleware'
 import { progressLimiter } from '@/lib/rate-limit'
+import { checkAndAwardAchievements } from '@/lib/achievement-checker'
 
 /**
  * @swagger
@@ -141,39 +142,47 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Chapter ID is required' }, { status: 400 })
     }
 
-    // Check if lesson exists for this chapter, if not create it
-    let lesson = await prisma.lesson.findFirst({
+    // Check if lesson exists for this chapter
+    const lesson = await prisma.lesson.findFirst({
       where: { chapterId },
     })
 
     if (!lesson) {
-      // Create lesson for this chapter
-      lesson = await prisma.lesson.create({
-        data: {
-          chapterId,
-          title: `Chapter ${chapterId}`,
-          description: `Chapter ${chapterId} content`,
-          xpReward: XP_PER_CHAPTER,
-          difficulty: 'beginner',
-          order: 0,
-        },
-      })
+      // Lesson doesn't exist - return 404
+      // Lessons should be pre-seeded in the database
+      return NextResponse.json(
+        { error: `Chapter ${chapterId} not found. Please contact support.` },
+        { status: 404 }
+      )
     }
 
-    // Check if already completed
-    const existingCompletion = await prisma.completedLesson.findUnique({
+    // Check if already completed (check both ChapterCompletion and old CompletedLesson)
+    const existingChapterCompletion = await prisma.chapterCompletion.findUnique({
       where: {
-        userId_lessonId: {
+        userId_chapterId: {
           userId: session.user.id,
-          lessonId: lesson.id,
+          chapterId,
         },
       },
     })
 
-    if (existingCompletion) {
+    // Also check old completed lesson system
+    const existingLessonCompletion = lesson
+      ? await prisma.completedLesson.findUnique({
+          where: {
+            userId_lessonId: {
+              userId: session.user.id,
+              lessonId: lesson.id,
+            },
+          },
+        })
+      : null
+
+    if (existingChapterCompletion || existingLessonCompletion) {
       return NextResponse.json({
         message: 'Chapter already completed',
         alreadyCompleted: true,
+        stars: existingChapterCompletion?.stars || 1,
       })
     }
 
@@ -221,12 +230,48 @@ export async function POST(request: NextRequest) {
 
     // Create completion record and update user in a transaction
     const result = await prisma.$transaction(async tx => {
-      // Mark lesson as completed
-      const completion = await tx.completedLesson.create({
-        data: {
+      // Mark lesson as completed (use upsert to avoid duplicate errors)
+      const completion = await tx.completedLesson.upsert({
+        where: {
+          userId_lessonId: {
+            userId: session.user.id,
+            lessonId: lesson.id,
+          },
+        },
+        create: {
           userId: session.user.id,
           lessonId: lesson.id,
           xpEarned: XP_PER_CHAPTER,
+        },
+        update: {}, // Don't update if already exists
+      })
+
+      // Create or update chapter completion - preserve higher star count
+      // First check if completion already exists
+      const existingCompletion = await tx.chapterCompletion.findUnique({
+        where: {
+          userId_chapterId: {
+            userId: session.user.id,
+            chapterId,
+          },
+        },
+      })
+
+      const chapterCompletion = await tx.chapterCompletion.upsert({
+        where: {
+          userId_chapterId: {
+            userId: session.user.id,
+            chapterId,
+          },
+        },
+        create: {
+          userId: session.user.id,
+          chapterId,
+          stars: 1,
+        },
+        update: {
+          // Keep the higher star count (don't downgrade from 2 or 3 stars to 1)
+          stars: Math.max(existingCompletion?.stars || 0, 1),
         },
       })
 
@@ -283,8 +328,14 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      return { completion, updatedUser, newBadges: newBadgeIds }
+      return { completion, chapterCompletion, updatedUser, newBadges: newBadgeIds }
     })
+
+    // Check for additional achievements using the centralized checker
+    const additionalAchievements = await checkAndAwardAchievements(session.user.id)
+
+    // Merge all new achievements (from old system + centralized checker)
+    const allNewBadges = [...result.newBadges, ...additionalAchievements]
 
     return NextResponse.json({
       success: true,
@@ -292,9 +343,10 @@ export async function POST(request: NextRequest) {
       totalXP: result.updatedUser.xp,
       level: result.updatedUser.level,
       leveledUp,
-      newBadges: result.newBadges.map(key => BADGES[key]),
+      newBadges: allNewBadges.map(key => BADGES[key]),
       streak: newStreak,
       streakIncreased: streakUpdate.shouldIncrement,
+      stars: 1,
     })
   } catch (error) {
     console.error('Error completing chapter:', error)

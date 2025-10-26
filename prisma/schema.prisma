@@ -64,6 +64,10 @@ model User {
   achievements  UserAchievement[]
   lessonProgress LessonProgress[]
   cognitiveGlitches CognitiveGlitchAttempt[]
+  chapterCompletions ChapterCompletion[]
+  questionAnswers QuestionAnswer[]
+  projectSubmissions ProjectSubmission[]
+  moduleTestAttempts ModuleTestAttempt[]
 
   // Indexes for performance
   @@index([xp])
@@ -178,4 +182,83 @@ model CognitiveGlitchAttempt {
   @@index([userId])
   @@index([challengeId])
   @@index([attemptedAt])
+}
+
+// Chapter completion tracking with 3-star system
+model ChapterCompletion {
+  id          String   @id @default(cuid())
+  userId      String
+  chapterId   String   // Maps to chapter.id from chapters.ts
+  stars       Int      @default(1) // 1=completed, 2=all questions, 3=project submitted
+  completedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, chapterId])
+  @@index([userId])
+  @@index([chapterId])
+  @@index([stars])
+}
+
+// Question answers for gamification
+model QuestionAnswer {
+  id         String   @id @default(cuid())
+  userId     String
+  chapterId  String   // Maps to chapter.id from chapters.ts
+  questionId String   // Question identifier within the chapter
+  answer     String   // User's answer
+  correct    Boolean  // Whether the answer was correct
+  xpEarned   Int      @default(0)
+  answeredAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, chapterId, questionId])
+  @@index([userId])
+  @@index([chapterId])
+  @@index([answeredAt])
+}
+
+// Project submissions
+model ProjectSubmission {
+  id          String   @id @default(cuid())
+  userId      String
+  chapterId   String   // Maps to chapter.id from chapters.ts
+  projectUrl  String   // GitHub URL, Colab notebook URL, etc.
+  description String?
+  xpEarned    Int      @default(0)
+  submittedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, chapterId])
+  @@index([userId])
+  @@index([chapterId])
+  @@index([submittedAt])
+}
+
+// Module test attempts (tests after every 10 chapters)
+model ModuleTestAttempt {
+  id              String   @id @default(cuid())
+  userId          String
+  moduleNumber    Int      // 1 for chapters 1-10, 2 for 11-20, etc.
+  score           Int      // Number of correct answers out of 10
+  totalQuestions  Int      @default(10)
+  timeElapsed     Int      // Time in seconds
+  attemptNumber   Int      // How many times user attempted this module test
+  completed       Boolean  @default(false)
+  abandoned       Boolean  @default(false) // User gave up
+  xpEarned        Int      @default(0)
+  moduleStars     Int      @default(0) // Stars earned for the module (0-3)
+  createdAt       DateTime @default(now())
+  completedAt     DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([moduleNumber])
+  @@index([score])
+  @@index([createdAt])
+  @@index([userId, moduleNumber])
 }

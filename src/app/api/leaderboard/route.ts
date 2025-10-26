@@ -37,6 +37,13 @@ export async function GET(request: NextRequest) {
 
     // Fetch users with their stats
     const users = await prisma.user.findMany({
+      where: dateFilter
+        ? {
+            updatedAt: {
+              gte: dateFilter,
+            },
+          }
+        : undefined,
       select: {
         id: true,
         username: true,

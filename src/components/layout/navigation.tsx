@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { GlassSurface } from '@/components/ui/glass-surface'
+import { GreySurface } from '@/components/ui/grey-surface'
 import { Stack } from '@/components/layout'
 import { Box } from '@/components/ui/box'
 import { Button } from '@/components/ui/button'
@@ -42,13 +42,7 @@ export function Navigation() {
   return (
     <Box as="nav" className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 lg:px-8 py-4">
       <Box className="max-w-7xl mx-auto">
-        <GlassSurface
-          className="px-6 py-4"
-          borderRadius={16}
-          blur={20}
-          backgroundOpacity={0.02}
-          opacity={0.95}
-        >
+        <GreySurface className="px-6 py-4" borderRadius={16}>
           <Stack direction="row" justify="between" align="center">
             <Link
               href="/"
@@ -84,11 +78,16 @@ export function Navigation() {
                   <span className="text-white">{username}</span>
                 </Stack>
               ) : (
-                <ElectricBorder className="rounded-lg">
-                  <Button variant="primary" asChild>
-                    <Link href="/onboarding">Začít zdarma</Link>
+                <Stack direction="row" gap={3} align="center">
+                  <Button variant="ghost" asChild>
+                    <Link href="/auth/signin">Přihlásit se</Link>
                   </Button>
-                </ElectricBorder>
+                  <ElectricBorder className="rounded-lg">
+                    <Button variant="primary" asChild>
+                      <Link href="/onboarding">Začít zdarma</Link>
+                    </Button>
+                  </ElectricBorder>
+                </Stack>
               )}
             </Stack>
 
@@ -102,7 +101,7 @@ export function Navigation() {
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
           </Stack>
-        </GlassSurface>
+        </GreySurface>
 
         {/* Mobile menu */}
         <AnimatePresence>
@@ -113,7 +112,7 @@ export function Navigation() {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.2 }}
             >
-              <GlassSurface className="mt-2 p-4 lg:hidden">
+              <GreySurface className="mt-2 p-4 lg:hidden">
                 <Stack direction="col" gap={2}>
                   {filteredNavItems.map(item => (
                     <Link
@@ -138,18 +137,21 @@ export function Navigation() {
                       <span className="text-white">{username}</span>
                     </Stack>
                   ) : (
-                    <Link
-                      href="/onboarding"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="mx-4"
-                    >
-                      <Button variant="primary" className="w-full">
-                        Začít zdarma
-                      </Button>
-                    </Link>
+                    <Stack direction="col" gap={2} className="mx-4">
+                      <Link href="/auth/signin" onClick={() => setMobileMenuOpen(false)}>
+                        <Button variant="ghost" className="w-full">
+                          Přihlásit se
+                        </Button>
+                      </Link>
+                      <Link href="/onboarding" onClick={() => setMobileMenuOpen(false)}>
+                        <Button variant="primary" className="w-full">
+                          Začít zdarma
+                        </Button>
+                      </Link>
+                    </Stack>
                   )}
                 </Stack>
-              </GlassSurface>
+              </GreySurface>
             </motion.div>
           )}
         </AnimatePresence>

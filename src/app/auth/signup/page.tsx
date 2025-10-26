@@ -1,15 +1,13 @@
-'use client'
+import { redirect } from 'next/navigation'
+import type { Metadata } from 'next'
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+export const metadata: Metadata = {
+  title: 'Registrace | Učebnice AI',
+  description: 'Zaregistrujte se a začněte se učit programování s AI asistentem',
+}
 
 export default function SignUpPage() {
-  const router = useRouter()
-
-  useEffect(() => {
-    // Redirect to onboarding - registration is now part of the onboarding flow
-    router.replace('/onboarding')
-  }, [router])
-
-  return null
+  // Server-side redirect to onboarding
+  // Registration is now part of the onboarding flow
+  redirect('/onboarding')
 }

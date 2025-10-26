@@ -40,10 +40,24 @@
 @layer base {
   * {
     @apply border-border;
+    font-family: var(--font-exo2), sans-serif !important;
   }
-  
+
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-exo2), sans-serif !important;
+  }
+
+  /* Futuristic font for all headings - extra bold */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-exo2), sans-serif !important;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  /* Apply to all interactive elements */
+  button, input, textarea, select, a, span, p, div, label {
+    font-family: var(--font-exo2), sans-serif !important;
   }
 }
 

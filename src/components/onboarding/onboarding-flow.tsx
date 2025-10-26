@@ -19,7 +19,8 @@ import {
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
-import { GlassSurface } from '@/components/ui/glass-surface'
+import toast from 'react-hot-toast'
+import { GreySurface } from '@/components/ui/grey-surface'
 import { ElectricBorder } from '@/components/ui/electric-border'
 import { Lightning } from '@/components/ui/lightning'
 import { useUserStore } from '@/store/user-store'
@@ -27,6 +28,13 @@ import { Stack } from '@/components/ui/stack'
 import { Box } from '@/components/ui/box'
 import { Grid } from '@/components/ui/grid'
 import { Button } from '@/components/ui/button'
+import {
+  nameSchema,
+  emailSchema,
+  passwordSchema,
+  onboardingGoalSchema,
+  onboardingExperienceSchema,
+} from '@/lib/validation-schemas'
 
 interface OnboardingStep {
   id: number
@@ -412,17 +420,21 @@ export function OnboardingFlow() {
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        return name.trim().length > 0
+        // Validate name with Zod
+        return nameSchema.safeParse(name.trim()).success
       case 2: {
-        const emailValid = email.trim().length > 0 && email.includes('@')
-        const passwordValid = password.length >= 6
+        // Validate email and password with Zod
+        const emailValid = emailSchema.safeParse(email.trim()).success
+        const passwordValid = passwordSchema.safeParse(password).success
         const passwordsMatch = password === confirmPassword
         return emailValid && passwordValid && passwordsMatch
       }
       case 3:
-        return goal !== ''
+        // Validate goal
+        return onboardingGoalSchema.safeParse({ goal }).success
       case 4:
-        return experience !== ''
+        // Validate experience
+        return onboardingExperienceSchema.safeParse({ experience }).success
       default:
         return true
     }
@@ -494,25 +506,43 @@ export function OnboardingFlow() {
     }
 
     if (currentStep === steps.length - 1) {
-      // Complete onboarding
-      setUsername(name)
-      completeOnboarding()
+      // Complete onboarding - persist to database
+      try {
+        const response = await fetch('/api/onboarding/complete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            goal,
+            experience,
+          }),
+        })
 
-      // Add XP for completing onboarding
-      const { addXP, addBadge } = useUserStore.getState()
-      addXP(50)
-      addBadge({
-        id: 'onboarding-complete',
-        name: 'První kroky',
-        description: 'Dokončil/a jsi onboarding',
-        icon: '🎆',
-        unlockedAt: new Date(),
-      })
+        const data = await response.json()
 
-      // Navigate to chapters
-      setTimeout(() => {
-        router.push('/chapters')
-      }, 500)
+        if (!response.ok) {
+          toast.error(data.error || 'Nepodařilo se dokončit onboarding')
+          setIsAnimating(false)
+          return
+        }
+
+        // Update local state
+        setUsername(name)
+        completeOnboarding()
+
+        // Show success message
+        toast.success(`Gratulujeme! +${data.xpEarned} XP a nový odznak!`)
+
+        // Navigate to chapters
+        setTimeout(() => {
+          router.push('/chapters')
+        }, 1000)
+      } catch (error) {
+        console.error('Error completing onboarding:', error)
+        toast.error('Něco se pokazilo. Zkuste to znovu.')
+        setIsAnimating(false)
+      }
     } else {
       setTimeout(() => {
         setCurrentStep(currentStep + 1)
@@ -578,7 +608,7 @@ export function OnboardingFlow() {
 
         {/* Content */}
         <ElectricBorder className="rounded-lg">
-          <GlassSurface className="p-8">
+          <GreySurface className="p-8">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentStep}
@@ -627,7 +657,7 @@ export function OnboardingFlow() {
                 </Stack>
               </motion.div>
             </AnimatePresence>
-          </GlassSurface>
+          </GreySurface>
         </ElectricBorder>
       </Stack>
     </Box>
