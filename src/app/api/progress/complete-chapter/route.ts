@@ -13,6 +13,7 @@ import { applyRateLimit } from '@/lib/api-middleware'
 import { progressLimiter } from '@/lib/rate-limit'
 import { checkAndAwardAchievements } from '@/lib/achievement-checker'
 import { validateAPIRequest, completeChapterSchema } from '@/lib/validation-schemas'
+import { CacheInvalidation } from '@/lib/cache'
 
 /**
  * @swagger
@@ -339,6 +340,13 @@ export async function POST(request: NextRequest) {
 
     // Merge all new achievements (from old system + centralized checker)
     const allNewBadges = [...result.newBadges, ...additionalAchievements]
+
+    // Invalidate caches (fire and forget - don't block response)
+    Promise.all([
+      CacheInvalidation.invalidateUser(session.user.id),
+      CacheInvalidation.invalidateLeaderboard(),
+      CacheInvalidation.invalidateChapterProgress(session.user.id, chapterId),
+    ]).catch(err => console.error('Cache invalidation error:', err))
 
     return NextResponse.json({
       success: true,
