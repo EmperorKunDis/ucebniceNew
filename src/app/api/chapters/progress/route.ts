@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { validateQueryParams, chapterProgressQuerySchema } from '@/lib/validation-schemas'
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,11 +13,17 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const chapterId = searchParams.get('chapterId')
 
-    if (!chapterId) {
-      return NextResponse.json({ error: 'Missing chapterId' }, { status: 400 })
+    // Validate query parameters
+    const validation = validateQueryParams(searchParams, chapterProgressQuerySchema)
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: validation.errors },
+        { status: 400 }
+      )
     }
+
+    const { chapterId } = validation.data
 
     // Get user
     const user = await prisma.user.findUnique({

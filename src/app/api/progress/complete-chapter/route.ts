@@ -12,6 +12,7 @@ import {
 import { applyRateLimit } from '@/lib/api-middleware'
 import { progressLimiter } from '@/lib/rate-limit'
 import { checkAndAwardAchievements } from '@/lib/achievement-checker'
+import { validateAPIRequest, completeChapterSchema } from '@/lib/validation-schemas'
 
 /**
  * @swagger
@@ -136,11 +137,13 @@ export async function POST(request: NextRequest) {
       return rateLimitResponse
     }
 
-    const { chapterId } = await request.json()
-
-    if (!chapterId) {
-      return NextResponse.json({ error: 'Chapter ID is required' }, { status: 400 })
+    // Validate request body with Zod
+    const validation = await validateAPIRequest(request, completeChapterSchema)
+    if (!validation.success) {
+      return validation.response
     }
+
+    const { chapterId } = validation.data
 
     // Check if lesson exists for this chapter
     const lesson = await prisma.lesson.findFirst({

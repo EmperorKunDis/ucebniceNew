@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { checkAndAwardAchievements } from '@/lib/achievement-checker'
+import { validateAPIRequest, submitTestSchema } from '@/lib/validation-schemas'
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,11 +13,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { moduleNumber, score, totalQuestions, timeElapsed, answers } = await request.json()
-
-    if (!moduleNumber || score === undefined || !totalQuestions || !timeElapsed) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    // Validate request body with Zod
+    const validation = await validateAPIRequest(request, submitTestSchema)
+    if (!validation.success) {
+      return validation.response
     }
+
+    const { moduleNumber, score, totalQuestions, timeElapsed, answers } = validation.data
 
     // Get user
     const user = await prisma.user.findUnique({

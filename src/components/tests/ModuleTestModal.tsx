@@ -113,7 +113,13 @@ export function ModuleTestModal({ moduleTest, onComplete, onAbandon }: ModuleTes
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="test-modal-title"
+      aria-describedby="test-modal-description"
+    >
       <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto p-4">
         <AnimatePresence mode="wait">
           {!showResults ? (
@@ -127,12 +133,18 @@ export function ModuleTestModal({ moduleTest, onComplete, onAbandon }: ModuleTes
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h2 className="text-2xl font-bold text-white mb-1">{moduleTest.title}</h2>
-                    <p className="text-gray-400 text-sm">{moduleTest.description}</p>
+                    <h2 id="test-modal-title" className="text-2xl font-bold text-white mb-1">
+                      {moduleTest.title}
+                    </h2>
+                    <p id="test-modal-description" className="text-gray-400 text-sm">
+                      {moduleTest.description}
+                    </p>
                   </div>
                   <button
                     onClick={handleAbandon}
                     className="text-gray-400 hover:text-white transition-colors"
+                    aria-label="Ukončit test"
+                    type="button"
                   >
                     <X className="w-6 h-6" />
                   </button>

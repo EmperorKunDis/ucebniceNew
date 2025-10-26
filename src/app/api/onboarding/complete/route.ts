@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { BADGES } from '@/lib/gamification'
 import { XP, BADGE_IDS } from '@/lib/constants'
+import { validateAPIRequest, completeOnboardingSchema } from '@/lib/validation-schemas'
 
 const ONBOARDING_XP = XP.ONBOARDING_COMPLETE
 
@@ -46,8 +47,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await request.json()
-    const { goal, experience } = body
+    // Validate request body with Zod
+    const validation = await validateAPIRequest(request, completeOnboardingSchema)
+    if (!validation.success) {
+      return validation.response
+    }
+
+    const { goal, experience } = validation.data
 
     // Get current user
     const user = await prisma.user.findUnique({

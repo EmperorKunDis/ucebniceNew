@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { checkAnswer, getChapterQuestions } from '@/data/questions'
 import { checkAndAwardAchievements } from '@/lib/achievement-checker'
+import { validateAPIRequest, answerQuestionSchema } from '@/lib/validation-schemas'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,11 +14,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { chapterId, questionId, answerIndex } = await request.json()
-
-    if (!chapterId || !questionId || answerIndex === undefined) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    // Validate request body with Zod
+    const validation = await validateAPIRequest(request, answerQuestionSchema)
+    if (!validation.success) {
+      return validation.response
     }
+
+    const { chapterId, questionId, answerIndex } = validation.data
 
     // Get user
     const user = await prisma.user.findUnique({

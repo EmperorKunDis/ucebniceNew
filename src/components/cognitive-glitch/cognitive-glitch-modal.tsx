@@ -142,6 +142,10 @@ export function CognitiveGlitchModal({ isOpen, onClose, onComplete }: CognitiveG
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="glitch-modal-title"
+          aria-describedby="glitch-modal-question"
         >
           {/* Glitch background effect */}
           <div className="absolute inset-0 pointer-events-none">
@@ -183,7 +187,10 @@ export function CognitiveGlitchModal({ isOpen, onClose, onComplete }: CognitiveG
                       <Brain className="w-8 h-8 text-purple-400" />
                     </motion.div>
                     <div>
-                      <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                      <h2
+                        id="glitch-modal-title"
+                        className="text-2xl font-bold text-white flex items-center gap-2"
+                      >
                         Cognitive Glitch
                         {isSpecialReward && (
                           <span className="text-sm px-2 py-1 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-300 rounded-full">
@@ -202,6 +209,8 @@ export function CognitiveGlitchModal({ isOpen, onClose, onComplete }: CognitiveG
                     <button
                       onClick={handleClose}
                       className="p-2 hover:bg-white/10 rounded-lg transition-all"
+                      aria-label="Zavřít modal"
+                      type="button"
                     >
                       <X className="w-5 h-5 text-gray-400" />
                     </button>
@@ -251,7 +260,9 @@ export function CognitiveGlitchModal({ isOpen, onClose, onComplete }: CognitiveG
                   animate={{ opacity: 1, y: 0 }}
                   className="mb-6"
                 >
-                  <p className="text-xl text-white mb-6">{challenge.question}</p>
+                  <p id="glitch-modal-question" className="text-xl text-white mb-6">
+                    {challenge.question}
+                  </p>
 
                   {/* Options */}
                   <div className="space-y-3">

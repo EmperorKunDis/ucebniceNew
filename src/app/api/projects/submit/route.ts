@@ -3,6 +3,12 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { checkAndAwardAchievements } from '@/lib/achievement-checker'
+import {
+  validateAPIRequest,
+  validateQueryParams,
+  submitProjectSchema,
+  chapterProgressQuerySchema,
+} from '@/lib/validation-schemas'
 
 const PROJECT_XP_REWARD = 50 // XP for submitting a project
 
@@ -14,18 +20,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { chapterId, projectUrl, description } = await request.json()
-
-    if (!chapterId || !projectUrl) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    // Validate request body with Zod (includes URL format validation)
+    const validation = await validateAPIRequest(request, submitProjectSchema)
+    if (!validation.success) {
+      return validation.response
     }
 
-    // Validate URL format
-    try {
-      new URL(projectUrl)
-    } catch {
-      return NextResponse.json({ error: 'Invalid URL format' }, { status: 400 })
-    }
+    const { chapterId, projectUrl, description } = validation.data
 
     // Get user
     const user = await prisma.user.findUnique({
@@ -145,11 +146,17 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const chapterId = searchParams.get('chapterId')
 
-    if (!chapterId) {
-      return NextResponse.json({ error: 'Missing chapterId' }, { status: 400 })
+    // Validate query parameters
+    const validation = validateQueryParams(searchParams, chapterProgressQuerySchema)
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: validation.errors },
+        { status: 400 }
+      )
     }
+
+    const { chapterId } = validation.data
 
     // Get user
     const user = await prisma.user.findUnique({

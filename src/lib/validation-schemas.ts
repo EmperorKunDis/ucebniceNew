@@ -137,3 +137,198 @@ export function validateForm<T>(
     return { success: false, errors: formatZodErrors(result.error) }
   }
 }
+
+// ========================================
+// API VALIDATION SCHEMAS
+// ========================================
+
+// Chapter ID validation - must be 2-digit number or special format
+export const chapterIdSchema = z
+  .string()
+  .min(1, 'ID kapitoly je povinné')
+  .regex(/^(0[1-9]|[1-3][0-9]|40)$/, 'Neplatné ID kapitoly (01-40)')
+
+// Question ID validation
+export const questionIdSchema = z.string().min(1, 'ID otázky je povinné')
+
+// Module number validation (1-4 for the 4 modules)
+export const moduleNumberSchema = z
+  .number()
+  .int('Číslo modulu musí být celé číslo')
+  .min(1, 'Číslo modulu musí být mezi 1-4')
+  .max(4, 'Číslo modulu musí být mezi 1-4')
+
+// Answer index validation
+export const answerIndexSchema = z
+  .number()
+  .int('Index odpovědi musí být celé číslo')
+  .min(0, 'Index odpovědi musí být nezáporný')
+  .max(10, 'Neplatný index odpovědi')
+
+// URL validation
+export const urlSchema = z.string().url('Neplatná URL adresa')
+
+// Score validation
+export const scoreSchema = z
+  .number()
+  .int('Skóre musí být celé číslo')
+  .min(0, 'Skóre musí být nezáporné')
+
+// Time elapsed validation (in seconds)
+export const timeElapsedSchema = z
+  .number()
+  .int('Čas musí být celé číslo')
+  .min(0, 'Čas musí být nezáporný')
+  .max(7200, 'Čas nemůže překročit 2 hodiny')
+
+// ========================================
+// API ROUTE REQUEST SCHEMAS
+// ========================================
+
+/**
+ * POST /api/progress/complete-chapter
+ */
+export const completeChapterSchema = z.object({
+  chapterId: chapterIdSchema,
+})
+
+/**
+ * POST /api/questions/answer
+ */
+export const answerQuestionSchema = z.object({
+  chapterId: chapterIdSchema,
+  questionId: questionIdSchema,
+  answerIndex: answerIndexSchema,
+})
+
+/**
+ * POST /api/tests/submit
+ */
+export const submitTestSchema = z.object({
+  moduleNumber: moduleNumberSchema,
+  score: scoreSchema,
+  totalQuestions: z.number().int().min(1).max(100),
+  timeElapsed: timeElapsedSchema,
+  answers: z
+    .array(
+      z.object({
+        questionId: z.string(),
+        answer: z.number().int().min(0),
+        correct: z.boolean(),
+      })
+    )
+    .optional(),
+})
+
+/**
+ * POST /api/projects/submit
+ */
+export const submitProjectSchema = z.object({
+  chapterId: chapterIdSchema,
+  projectUrl: urlSchema,
+  description: z.string().max(1000, 'Popis může mít maximálně 1000 znaků').optional(),
+})
+
+/**
+ * POST /api/onboarding/complete
+ */
+export const completeOnboardingSchema = z.object({
+  goal: z.enum(['career', 'skills', 'ai', 'fun']).optional(),
+  experience: z.enum(['beginner', 'some', 'intermediate', 'advanced']).optional(),
+})
+
+/**
+ * GET /api/chapters/progress (query params)
+ */
+export const chapterProgressQuerySchema = z.object({
+  chapterId: chapterIdSchema,
+})
+
+// ========================================
+// TYPE EXPORTS FOR API ROUTES
+// ========================================
+
+export type CompleteChapterData = z.infer<typeof completeChapterSchema>
+export type AnswerQuestionData = z.infer<typeof answerQuestionSchema>
+export type SubmitTestData = z.infer<typeof submitTestSchema>
+export type SubmitProjectData = z.infer<typeof submitProjectSchema>
+export type CompleteOnboardingData = z.infer<typeof completeOnboardingSchema>
+export type ChapterProgressQuery = z.infer<typeof chapterProgressQuerySchema>
+
+// ========================================
+// API VALIDATION HELPER
+// ========================================
+
+/**
+ * Validates API request body and returns formatted response on error
+ * Usage in API routes:
+ *
+ * const validation = await validateAPIRequest(request, mySchema)
+ * if (!validation.success) return validation.response
+ * const data = validation.data
+ */
+export async function validateAPIRequest<T>(
+  request: Request,
+  schema: z.ZodSchema<T>
+): Promise<
+  | { success: true; data: T; response?: never }
+  | { success: false; data?: never; response: Response }
+> {
+  try {
+    const body = await request.json()
+    const result = schema.safeParse(body)
+
+    if (result.success) {
+      return { success: true, data: result.data }
+    } else {
+      const errors = formatZodErrors(result.error)
+      return {
+        success: false,
+        response: new Response(
+          JSON.stringify({
+            error: 'Validation failed',
+            details: errors,
+          }),
+          {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        ),
+      }
+    }
+  } catch (error) {
+    return {
+      success: false,
+      response: new Response(
+        JSON.stringify({
+          error: 'Invalid JSON in request body',
+        }),
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      ),
+    }
+  }
+}
+
+/**
+ * Validates query parameters
+ */
+export function validateQueryParams<T>(
+  searchParams: URLSearchParams,
+  schema: z.ZodSchema<T>
+): {
+  success: boolean
+  data?: T
+  errors?: Record<string, string>
+} {
+  const params = Object.fromEntries(searchParams.entries())
+  const result = schema.safeParse(params)
+
+  if (result.success) {
+    return { success: true, data: result.data }
+  } else {
+    return { success: false, errors: formatZodErrors(result.error) }
+  }
+}
