@@ -5,28 +5,62 @@ import { Component, ReactNode } from 'react'
 interface Props {
   children: ReactNode
   fallback?: ReactNode
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void
+  maxRetries?: number
+  resetOnPropsChange?: boolean
 }
 
 interface State {
   hasError: boolean
   error?: Error
+  errorInfo?: React.ErrorInfo
+  retryCount: number
+  lastPropsSnapshot?: any
 }
 
 export class ErrorBoundary extends Component<Props, State> {
+  private retryTimeout?: NodeJS.Timeout
+
   constructor(props: Props) {
     super(props)
-    this.state = { hasError: false }
+    this.state = {
+      hasError: false,
+      retryCount: 0,
+      lastPropsSnapshot: props.children,
+    }
   }
 
-  static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): Partial<State> {
     return {
       hasError: true,
       error,
     }
   }
 
-  componentDidCatch(error: Error, errorInfo: any) {
+  static getDerivedStateFromProps(props: Props, state: State): Partial<State> | null {
+    // Reset error boundary when props change (new route, new content)
+    if (props.resetOnPropsChange && props.children !== state.lastPropsSnapshot && state.hasError) {
+      return {
+        hasError: false,
+        error: undefined,
+        errorInfo: undefined,
+        retryCount: 0,
+        lastPropsSnapshot: props.children,
+      }
+    }
+    return null
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo)
+
+    // Store error info in state
+    this.setState({ errorInfo })
+
+    // Call custom error handler if provided
+    if (this.props.onError) {
+      this.props.onError(error, errorInfo)
+    }
 
     // Log to Sentry
     if (typeof window !== 'undefined') {
@@ -40,6 +74,55 @@ export class ErrorBoundary extends Component<Props, State> {
         })
       })
     }
+
+    // Attempt automatic recovery for transient errors
+    const maxRetries = this.props.maxRetries ?? 2
+    if (this.state.retryCount < maxRetries && this.isTransientError(error)) {
+      // Exponential backoff: 1s, 2s, 4s...
+      const delay = Math.pow(2, this.state.retryCount) * 1000
+
+      this.retryTimeout = setTimeout(() => {
+        this.setState(state => ({
+          hasError: false,
+          error: undefined,
+          errorInfo: undefined,
+          retryCount: state.retryCount + 1,
+        }))
+      }, delay)
+    }
+  }
+
+  componentWillUnmount() {
+    if (this.retryTimeout) {
+      clearTimeout(this.retryTimeout)
+    }
+  }
+
+  /**
+   * Determine if an error is likely transient and worth retrying
+   */
+  private isTransientError(error: Error): boolean {
+    const message = error.message?.toLowerCase() || ''
+
+    return (
+      message.includes('network') ||
+      message.includes('fetch') ||
+      message.includes('timeout') ||
+      message.includes('loading chunk') ||
+      message.includes('dynamically imported module')
+    )
+  }
+
+  /**
+   * Manual reset handler for user-triggered recovery
+   */
+  private handleReset = () => {
+    this.setState({
+      hasError: false,
+      error: undefined,
+      errorInfo: undefined,
+      retryCount: 0,
+    })
   }
 
   render() {
@@ -73,7 +156,12 @@ export class ErrorBoundary extends Component<Props, State> {
               </h2>
 
               <p className="text-center text-gray-600 mb-6">
-                Omlouváme se, ale došlo k neočekávané chybě. Zkuste prosím obnovit stránku.
+                Omlouváme se, ale došlo k neočekávané chybě.
+                {this.state.retryCount > 0 && (
+                  <span className="block mt-2 text-sm text-gray-500">
+                    Automatický pokus o obnovu: {this.state.retryCount}/{this.props.maxRetries ?? 2}
+                  </span>
+                )}
               </p>
 
               {process.env.NODE_ENV === 'development' && this.state.error && (
@@ -94,16 +182,25 @@ export class ErrorBoundary extends Component<Props, State> {
 
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
+                  onClick={this.handleReset}
+                  className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
+                  type="button"
+                >
+                  Zkusit znovu
+                </button>
+                <button
                   onClick={() => window.location.reload()}
                   className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+                  type="button"
                 >
                   Obnovit stránku
                 </button>
                 <button
                   onClick={() => (window.location.href = '/')}
                   className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
+                  type="button"
                 >
-                  Zpět na hlavní stránku
+                  Zpět domů
                 </button>
               </div>
             </div>
