@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Check, X, Lightbulb, Zap } from 'lucide-react'
 import { GreySurface } from '@/components/ui/grey-surface'
@@ -22,7 +22,7 @@ interface QuestionCardProps {
   correctAnswer?: boolean
 }
 
-export function QuestionCard({
+export const QuestionCard = memo(function QuestionCard({
   question,
   questionNumber,
   onAnswer,
@@ -143,4 +143,4 @@ export function QuestionCard({
       </AnimatePresence>
     </GreySurface>
   )
-}
+})

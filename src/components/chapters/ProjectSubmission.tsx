@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo } from 'react'
 import { motion } from 'framer-motion'
 import { ExternalLink, Upload, Zap, CheckCircle, Loader2 } from 'lucide-react'
 import { GreySurface } from '@/components/ui/grey-surface'
@@ -11,7 +11,9 @@ interface ProjectSubmissionProps {
   chapterId: string
 }
 
-export function ProjectSubmission({ chapterId }: ProjectSubmissionProps) {
+export const ProjectSubmission = memo(function ProjectSubmission({
+  chapterId,
+}: ProjectSubmissionProps) {
   const [projectUrl, setProjectUrl] = useState('')
   const [description, setDescription] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -211,4 +213,4 @@ export function ProjectSubmission({ chapterId }: ProjectSubmissionProps) {
       )}
     </GreySurface>
   )
-}
+})

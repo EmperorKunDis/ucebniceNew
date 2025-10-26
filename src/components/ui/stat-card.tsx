@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
@@ -12,7 +13,7 @@ interface StatCardProps {
   delay?: number
 }
 
-export function StatCard({
+export const StatCard = memo(function StatCard({
   icon,
   value,
   label,
@@ -38,4 +39,4 @@ export function StatCard({
       </div>
     </motion.div>
   )
-}
+})
