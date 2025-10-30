@@ -8,7 +8,14 @@ NAMESPACE=${1:-ucebnice}
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
+# Derive release name from namespace (matches Helm chart fullname logic)
+# For namespace "ucebnice-production" or "ucebnice-staging", use full namespace as release name
+# For namespace "ucebnice", use "ucebnice" as release name
+RELEASE_NAME="$NAMESPACE"
+SECRET_NAME="${RELEASE_NAME}-secret"
+
 echo "Creating sealed secrets for namespace: $NAMESPACE"
+echo "Secret name will be: $SECRET_NAME"
 
 # Check if kubeseal is installed
 if ! command -v kubeseal &> /dev/null; then
@@ -70,7 +77,7 @@ echo
 read -p "Sentry DSN (optional, press Enter to skip): " NEXT_PUBLIC_SENTRY_DSN
 
 # Create the secret
-kubectl create secret generic ucebnice-secret \
+kubectl create secret generic "$SECRET_NAME" \
   --from-literal=DATABASE_URL="$DATABASE_URL" \
   --from-literal=NEXTAUTH_SECRET="$NEXTAUTH_SECRET" \
   --from-literal=GOOGLE_CLIENT_ID="$GOOGLE_CLIENT_ID" \

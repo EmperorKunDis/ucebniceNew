@@ -43,7 +43,7 @@ ingress:
         - path: /
           pathType: Prefix
   tls:
-    - secretName: ucebnice-tls
+    - secretName: ucebnice-production-tls
       hosts:
         - ucebnice.praut.cz  # CHANGE THIS
 
