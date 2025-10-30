@@ -144,7 +144,7 @@ jobs:
           WITH_V: true
           DEFAULT_BUMP: patch
           RELEASE_BRANCHES: main
-          INITIAL_VERSION: v1.0.0  # Start from v1.0.0 if no tags exist
+          INITIAL_VERSION: 1.0.0  # Start from 1.0.0 if no tags exist (WITH_V adds the v)
           DRY_RUN: true  # Just calculate, don't create tag yet
 
       - name: Set up Docker Buildx
