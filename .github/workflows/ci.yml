@@ -132,6 +132,19 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for proper tagging
+
+      - name: Auto-create tag on main
+        id: auto-tag
+        if: github.ref == 'refs/heads/main'
+        uses: anothrNick/github-tag-action@1.67.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true
+          DEFAULT_BUMP: patch
+          RELEASE_BRANCHES: main
+          DRY_RUN: false
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -156,19 +169,30 @@ jobs:
           username: ${{ secrets.HARBOR_USERNAME }}
           password: ${{ secrets.HARBOR_PASSWORD }}
 
-      - name: Extract metadata (tags, labels)
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: harbor.praut.cz/ucebnice/ucebnice-app
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=sha,prefix={{branch}}-
-            type=raw,value=latest,enable={{is_default_branch}}
+      - name: Determine Docker tags
+        id: docker-tags
+        run: |
+          TAGS=""
+
+          # If on main branch with auto-tag
+          if [ "${{ github.ref }}" = "refs/heads/main" ] && [ -n "${{ steps.auto-tag.outputs.new_tag }}" ]; then
+            VERSION_TAG="${{ steps.auto-tag.outputs.new_tag }}"
+            TAGS="harbor.praut.cz/ucebnice/ucebnice-app:${VERSION_TAG},harbor.praut.cz/ucebnice/ucebnice-app:latest"
+          # If manually pushed tag
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            VERSION_TAG="${{ github.ref_name }}"
+            TAGS="harbor.praut.cz/ucebnice/ucebnice-app:${VERSION_TAG},harbor.praut.cz/ucebnice/ucebnice-app:latest"
+          # If develop branch
+          elif [ "${{ github.ref }}" = "refs/heads/develop" ]; then
+            TAGS="harbor.praut.cz/ucebnice/ucebnice-app:develop"
+          # Fallback for other branches
+          else
+            BRANCH=$(echo "${{ github.ref }}" | sed 's/refs\/heads\///')
+            TAGS="harbor.praut.cz/ucebnice/ucebnice-app:${BRANCH}"
+          fi
+
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          echo "Docker tags: ${TAGS}"
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -176,17 +200,22 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.docker-tags.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
             NEXT_PUBLIC_APP_VERSION=${{ github.sha }}
 
       - name: Verify image exists in Harbor (Production)
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
         run: |
-          IMAGE_TAG="${{ github.ref_name }}"
+          # Use auto-generated tag from main, or actual tag if manually pushed
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            IMAGE_TAG="${{ steps.auto-tag.outputs.new_tag }}"
+          else
+            IMAGE_TAG="${{ github.ref_name }}"
+          fi
+
           IMAGE="harbor.praut.cz/ucebnice/ucebnice-app:${IMAGE_TAG}"
           MAX_ATTEMPTS=30
           ATTEMPT=0
@@ -208,9 +237,15 @@ jobs:
           exit 1
 
       - name: Update Argo CD values (Production)
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
         run: |
-          IMAGE_TAG="${{ github.ref_name }}"
+          # Use auto-generated tag from main, or actual tag if manually pushed
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            IMAGE_TAG="${{ steps.auto-tag.outputs.new_tag }}"
+          else
+            IMAGE_TAG="${{ github.ref_name }}"
+          fi
+
           echo "Updating production deployment to ${IMAGE_TAG}"
 
           # Update the image tag in production values
