@@ -30,6 +30,7 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+.env.docker
 
 # vercel
 .vercel
@@ -54,3 +55,8 @@ scripts/migration/*.backup
 *~
 *storybook.log
 storybook-static
+
+# Kubernetes secrets (never commit unsealed secrets!)
+*-secret.yaml
+!*-sealed-secret.yaml
+sealed-secrets-key-backup.yaml

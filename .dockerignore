@@ -1,0 +1,64 @@
+# Dependencies
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Next.js
+.next/
+out/
+build
+dist
+
+# Testing
+coverage
+.nyc_output
+playwright-report
+test-results
+
+# Misc
+.DS_Store
+*.pem
+.env
+.env*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# CI/CD
+.github
+
+# Documentation
+*.md
+!README.md
+
+# Database
+prisma/dev.db
+prisma/dev.db-journal
+*.db
+*.db-journal
+
+# Storybook
+.storybook
+storybook-static
+
+# Husky
+.husky
+
+# Other
+colab_notebooks
+e2e
+scripts/migration
