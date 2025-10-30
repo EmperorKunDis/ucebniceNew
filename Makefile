@@ -7,7 +7,7 @@ REGISTRY ?= harbor.praut.cz
 IMAGE_NAME ?= ucebnice/ucebnice-app
 VERSION ?= $(shell git describe --tags --always --dirty)
 NAMESPACE_STAGING ?= ucebnice-staging
-NAMESPACE_PROD ?= ucebnice
+NAMESPACE_PROD ?= ucebnice-production
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
