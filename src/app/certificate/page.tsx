@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
@@ -12,7 +11,6 @@ import { SectionHeader } from '@/components/ui/section-header'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { ElectricBorder } from '@/components/ui/electric-border'
 import { Button } from '@/components/ui/button'
-import { Stack, Box } from '@/components/layout'
 import { useUserStore } from '@/store/user-store'
 import { chapters } from '@/data/chapters'
 
@@ -33,22 +31,21 @@ const CertificateGenerator = dynamic(
 )
 
 export default function CertificatePage() {
-  const router = useRouter()
   const { progress } = useUserStore()
   const [totalChapters] = useState(chapters.length)
   const [isEligible, setIsEligible] = useState(false)
 
   useEffect(() => {
+    const checkEligibility = () => {
+      const total = chapters.length
+
+      // Eligible if completed at least 80% of chapters
+      const completionRate = (progress.length / total) * 100
+      setIsEligible(completionRate >= 80)
+    }
+
     checkEligibility()
   }, [progress])
-
-  const checkEligibility = () => {
-    const total = chapters.length
-
-    // Eligible if completed at least 80% of chapters
-    const completionRate = (progress.length / total) * 100
-    setIsEligible(completionRate >= 80)
-  }
 
   const completionRate = totalChapters > 0 ? (progress.length / totalChapters) * 100 : 0
 

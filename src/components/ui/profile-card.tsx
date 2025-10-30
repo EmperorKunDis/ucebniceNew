@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useCallback, useMemo, CSSProperties } from 'react'
 import { cn } from '@/lib/utils'
 import './profile-card.css'
+import Image from 'next/image'
 
 const DEFAULT_BEHIND_GRADIENT =
   'radial-gradient(farthest-side circle at var(--pointer-x) var(--pointer-y),hsla(266,100%,90%,var(--card-opacity)) 4%,hsla(266,50%,80%,calc(var(--card-opacity)*0.75)) 10%,hsla(266,25%,70%,calc(var(--card-opacity)*0.5)) 50%,hsla(266,0%,60%,0) 100%),radial-gradient(35% 52% at 55% 20%,#00ffaac4 0%,#073aff00 100%),radial-gradient(100% 100% at 50% 50%,#00c1ffff 1%,#073aff00 76%),conic-gradient(from 124deg at 50% 50%,#c137ffff 0%,#07c6ffff 40%,#07c6ffff 60%,#c137ffff 100%)'
@@ -14,7 +15,7 @@ const ANIMATION_CONFIG = {
   INITIAL_DURATION: 1500,
   INITIAL_X_OFFSET: 70,
   INITIAL_Y_OFFSET: 60,
-  DEVICE_BETA_OFFSET: 20
+  DEVICE_BETA_OFFSET: 20,
 }
 
 const clamp = (value: number, min = 0, max = 100) => Math.min(Math.max(value, min), max)
@@ -65,7 +66,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
   status = 'Online',
   contactText = 'Contact',
   showUserInfo = true,
-  onContactClick
+  onContactClick,
 }) => {
   const wrapRef = useRef<HTMLDivElement>(null)
   const cardRef = useRef<HTMLElement>(null)
@@ -75,7 +76,12 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
 
     let rafId: number | null = null
 
-    const updateCardTransform = (offsetX: number, offsetY: number, card: HTMLElement, wrap: HTMLElement) => {
+    const updateCardTransform = (
+      offsetX: number,
+      offsetY: number,
+      card: HTMLElement,
+      wrap: HTMLElement
+    ) => {
       const width = card.clientWidth
       const height = card.clientHeight
 
@@ -94,7 +100,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
         '--pointer-from-top': `${percentY / 100}`,
         '--pointer-from-left': `${percentX / 100}`,
         '--rotate-x': `${round(-(centerX / 5))}deg`,
-        '--rotate-y': `${round(centerY / 4)}deg`
+        '--rotate-y': `${round(centerY / 4)}deg`,
       }
 
       Object.entries(properties).forEach(([property, value]) => {
@@ -102,7 +108,13 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
       })
     }
 
-    const createSmoothAnimation = (duration: number, startX: number, startY: number, card: HTMLElement, wrap: HTMLElement) => {
+    const createSmoothAnimation = (
+      duration: number,
+      startX: number,
+      startY: number,
+      card: HTMLElement,
+      wrap: HTMLElement
+    ) => {
       const startTime = performance.now()
       const targetX = wrap.clientWidth / 2
       const targetY = wrap.clientHeight / 2
@@ -133,7 +145,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
           cancelAnimationFrame(rafId)
           rafId = null
         }
-      }
+      },
     }
   }, [enableTilt])
 
@@ -145,7 +157,12 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
       if (!card || !wrap || !animationHandlers) return
 
       const rect = card.getBoundingClientRect()
-      animationHandlers.updateCardTransform(event.clientX - rect.left, event.clientY - rect.top, card, wrap)
+      animationHandlers.updateCardTransform(
+        event.clientX - rect.left,
+        event.clientY - rect.top,
+        card,
+        wrap
+      )
     },
     [animationHandlers]
   )
@@ -238,7 +255,13 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
     const initialY = ANIMATION_CONFIG.INITIAL_Y_OFFSET
 
     animationHandlers.updateCardTransform(initialX, initialY, card, wrap)
-    animationHandlers.createSmoothAnimation(ANIMATION_CONFIG.INITIAL_DURATION, initialX, initialY, card, wrap)
+    animationHandlers.createSmoothAnimation(
+      ANIMATION_CONFIG.INITIAL_DURATION,
+      initialX,
+      initialY,
+      card,
+      wrap
+    )
 
     return () => {
       card.removeEventListener('pointerenter', pointerEnterHandler)
@@ -255,16 +278,19 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
     handlePointerMove,
     handlePointerEnter,
     handlePointerLeave,
-    handleDeviceOrientation
+    handleDeviceOrientation,
   ])
 
   const cardStyle = useMemo(
-    () => ({
-      '--icon': iconUrl ? `url(${iconUrl})` : 'none',
-      '--grain': grainUrl ? `url(${grainUrl})` : 'none',
-      '--behind-gradient': showBehindGradient ? (behindGradient ?? DEFAULT_BEHIND_GRADIENT) : 'none',
-      '--inner-gradient': innerGradient ?? DEFAULT_INNER_GRADIENT
-    } as CSSProperties),
+    () =>
+      ({
+        '--icon': iconUrl ? `url(${iconUrl})` : 'none',
+        '--grain': grainUrl ? `url(${grainUrl})` : 'none',
+        '--behind-gradient': showBehindGradient
+          ? (behindGradient ?? DEFAULT_BEHIND_GRADIENT)
+          : 'none',
+        '--inner-gradient': innerGradient ?? DEFAULT_INNER_GRADIENT,
+      }) as CSSProperties,
     [iconUrl, grainUrl, showBehindGradient, behindGradient, innerGradient]
   )
 
@@ -279,12 +305,12 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
           <div className="pc-shine" />
           <div className="pc-glare" />
           <div className="pc-content pc-avatar-content">
-            <img
+            <Image
               className="avatar"
               src={avatarUrl}
               alt={`${name || 'User'} avatar`}
               loading="lazy"
-              onError={(e) => {
+              onError={e => {
                 const target = e.target as HTMLImageElement
                 target.style.display = 'none'
               }}
@@ -293,11 +319,11 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
               <div className="pc-user-info">
                 <div className="pc-user-details">
                   <div className="pc-mini-avatar">
-                    <img
+                    <Image
                       src={miniAvatarUrl || avatarUrl}
                       alt={`${name || 'User'} mini avatar`}
                       loading="lazy"
-                      onError={(e) => {
+                      onError={e => {
                         const target = e.target as HTMLImageElement
                         target.style.opacity = '0.5'
                         target.src = avatarUrl

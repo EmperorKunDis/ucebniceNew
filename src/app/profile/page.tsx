@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { StatCard } from '@/components/ui/stat-card'
-import { SectionHeader } from '@/components/ui/section-header'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { ElectricBorder } from '@/components/ui/electric-border'
 import { UnifiedPageLayout } from '@/components/layout/unified-page-layout'
@@ -15,6 +14,7 @@ import { motion } from 'framer-motion'
 import { User, Mail, Calendar, Trophy, Zap, Target, LogOut, Loader2, Award } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 import { getProgressToNextLevel } from '@/lib/gamification'
+import Image from 'next/image'
 
 interface UserStats {
   user: {
@@ -125,7 +125,7 @@ export default function ProfilePage() {
                   <div className="w-24 h-24 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 p-1">
                     <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden">
                       {userStats.user.image ? (
-                        <img
+                        <Image
                           src={userStats.user.image}
                           alt="Avatar"
                           className="w-full h-full object-cover"

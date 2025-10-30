@@ -8,6 +8,7 @@ jobs:
   deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
+    if: false  # Workflow disabled - using Kubernetes deployment instead
 
     steps:
       - name: Checkout code
