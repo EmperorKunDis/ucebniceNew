@@ -38,7 +38,7 @@ jobs:
   test:
     name: Unit Tests
     runs-on: ubuntu-latest
-    if: false  # Temporarily disabled - re-enable after fixing tests
+    if: false  # Temporarily disabled - re-enable after fixing all tests
 
     steps:
       - name: Checkout code
