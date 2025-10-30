@@ -23,23 +23,25 @@ import { ElectricBorder } from '@/components/ui/electric-border'
 import { Stack, Grid, Box } from '@/components/layout'
 import { chapters } from '@/data/chapters'
 
-interface LessonProgress {
-  lessonId: string
-  progress: number
+interface ChapterProgress {
+  completedChapter: boolean
+  answeredQuestions: boolean
+  submittedProject: boolean
+  completed: boolean
 }
 
 export default function ChaptersPage() {
-  const [progress, setProgress] = useState<LessonProgress[]>([])
+  const [progress, setProgress] = useState<Record<string, ChapterProgress>>({})
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     // Fetch fresh progress data from API
     const fetchProgress = async () => {
       try {
-        const response = await fetch('/api/user/stats')
+        const response = await fetch('/api/chapters/all-progress')
         if (response.ok) {
           const data = await response.json()
-          setProgress(data.progress || [])
+          setProgress(data.progress || {})
         }
       } catch (error) {
         console.error('Error fetching progress:', error)
@@ -52,8 +54,16 @@ export default function ChaptersPage() {
   }, [])
 
   const getChapterStatus = (chapterId: string) => {
-    const chapterProgress = progress.find(p => p.lessonId === chapterId)
-    return chapterProgress ? 'completed' : 'available'
+    return progress[chapterId]?.completed ? 'completed' : 'available'
+  }
+
+  const getChapterStars = (chapterId: string): [boolean, boolean, boolean] => {
+    const p = progress[chapterId]
+    return [
+      p?.completedChapter || false,
+      p?.answeredQuestions || false,
+      p?.submittedProject || false,
+    ]
   }
 
   const isChapterLocked = (chapterNumber: number) => {
@@ -68,7 +78,7 @@ export default function ChaptersPage() {
 
     if (!previousChapter) return false
 
-    return !progress.some(p => p.lessonId === previousChapter.id)
+    return !progress[previousChapter.id]?.completed
   }
 
   // Seskupení kapitol do modulů
@@ -108,8 +118,8 @@ export default function ChaptersPage() {
   ]
 
   const getModuleProgress = (module: (typeof modules)[0]) => {
-    const completedChapters = module.chapters.filter(chapter =>
-      progress.some(p => p.lessonId === chapter.id)
+    const completedChapters = module.chapters.filter(
+      chapter => progress[chapter.id]?.completed
     ).length
     return {
       completed: completedChapters,
@@ -121,12 +131,12 @@ export default function ChaptersPage() {
   // Najít další kapitolu k dokončení
   const getNextChapter = () => {
     // Pokud žádný progress, vrať první kapitolu
-    if (progress.length === 0) {
+    if (Object.keys(progress).length === 0) {
       return chapters[0]
     }
 
     // Najdi první nedokončenou kapitolu
-    const nextChapter = chapters.find(chapter => !progress.some(p => p.lessonId === chapter.id))
+    const nextChapter = chapters.find(chapter => !progress[chapter.id]?.completed)
 
     // Pokud jsou všechny dokončené, vrať poslední
     return nextChapter || chapters[chapters.length - 1]
@@ -185,6 +195,7 @@ export default function ChaptersPage() {
                     {module.chapters.map((chapter, chapterIndex) => {
                       const chapterNumber = parseInt(chapter.id)
                       const status = getChapterStatus(chapter.id)
+                      const [star1, star2, star3] = getChapterStars(chapter.id)
                       const isLocked = isChapterLocked(chapterNumber)
                       const isNext = nextChapter?.id === chapter.id
 
@@ -232,7 +243,17 @@ export default function ChaptersPage() {
                                       )}
                                     </h3>
                                     {status === 'completed' ? (
-                                      <CheckCircle className="w-5 h-5 text-green-400" />
+                                      <Stack direction="row" gap={1} align="center">
+                                        <Sparkles
+                                          className={`w-4 h-4 ${star1 ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
+                                        />
+                                        <Sparkles
+                                          className={`w-4 h-4 ${star2 ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
+                                        />
+                                        <Sparkles
+                                          className={`w-4 h-4 ${star3 ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
+                                        />
+                                      </Stack>
                                     ) : (
                                       <ChevronRight className="w-5 h-5 text-gray-400" />
                                     )}
@@ -289,30 +310,30 @@ export default function ChaptersPage() {
             <Stack direction="col" gap={4} align="center">
               <Sparkles className="w-12 h-12 text-purple-400" />
               <h3 className="text-2xl font-bold text-white">
-                {progress.length === 0
+                {Object.keys(progress).length === 0
                   ? 'Připraven začít svou AI cestu?'
-                  : progress.length === chapters.length
+                  : Object.keys(progress).length === chapters.length
                     ? 'Gratulujeme k dokončení všech kapitol!'
                     : 'Pokračuj ve své cestě!'}
               </h3>
               <p className="text-gray-400 max-w-xl">
-                {progress.length === 0
+                {Object.keys(progress).length === 0
                   ? 'Projdi všemi 40 kapitolami, získej praktické zkušenosti s umělou inteligencí a staň se součástí naší komunity v Apex Aréně!'
-                  : progress.length === chapters.length
+                  : Object.keys(progress).length === chapters.length
                     ? 'Dokončil jsi všechny kapitoly! Prozkoumej Apex Arénu nebo získej certifikát.'
-                    : `Dokončil jsi ${progress.length} z ${chapters.length} kapitol. Pokračuj s další kapitolou!`}
+                    : `Dokončil jsi ${Object.keys(progress).length} z ${chapters.length} kapitol. Pokračuj s další kapitolou!`}
               </p>
-              {nextChapter && progress.length < chapters.length && (
+              {nextChapter && Object.keys(progress).length < chapters.length && (
                 <Link
                   href={`/chapters/${nextChapter.id}`}
                   className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:shadow-xl transition-all"
                 >
-                  {progress.length === 0
+                  {Object.keys(progress).length === 0
                     ? `Začít s Kapitolou ${nextChapter.id}`
                     : `Pokračovat s Kapitolou ${nextChapter.id}`}
                 </Link>
               )}
-              {progress.length === chapters.length && (
+              {Object.keys(progress).length === chapters.length && (
                 <Stack direction="row" gap={4}>
                   <Link
                     href="/arena"

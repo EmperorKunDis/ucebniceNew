@@ -2,83 +2,88 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearchPostgres", "postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 // NextAuth models
 model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
+  id                String  @id @default(uuid()) @db.Uuid
+  userId            String  @db.Uuid
+  type              String  @db.VarChar(100)
+  provider          String  @db.VarChar(100)
+  providerAccountId String  @db.VarChar(255)
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
   expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
+  token_type        String? @db.VarChar(100)
+  scope             String? @db.Text
+  id_token          String? @db.Text
+  session_state     String? @db.Text
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
+  id           String   @id @default(uuid()) @db.Uuid
+  sessionToken String   @unique @db.VarChar(255)
+  userId       String   @db.Uuid
+  expires      DateTime @db.Timestamptz
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String?   @unique
-  emailVerified DateTime?
-  name          String?
-  image         String?
-  password      String?   // Pro credentials login
-  username      String?   @unique
+  id            String    @id @default(uuid()) @db.Uuid
+  email         String?   @unique @db.VarChar(255)
+  emailVerified DateTime? @db.Timestamptz
+  name          String?   @db.VarChar(255)
+  image         String?   @db.Text
+  password      String?   @db.VarChar(255)
+  username      String?   @unique @db.VarChar(100)
 
   // Game-like attributes
-  xp            Int       @default(0)
-  level         Int       @default(1)
-  currentStreak Int       @default(0)
-  longestStreak Int       @default(0)
+  xp            Int @default(0)
+  level         Int @default(1)
+  currentStreak Int @default(0)
+  longestStreak Int @default(0)
 
   // Metadata
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
 
   // Relations
-  accounts      Account[]
-  sessions      Session[]
-  completedLessons CompletedLesson[]
-  achievements  UserAchievement[]
-  lessonProgress LessonProgress[]
-  cognitiveGlitches CognitiveGlitchAttempt[]
+  accounts           Account[]
+  sessions           Session[]
+  completedLessons   CompletedLesson[]
+  achievements       UserAchievement[]
+  lessonProgress     LessonProgress[]
+  cognitiveGlitches  CognitiveGlitchAttempt[]
   chapterCompletions ChapterCompletion[]
-  questionAnswers QuestionAnswer[]
+  questionAnswers    QuestionAnswer[]
   projectSubmissions ProjectSubmission[]
   moduleTestAttempts ModuleTestAttempt[]
 
   // Indexes for performance
   @@index([xp])
   @@index([level])
+  @@index([email])
   @@index([createdAt])
 }
 
 model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
+  identifier String   @db.VarChar(255)
+  token      String   @unique @db.VarChar(255)
+  expires    DateTime @db.Timestamptz
 
   @@unique([identifier, token])
 }
@@ -86,31 +91,30 @@ model VerificationToken {
 // Application specific models
 
 model Lesson {
-  id          String   @id @default(cuid())
-  chapterId   String   // Maps to chapter.id from chapters.ts
-  title       String
-  description String?
-  xpReward    Int      @default(100)
-  difficulty  String   // beginner, intermediate, advanced
-  order       Int      // Order within the course
+  id          String  @id @default(uuid()) @db.Uuid
+  chapterId   String  @unique @db.VarChar(10)
+  title       String  @db.VarChar(255)
+  description String? @db.Text
+  xpReward    Int     @default(100)
+  difficulty  String  @db.VarChar(50)
+  order       Int
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
 
   completedBy CompletedLesson[]
   progress    LessonProgress[]
 
   // Indexes for performance
-  @@index([chapterId])
   @@index([difficulty])
   @@index([order])
 }
 
 model CompletedLesson {
-  id          String   @id @default(cuid())
-  userId      String
-  lessonId    String
-  completedAt DateTime @default(now())
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  lessonId    String   @db.Uuid
+  completedAt DateTime @default(now()) @db.Timestamptz
   xpEarned    Int
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -123,11 +127,11 @@ model CompletedLesson {
 }
 
 model LessonProgress {
-  id          String   @id @default(cuid())
-  userId      String
-  lessonId    String
-  progress    Int      @default(0) // 0-100
-  lastUpdated DateTime @default(now())
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  lessonId    String   @db.Uuid
+  progress    Int      @default(0)
+  lastUpdated DateTime @default(now()) @db.Timestamptz
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
@@ -139,27 +143,30 @@ model LessonProgress {
 }
 
 model Achievement {
-  id          String   @id @default(cuid())
-  badgeId     String   @unique // Maps to BADGES constant
-  name        String
-  description String
-  icon        String
+  id          String @id @default(uuid()) @db.Uuid
+  badgeId     String @unique @db.VarChar(100)
+  name        String @db.VarChar(255)
+  description String @db.Text
+  icon        String @db.VarChar(255)
   xpReward    Int
-  rarity      String   // common, uncommon, rare, epic, legendary
-  
-  createdAt   DateTime @default(now())
-  
-  users       UserAchievement[]
+  rarity      String @db.VarChar(50)
+
+  createdAt DateTime @default(now()) @db.Timestamptz
+
+  users UserAchievement[]
+
+  @@index([badgeId])
+  @@index([rarity])
 }
 
 model UserAchievement {
-  id           String   @id @default(cuid())
-  userId       String
-  achievementId String
-  unlockedAt   DateTime @default(now())
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @db.Uuid
+  achievementId String   @db.Uuid
+  unlockedAt    DateTime @default(now()) @db.Timestamptz
 
-  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  achievement  Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
 
   @@unique([userId, achievementId])
   @@index([userId])
@@ -168,14 +175,14 @@ model UserAchievement {
 }
 
 model CognitiveGlitchAttempt {
-  id          String   @id @default(cuid())
-  userId      String
-  challengeId String   // Maps to glitch challenge id
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  challengeId String   @db.VarChar(100)
   correct     Boolean
   hintUsed    Boolean  @default(false)
-  timeElapsed Int      // in seconds
+  timeElapsed Int
   xpEarned    Int
-  attemptedAt DateTime @default(now())
+  attemptedAt DateTime @default(now()) @db.Timestamptz
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -185,32 +192,38 @@ model CognitiveGlitchAttempt {
 }
 
 // Chapter completion tracking with 3-star system
+// Each star represents independent achievement:
+// Star 1: Chapter completed
+// Star 2: Questions answered correctly
+// Star 3: Project submitted
 model ChapterCompletion {
-  id          String   @id @default(cuid())
-  userId      String
-  chapterId   String   // Maps to chapter.id from chapters.ts
-  stars       Int      @default(1) // 1=completed, 2=all questions, 3=project submitted
-  completedAt DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                 String   @id @default(uuid()) @db.Uuid
+  userId             String   @db.Uuid
+  chapterId          String   @db.VarChar(10)
+  completedChapter   Boolean  @default(false)
+  answeredQuestions  Boolean  @default(false)
+  submittedProject   Boolean  @default(false)
+  completedAt        DateTime @default(now()) @db.Timestamptz
+  updatedAt          DateTime @updatedAt @db.Timestamptz
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, chapterId])
   @@index([userId])
   @@index([chapterId])
-  @@index([stars])
+  @@index([completedAt])
 }
 
 // Question answers for gamification
 model QuestionAnswer {
-  id         String   @id @default(cuid())
-  userId     String
-  chapterId  String   // Maps to chapter.id from chapters.ts
-  questionId String   // Question identifier within the chapter
-  answer     String   // User's answer
-  correct    Boolean  // Whether the answer was correct
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  chapterId  String   @db.VarChar(10)
+  questionId String   @db.VarChar(100)
+  answer     String   @db.Text
+  correct    Boolean
   xpEarned   Int      @default(0)
-  answeredAt DateTime @default(now())
+  answeredAt DateTime @default(now()) @db.Timestamptz
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -222,13 +235,13 @@ model QuestionAnswer {
 
 // Project submissions
 model ProjectSubmission {
-  id          String   @id @default(cuid())
-  userId      String
-  chapterId   String   // Maps to chapter.id from chapters.ts
-  projectUrl  String   // GitHub URL, Colab notebook URL, etc.
-  description String?
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  chapterId   String   @db.VarChar(10)
+  projectUrl  String   @db.Text
+  description String?  @db.Text
   xpEarned    Int      @default(0)
-  submittedAt DateTime @default(now())
+  submittedAt DateTime @default(now()) @db.Timestamptz
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -240,19 +253,19 @@ model ProjectSubmission {
 
 // Module test attempts (tests after every 10 chapters)
 model ModuleTestAttempt {
-  id              String   @id @default(cuid())
-  userId          String
-  moduleNumber    Int      // 1 for chapters 1-10, 2 for 11-20, etc.
-  score           Int      // Number of correct answers out of 10
-  totalQuestions  Int      @default(10)
-  timeElapsed     Int      // Time in seconds
-  attemptNumber   Int      // How many times user attempted this module test
-  completed       Boolean  @default(false)
-  abandoned       Boolean  @default(false) // User gave up
-  xpEarned        Int      @default(0)
-  moduleStars     Int      @default(0) // Stars earned for the module (0-3)
-  createdAt       DateTime @default(now())
-  completedAt     DateTime?
+  id             String    @id @default(uuid()) @db.Uuid
+  userId         String    @db.Uuid
+  moduleNumber   Int
+  score          Int
+  totalQuestions Int       @default(10)
+  timeElapsed    Int
+  attemptNumber  Int
+  completed      Boolean   @default(false)
+  abandoned      Boolean   @default(false)
+  xpEarned       Int       @default(0)
+  moduleStars    Int       @default(0)
+  createdAt      DateTime  @default(now()) @db.Timestamptz
+  completedAt    DateTime? @db.Timestamptz
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

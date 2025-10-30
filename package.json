@@ -21,7 +21,14 @@
     "analyze": "ANALYZE=true next build",
     "prepare": "husky",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "migrate:export": "tsx scripts/migration/export-sqlite-data.ts",
+    "migrate:import": "tsx scripts/migration/import-postgres-data.ts",
+    "migrate:verify": "tsx scripts/migration/verify-migration.ts",
+    "db:seed": "tsx prisma/seed.ts"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -97,6 +104,7 @@
     "prettier": "^3.6.2",
     "storybook": "^9.1.10",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-react": "^5.29.3"
+    "swagger-ui-react": "^5.29.3",
+    "tsx": "^4.20.6"
   }
 }

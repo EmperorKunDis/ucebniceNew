@@ -11,11 +11,13 @@ interface NotebookLinksProps {
 }
 
 function NotebookLinksComponent({ chapter }: NotebookLinksProps) {
-  const colabUrl = chapter.colabNotebook
-    ? `https://colab.research.google.com/github/${GITHUB_CONFIG.user}/${GITHUB_CONFIG.repo}/blob/${GITHUB_CONFIG.branch}/${chapter.colabNotebook}`
-    : null
-
+  // Use local notebook files from public/colab_notebooks
   const downloadUrl = chapter.colabNotebook ? `/colab_notebooks/${chapter.colabNotebook}` : null
+
+  // For Colab, use the local file URL
+  const colabUrl = downloadUrl
+    ? `https://colab.research.google.com/github/${GITHUB_CONFIG.user}/${GITHUB_CONFIG.repo}/blob/${GITHUB_CONFIG.branch}/colab_notebooks/${chapter.colabNotebook}`
+    : null
 
   return (
     <Box className="bg-gradient-to-r from-gray-800 to-gray-700 rounded-xl p-6">

@@ -29,11 +29,21 @@ export async function GET(request: NextRequest) {
     })
 
     // Convert to map for easy lookup
-    const progress: Record<string, { stars: number; completed: boolean }> = {}
+    const progress: Record<
+      string,
+      {
+        completedChapter: boolean
+        answeredQuestions: boolean
+        submittedProject: boolean
+        completed: boolean
+      }
+    > = {}
 
     chapterCompletions.forEach(completion => {
       progress[completion.chapterId] = {
-        stars: completion.stars,
+        completedChapter: completion.completedChapter,
+        answeredQuestions: completion.answeredQuestions,
+        submittedProject: completion.submittedProject,
         completed: true,
       }
     })

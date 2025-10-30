@@ -186,7 +186,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         message: 'Chapter already completed',
         alreadyCompleted: true,
-        stars: existingChapterCompletion?.stars || 1,
+        completedChapter: existingChapterCompletion?.completedChapter || true,
+        answeredQuestions: existingChapterCompletion?.answeredQuestions || false,
+        submittedProject: existingChapterCompletion?.submittedProject || false,
       })
     }
 
@@ -250,17 +252,7 @@ export async function POST(request: NextRequest) {
         update: {}, // Don't update if already exists
       })
 
-      // Create or update chapter completion - preserve higher star count
-      // First check if completion already exists
-      const existingCompletion = await tx.chapterCompletion.findUnique({
-        where: {
-          userId_chapterId: {
-            userId: session.user.id,
-            chapterId,
-          },
-        },
-      })
-
+      // Create or update chapter completion - set completedChapter flag
       const chapterCompletion = await tx.chapterCompletion.upsert({
         where: {
           userId_chapterId: {
@@ -271,11 +263,12 @@ export async function POST(request: NextRequest) {
         create: {
           userId: session.user.id,
           chapterId,
-          stars: 1,
+          completedChapter: true,
+          answeredQuestions: false,
+          submittedProject: false,
         },
         update: {
-          // Keep the higher star count (don't downgrade from 2 or 3 stars to 1)
-          stars: Math.max(existingCompletion?.stars || 0, 1),
+          completedChapter: true,
         },
       })
 
@@ -357,7 +350,9 @@ export async function POST(request: NextRequest) {
       newBadges: allNewBadges.map(key => BADGES[key]),
       streak: newStreak,
       streakIncreased: streakUpdate.shouldIncrement,
-      stars: 1,
+      completedChapter: true,
+      answeredQuestions: result.chapterCompletion.answeredQuestions,
+      submittedProject: result.chapterCompletion.submittedProject,
     })
   } catch (error) {
     console.error('Error completing chapter:', error)

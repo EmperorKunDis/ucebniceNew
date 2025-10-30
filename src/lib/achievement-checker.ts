@@ -43,8 +43,12 @@ export async function checkAndAwardAchievements(userId: string): Promise<BadgeId
     ])
 
     const correctQuestions = allQuestionAnswers.length
-    const twoStarChapters = chapterCompletions.filter(c => c.stars >= 2).length
-    const threeStarChapters = chapterCompletions.filter(c => c.stars >= 3).length
+    // Count chapters with specific achievements
+    const answeredQuestionsCount = chapterCompletions.filter(c => c.answeredQuestions).length
+    const submittedProjectsCount = chapterCompletions.filter(c => c.submittedProject).length
+    const perfectChapters = chapterCompletions.filter(
+      c => c.completedChapter && c.answeredQuestions && c.submittedProject
+    ).length
     const perfectModuleTests = allTestAttempts.filter(a => a.moduleStars === 3).length
 
     // Helper funkce pro přidání achievementu
@@ -67,17 +71,17 @@ export async function checkAndAwardAchievements(userId: string): Promise<BadgeId
       awardBadge('PROJECT_ENTHUSIAST')
     }
 
-    // Zkontroluj achievementy pro hvězdičky
-    if (twoStarChapters >= 1) {
+    // Zkontroluj achievementy pro hvězdičky (nový systém s nezávislými hvězdičkami)
+    if (answeredQuestionsCount >= 1) {
       awardBadge('FIRST_STAR_TWO')
     }
-    if (threeStarChapters >= 1) {
+    if (submittedProjectsCount >= 1) {
       awardBadge('FIRST_STAR_THREE')
     }
-    if (threeStarChapters >= 5) {
+    if (perfectChapters >= 5) {
       awardBadge('FIVE_PERFECT_CHAPTERS')
     }
-    if (threeStarChapters >= 40) {
+    if (perfectChapters >= 40) {
       awardBadge('ALL_THREE_STARS')
     }
 

@@ -167,7 +167,7 @@ export async function GET(request: NextRequest) {
       include: {
         _count: {
           select: {
-            completedLessons: true,
+            chapterCompletions: true,
             achievements: true,
           },
         },
@@ -180,13 +180,10 @@ export async function GET(request: NextRequest) {
             unlockedAt: 'desc',
           },
         },
-        lessonProgress: {
+        chapterCompletions: {
           take: safeProgressLimit,
-          include: {
-            lesson: true,
-          },
           orderBy: {
-            lastUpdated: 'desc',
+            updatedAt: 'desc',
           },
         },
       },
@@ -196,19 +193,33 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Fetch recent completions separately with proper sorting in database
-    const recentCompletions = await prisma.completedLesson.findMany({
+    // Fetch recent chapter completions with lesson info
+    const recentCompletionsRaw = await prisma.chapterCompletion.findMany({
       where: {
         userId: session.user.id,
+        completedChapter: true, // Only count chapters that were actually completed
       },
       take: safeRecentLimit,
       orderBy: {
         completedAt: 'desc',
       },
-      include: {
-        lesson: true,
-      },
     })
+
+    // Get lesson titles for recent completions
+    const recentCompletions = await Promise.all(
+      recentCompletionsRaw.map(async completion => {
+        const lesson = await prisma.lesson.findFirst({
+          where: { chapterId: completion.chapterId },
+        })
+        return {
+          id: completion.id,
+          chapterId: completion.chapterId,
+          lessonTitle: lesson?.title || `Chapter ${completion.chapterId}`,
+          completedAt: completion.completedAt,
+          xpEarned: 100, // Base XP for chapter completion
+        }
+      })
+    )
 
     // Calculate level progress
     const levelProgress = getProgressToNextLevel(user.xp)
@@ -228,7 +239,7 @@ export async function GET(request: NextRequest) {
         createdAt: user.createdAt,
       },
       stats: {
-        completedChapters: user._count.completedLessons,
+        completedChapters: user._count.chapterCompletions,
         totalAchievements: user._count.achievements,
         currentStreak: user.currentStreak,
         longestStreak: user.longestStreak,
@@ -244,17 +255,13 @@ export async function GET(request: NextRequest) {
         rarity: ua.achievement.rarity,
         unlockedAt: ua.unlockedAt,
       })),
-      recentCompletions: recentCompletions.map(c => ({
-        id: c.id,
-        lessonTitle: c.lesson.title,
-        completedAt: c.completedAt,
-        xpEarned: c.xpEarned,
-      })),
-      progress: user.lessonProgress.map(p => ({
-        lessonId: p.lesson.chapterId, // Return chapterId instead of database ID
-        lessonTitle: p.lesson.title,
-        progress: p.progress,
-        lastUpdated: p.lastUpdated,
+      recentCompletions: recentCompletions,
+      progress: user.chapterCompletions.map(c => ({
+        lessonId: c.chapterId,
+        completedChapter: c.completedChapter,
+        answeredQuestions: c.answeredQuestions,
+        submittedProject: c.submittedProject,
+        lastUpdated: c.updatedAt,
       })),
       pagination: {
         achievements: {
@@ -262,8 +269,8 @@ export async function GET(request: NextRequest) {
           total: user._count.achievements,
         },
         progress: {
-          returned: user.lessonProgress.length,
-          total: user.lessonProgress.length,
+          returned: user.chapterCompletions.length,
+          total: user.chapterCompletions.length,
         },
         recentCompletions: {
           returned: recentCompletions.length,

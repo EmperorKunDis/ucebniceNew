@@ -51,7 +51,9 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
   const [completing, setCompleting] = useState(false)
   const [completed, setCompleted] = useState(false)
   const [completionData, setCompletionData] = useState<any>(null)
-  const [stars, setStars] = useState(0)
+  const [completedChapter, setCompletedChapter] = useState(false)
+  const [answeredQuestions, setAnsweredQuestions] = useState(false)
+  const [submittedProject, setSubmittedProject] = useState(false)
   const [questionAnswers, setQuestionAnswers] = useState<Map<string, boolean>>(new Map())
   const [loading, setLoading] = useState(true)
   const [showModuleTest, setShowModuleTest] = useState(false)
@@ -82,7 +84,9 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
         const data = await response.json()
 
         if (response.ok) {
-          setStars(data.stars || 0)
+          setCompletedChapter(data.completedChapter || false)
+          setAnsweredQuestions(data.answeredQuestions || false)
+          setSubmittedProject(data.submittedProject || false)
           setCompleted(data.completed)
           if (data.completed) {
             setCompletionData({ alreadyCompleted: true })
@@ -137,7 +141,7 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
         setQuestionAnswers(prev => new Map(prev).set(questionId, data.correct))
 
         if (data.allQuestionsCompleted) {
-          setStars(prev => Math.max(prev, 2))
+          setAnsweredQuestions(true)
           toast.success('Všechny otázky správně! Získal jsi druhou hvězdičku! 🌟')
         }
 
@@ -174,7 +178,9 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
       if (response.ok) {
         setCompleted(true)
         setCompletionData(data)
-        setStars(data.stars || 1)
+        setCompletedChapter(data.completedChapter || true)
+        setAnsweredQuestions(data.answeredQuestions || false)
+        setSubmittedProject(data.submittedProject || false)
         toast.success('Kapitola dokončena! 🎉')
 
         // Show module test if this is chapter 10, 20, 30, or 40
@@ -291,7 +297,13 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
                 <p className="text-gray-400 mb-6">
                   Nahraj odkaz na svůj projekt a získej třetí hvězdičku! 🌟
                 </p>
-                <ProjectSubmission chapterId={chapter.id} />
+                <ProjectSubmission
+                  chapterId={chapter.id}
+                  onProjectSubmitted={() => {
+                    setSubmittedProject(true)
+                    toast.success('Získal jsi třetí hvězdičku! 🌟')
+                  }}
+                />
               </div>
             </Section>
           )}
@@ -307,22 +319,34 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
                   <p className="text-gray-400 mb-4">Získej XP a pokroč ve své cestě učení!</p>
 
                   {/* Star Progress */}
-                  {stars > 0 && (
+                  {(completedChapter || answeredQuestions || submittedProject) && (
                     <div className="mb-6 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-lg p-4">
                       <p className="text-sm text-gray-300 mb-2">Tvůj pokrok:</p>
-                      <div className="flex items-center justify-center gap-2">
-                        {[1, 2, 3].map(starNum => (
-                          <Star
-                            key={starNum}
-                            className={`w-6 h-6 ${starNum <= stars ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
-                          />
-                        ))}
+                      <div className="flex items-center justify-center gap-2 mb-2">
+                        <Star
+                          className={`w-6 h-6 ${completedChapter ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
+                        />
+                        <Star
+                          className={`w-6 h-6 ${answeredQuestions ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
+                        />
+                        <Star
+                          className={`w-6 h-6 ${submittedProject ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
+                        />
                       </div>
-                      <p className="text-xs text-gray-400 mt-2">
-                        {stars === 1 && 'Zodpověz všechny otázky pro 2. hvězdičku!'}
-                        {stars === 2 && 'Odevzdej projekt pro 3. hvězdičku!'}
-                        {stars === 3 && 'Kompletní! Získal jsi všechny 3 hvězdičky! 🎉'}
-                      </p>
+                      <div className="text-xs text-gray-400 space-y-1">
+                        <p>
+                          ⭐ První hvězdička:{' '}
+                          {completedChapter ? '✓ Kapitola dokončena' : 'Dokončit kapitolu'}
+                        </p>
+                        <p>
+                          ⭐ Druhá hvězdička:{' '}
+                          {answeredQuestions ? '✓ Otázky zodpovězeny' : 'Zodpovědět všechny otázky'}
+                        </p>
+                        <p>
+                          ⭐ Třetí hvězdička:{' '}
+                          {submittedProject ? '✓ Projekt odevzdán' : 'Odevzdat projekt'}
+                        </p>
+                      </div>
                     </div>
                   )}
 
@@ -358,23 +382,32 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
                   </p>
 
                   {/* Star Display */}
-                  {stars > 0 && (
+                  {(completedChapter || answeredQuestions || submittedProject) && (
                     <div className="mb-6 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-lg p-4">
                       <p className="text-sm text-gray-300 mb-2">Tvoje hvězdičky:</p>
                       <div className="flex items-center justify-center gap-2 mb-2">
-                        {[1, 2, 3].map(starNum => (
-                          <Star
-                            key={starNum}
-                            className={`w-8 h-8 ${starNum <= stars ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
-                          />
-                        ))}
+                        <Star
+                          className={`w-8 h-8 ${completedChapter ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
+                        />
+                        <Star
+                          className={`w-8 h-8 ${answeredQuestions ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
+                        />
+                        <Star
+                          className={`w-8 h-8 ${submittedProject ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
+                        />
                       </div>
-                      <p className="text-xs text-gray-400">
-                        {stars === 1 && 'Získal jsi 1/3 hvězdičky - zodpověz otázky pro více!'}
-                        {stars === 2 &&
-                          'Získal jsi 2/3 hvězdičky - odevzdej projekt pro kompletní!'}
-                        {stars === 3 && 'Perfektní! Získal jsi všechny 3 hvězdičky! 🎉'}
-                      </p>
+                      <div className="text-xs text-gray-400 space-y-1">
+                        <p>
+                          ⭐ {completedChapter ? '✓ Kapitola dokončena' : '☐ Dokončit kapitolu'}
+                        </p>
+                        <p>
+                          ⭐{' '}
+                          {answeredQuestions
+                            ? '✓ Otázky zodpovězeny'
+                            : '☐ Zodpovědět všechny otázky'}
+                        </p>
+                        <p>⭐ {submittedProject ? '✓ Projekt odevzdán' : '☐ Odevzdat projekt'}</p>
+                      </div>
                     </div>
                   )}
 

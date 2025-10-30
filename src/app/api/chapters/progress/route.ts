@@ -63,7 +63,9 @@ export async function GET(request: NextRequest) {
     })
 
     return NextResponse.json({
-      stars: chapterCompletion?.stars || 0,
+      completedChapter: chapterCompletion?.completedChapter || false,
+      answeredQuestions: chapterCompletion?.answeredQuestions || false,
+      submittedProject: chapterCompletion?.submittedProject || false,
       completed: !!chapterCompletion,
       questionAnswers: questionAnswers.map(qa => ({
         questionId: qa.questionId,

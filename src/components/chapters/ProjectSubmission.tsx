@@ -9,10 +9,12 @@ import toast from 'react-hot-toast'
 
 interface ProjectSubmissionProps {
   chapterId: string
+  onProjectSubmitted?: () => void
 }
 
 export const ProjectSubmission = memo(function ProjectSubmission({
   chapterId,
+  onProjectSubmitted,
 }: ProjectSubmissionProps) {
   const [projectUrl, setProjectUrl] = useState('')
   const [description, setDescription] = useState('')
@@ -84,6 +86,11 @@ export const ProjectSubmission = memo(function ProjectSubmission({
 
         if (data.xpEarned > 0) {
           toast.success(`+${data.xpEarned} XP! 🎉`)
+        }
+
+        // Notify parent component
+        if (onProjectSubmitted) {
+          onProjectSubmitted()
         }
       } else {
         toast.error(data.error || 'Něco se pokazilo')

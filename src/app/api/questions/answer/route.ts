@@ -88,30 +88,26 @@ export async function POST(request: NextRequest) {
     const allCorrect =
       userAnswers.length === allQuestions.length && userAnswers.every(answer => answer.correct)
 
-    // Update chapter completion stars if all questions answered correctly
+    // Update chapter completion - set answeredQuestions flag if all questions answered correctly
     if (allCorrect) {
-      const completion = await prisma.chapterCompletion.findUnique({
+      await prisma.chapterCompletion.upsert({
         where: {
           userId_chapterId: {
             userId: user.id,
             chapterId,
           },
         },
+        create: {
+          userId: user.id,
+          chapterId,
+          completedChapter: false,
+          answeredQuestions: true,
+          submittedProject: false,
+        },
+        update: {
+          answeredQuestions: true,
+        },
       })
-
-      if (completion && completion.stars < 2) {
-        await prisma.chapterCompletion.update({
-          where: {
-            userId_chapterId: {
-              userId: user.id,
-              chapterId,
-            },
-          },
-          data: {
-            stars: 2,
-          },
-        })
-      }
     }
 
     // Check and award achievements

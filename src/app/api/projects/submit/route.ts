@@ -88,38 +88,25 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Update chapter completion to 3 stars
-    const completion = await prisma.chapterCompletion.findUnique({
+    // Update chapter completion - set submittedProject flag
+    await prisma.chapterCompletion.upsert({
       where: {
         userId_chapterId: {
           userId: user.id,
           chapterId,
         },
       },
+      create: {
+        userId: user.id,
+        chapterId,
+        completedChapter: false,
+        answeredQuestions: false,
+        submittedProject: true,
+      },
+      update: {
+        submittedProject: true,
+      },
     })
-
-    if (completion) {
-      await prisma.chapterCompletion.update({
-        where: {
-          userId_chapterId: {
-            userId: user.id,
-            chapterId,
-          },
-        },
-        data: {
-          stars: 3,
-        },
-      })
-    } else {
-      // Create completion record with 3 stars if doesn't exist
-      await prisma.chapterCompletion.create({
-        data: {
-          userId: user.id,
-          chapterId,
-          stars: 3,
-        },
-      })
-    }
 
     // Check and award achievements
     const newAchievements = await checkAndAwardAchievements(user.id)
@@ -127,7 +114,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       message: 'Projekt byl úspěšně odeslán!',
       xpEarned: PROJECT_XP_REWARD,
-      stars: 3,
+      submittedProject: true,
       newAchievements,
     })
   } catch (error) {
