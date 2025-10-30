@@ -119,3 +119,150 @@ jobs:
         run: npm run build
         env:
           SKIP_ENV_VALIDATION: true
+
+  docker:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: [lint, build]  # When you re-enable test/e2e, add them here: needs: [lint, test, e2e, build]
+    if: github.event_name == 'push'  # Only build docker on push, not PRs
+    permissions:
+      contents: write  # Need write permission to commit values changes
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Debug - Check secrets
+        run: |
+          echo "Registry: harbor.praut.cz"
+          echo "Username is set: ${{ secrets.HARBOR_USERNAME != '' }}"
+          echo "Password is set: ${{ secrets.HARBOR_PASSWORD != '' }}"
+          echo "Username length: ${#HARBOR_USERNAME}"
+          echo "Password length: ${#HARBOR_PASSWORD}"
+          echo "Username first 20 chars: ${HARBOR_USERNAME:0:20}***"
+          echo "Password last 3 chars: ***${HARBOR_PASSWORD: -3}"
+        env:
+          HARBOR_USERNAME: ${{ secrets.HARBOR_USERNAME }}
+          HARBOR_PASSWORD: ${{ secrets.HARBOR_PASSWORD }}
+
+      - name: Log in to Harbor Registry
+        uses: docker/login-action@v3
+        with:
+          registry: harbor.praut.cz
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: harbor.praut.cz/ucebnice/ucebnice-app
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NEXT_PUBLIC_APP_VERSION=${{ github.sha }}
+
+      - name: Verify image exists in Harbor (Production)
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          IMAGE_TAG="${{ github.ref_name }}"
+          IMAGE="harbor.praut.cz/ucebnice/ucebnice-app:${IMAGE_TAG}"
+          MAX_ATTEMPTS=30
+          ATTEMPT=0
+
+          echo "Verifying image: ${IMAGE}"
+
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            if docker manifest inspect ${IMAGE} > /dev/null 2>&1; then
+              echo "✅ Image found in Harbor!"
+              exit 0
+            fi
+
+            echo "Attempt $((ATTEMPT+1))/$MAX_ATTEMPTS - Image not ready yet, waiting 10s..."
+            sleep 10
+            ATTEMPT=$((ATTEMPT+1))
+          done
+
+          echo "❌ Image not found in Harbor after $((MAX_ATTEMPTS * 10)) seconds"
+          exit 1
+
+      - name: Update Argo CD values (Production)
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          IMAGE_TAG="${{ github.ref_name }}"
+          echo "Updating production deployment to ${IMAGE_TAG}"
+
+          # Update the image tag in production values
+          sed -i "s|tag: \".*\"|tag: \"${IMAGE_TAG}\"|" argocd/values-production.yaml
+
+          # Commit and push the change
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add argocd/values-production.yaml
+          git commit -m "chore(production): Update image to ${IMAGE_TAG} [skip ci]"
+          git push origin main
+
+          echo "✅ Production values updated. Argo CD will sync automatically."
+
+      - name: Verify image exists in Harbor (Staging)
+        if: github.ref == 'refs/heads/develop'
+        run: |
+          IMAGE_TAG="develop"
+          IMAGE="harbor.praut.cz/ucebnice/ucebnice-app:${IMAGE_TAG}"
+          MAX_ATTEMPTS=30
+          ATTEMPT=0
+
+          echo "Verifying image: ${IMAGE}"
+
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            if docker manifest inspect ${IMAGE} > /dev/null 2>&1; then
+              echo "✅ Image found in Harbor!"
+              exit 0
+            fi
+
+            echo "Attempt $((ATTEMPT+1))/$MAX_ATTEMPTS - Image not ready yet, waiting 10s..."
+            sleep 10
+            ATTEMPT=$((ATTEMPT+1))
+          done
+
+          echo "❌ Image not found in Harbor after $((MAX_ATTEMPTS * 10)) seconds"
+          exit 1
+
+      - name: Update Argo CD values (Staging)
+        if: github.ref == 'refs/heads/develop'
+        run: |
+          IMAGE_TAG="develop"
+          echo "Updating staging deployment to ${IMAGE_TAG}"
+
+          # Update the image tag in staging values
+          sed -i "s|tag: \".*\"|tag: \"${IMAGE_TAG}\"|" argocd/values-staging.yaml
+
+          # Commit and push the change
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add argocd/values-staging.yaml
+          git commit -m "chore(staging): Update image to ${IMAGE_TAG} [skip ci]"
+          git push origin develop
+
+          echo "✅ Staging values updated. Argo CD will sync automatically."

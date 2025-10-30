@@ -81,7 +81,7 @@ vim argocd/values-production.yaml
 # Change: image.repository and ingress.hosts
 
 # Update GitHub Actions
-vim .github/workflows/docker-build.yml
+vim .github/workflows/ci.yml
 # Change: REGISTRY and IMAGE_NAME
 ```
 

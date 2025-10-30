@@ -113,13 +113,13 @@ git status
 # - argocd/values-production.yaml
 # - argocd/application.yaml
 # - All Helm chart files
-# - Updated .github/workflows/docker-build.yml
+# - Updated .github/workflows/ci.yml
 
 # Commit sealed secrets (they're encrypted, safe to commit!)
 git add argocd/*-sealed-secret.yaml
 git add argocd/values-production.yaml
 git add argocd/application.yaml
-git add .github/workflows/docker-build.yml
+git add .github/workflows/ci.yml
 git add helm/
 git add Dockerfile .dockerignore
 git add Makefile
