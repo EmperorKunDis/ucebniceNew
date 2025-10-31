@@ -74,13 +74,16 @@ podDisruptionBudget:
   enabled: true
   minAvailable: 1
 
-affinity:
-  podAntiAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-      - labelSelector:
-          matchExpressions:
-            - key: app.kubernetes.io/name
-              operator: In
-              values:
-                - ucebnice
-        topologyKey: kubernetes.io/hostname
+affinity: {}  # Disabled for single-node cluster
+  # Uncomment below when you have multiple nodes:
+  # podAntiAffinity:
+  #   preferredDuringSchedulingIgnoredDuringExecution:
+  #     - weight: 100
+  #       podAffinityTerm:
+  #         labelSelector:
+  #           matchExpressions:
+  #             - key: app.kubernetes.io/name
+  #               operator: In
+  #               values:
+  #                 - ucebnice
+  #         topologyKey: kubernetes.io/hostname

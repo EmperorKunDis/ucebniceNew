@@ -20,12 +20,10 @@ spec:
       valueFiles:
         - values.yaml
         - ../../argocd/values-production.yaml  # Override with production values
-      # Additional parameters to pass to helm template
-      parameters:
-        - name: image.tag
-          value: "latest"  # This can be updated by CI/CD pipeline
       # Release name
       releaseName: ucebnice
+      # NOTE: No hardcoded parameters! Use values files instead
+      # The CI/CD workflow will update values files with new tags
 
   # Destination cluster and namespace to deploy the application
   destination:
