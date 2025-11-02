@@ -44,7 +44,7 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
   const [expandedSections, setExpandedSections] = useState({
     video: true, // Video bude default rozbalené
     text: false,
-    lecture: false,
+    lecture: true, // Přednáška také default rozbalená pro lepší UX
     questions: false,
     project: false,
   })
