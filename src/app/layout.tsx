@@ -1,5 +1,5 @@
 import './globals.css'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Montserrat, Exo_2 } from 'next/font/google'
 import { Providers } from '@/components/providers'
 
@@ -71,6 +71,13 @@ export const metadata: Metadata = {
     // google: 'your-google-verification-code',
     // yandex: 'your-yandex-verification-code',
   },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

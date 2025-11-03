@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useEffect } from 'react'
+import { useReducedMotion } from '@/hooks/use-reduced-motion'
 import './lightning.css'
 
 interface LightningProps {
@@ -12,12 +13,31 @@ interface LightningProps {
   className?: string
 }
 
-export function Lightning({ hue = 230, xOffset = 0, speed = 1, intensity = 1, size = 1, className = '' }: LightningProps) {
+export function Lightning({
+  hue = 230,
+  xOffset = 0,
+  speed = 1,
+  intensity = 1,
+  size = 1,
+  className = '',
+}: LightningProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const prefersReducedMotion = useReducedMotion()
 
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
+
+    // Don't render animation if user prefers reduced motion
+    if (prefersReducedMotion) {
+      // Clear canvas to solid background color
+      const ctx = canvas.getContext('2d')
+      if (ctx) {
+        ctx.fillStyle = `hsl(${hue}, 70%, 5%)`
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
+      }
+      return
+    }
 
     const resizeCanvas = () => {
       canvas.width = canvas.clientWidth
@@ -166,19 +186,31 @@ export function Lightning({ hue = 230, xOffset = 0, speed = 1, intensity = 1, si
 
     const startTime = performance.now()
     let animationId: number
-    
-    const render = () => {
-      resizeCanvas()
-      gl.viewport(0, 0, canvas.width, canvas.height)
-      gl.uniform2f(iResolutionLocation, canvas.width, canvas.height)
-      const currentTime = performance.now()
-      gl.uniform1f(iTimeLocation, (currentTime - startTime) / 1000.0)
-      gl.uniform1f(uHueLocation, hue)
-      gl.uniform1f(uXOffsetLocation, xOffset)
-      gl.uniform1f(uSpeedLocation, speed)
-      gl.uniform1f(uIntensityLocation, intensity)
-      gl.uniform1f(uSizeLocation, size)
-      gl.drawArrays(gl.TRIANGLES, 0, 6)
+
+    // Throttle to 30fps for better performance
+    const fps = 30
+    const fpsInterval = 1000 / fps
+    let lastFrameTime = performance.now()
+
+    const render = (currentTime: number) => {
+      const elapsed = currentTime - lastFrameTime
+
+      // Only render if enough time has passed since last frame
+      if (elapsed > fpsInterval) {
+        lastFrameTime = currentTime - (elapsed % fpsInterval)
+
+        resizeCanvas()
+        gl.viewport(0, 0, canvas.width, canvas.height)
+        gl.uniform2f(iResolutionLocation, canvas.width, canvas.height)
+        gl.uniform1f(iTimeLocation, (currentTime - startTime) / 1000.0)
+        gl.uniform1f(uHueLocation, hue)
+        gl.uniform1f(uXOffsetLocation, xOffset)
+        gl.uniform1f(uSpeedLocation, speed)
+        gl.uniform1f(uIntensityLocation, intensity)
+        gl.uniform1f(uSizeLocation, size)
+        gl.drawArrays(gl.TRIANGLES, 0, 6)
+      }
+
       animationId = requestAnimationFrame(render)
     }
     animationId = requestAnimationFrame(render)
@@ -191,7 +223,7 @@ export function Lightning({ hue = 230, xOffset = 0, speed = 1, intensity = 1, si
       gl.deleteShader(fragmentShader)
       gl.deleteBuffer(vertexBuffer)
     }
-  }, [hue, xOffset, speed, intensity, size])
+  }, [hue, xOffset, speed, intensity, size, prefersReducedMotion])
 
   return <canvas ref={canvasRef} className={`lightning-container ${className}`} />
 }

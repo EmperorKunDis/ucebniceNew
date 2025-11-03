@@ -21,6 +21,7 @@ import { GlassSurface } from '@/components/ui/glass-surface'
 import { ElectricBorder } from '@/components/ui/electric-border'
 import { Button } from '@/components/ui/button'
 import { Box, Stack, Grid } from '@/components/layout'
+import { ProfileCard } from '@/components/ui/profile-card'
 
 type LeaderboardPeriod = 'all-time' | 'monthly' | 'weekly' | 'daily'
 
@@ -174,35 +175,48 @@ export default function LeaderboardPage() {
               role="list"
               aria-label="Top 3 uživatelé"
             >
-              {leaderboard.slice(0, 3).map((entry, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  className={i === 0 ? 'md:order-2' : i === 1 ? 'md:order-1' : 'md:order-3'}
-                  role="listitem"
-                >
-                  <ElectricBorder className="rounded-lg">
-                    <GlassSurface
-                      className={`p-6 text-center bg-gradient-to-br ${getRankColor(entry.rank)}`}
-                      aria-label={`${entry.rank}. místo: ${entry.username}, Level ${entry.level}, ${entry.xp.toLocaleString()} XP`}
-                    >
-                      <Box
-                        className={`mb-4 ${i === 0 ? 'transform scale-125' : ''}`}
-                        aria-hidden="true"
+              {leaderboard.slice(0, 3).map((entry, i) => {
+                // Podium ordering: 2nd (left), 1st (middle), 3rd (right)
+                // i=0 (1st place) -> order-2 (middle on all screens)
+                // i=1 (2nd place) -> order-1 (left on all screens)
+                // i=2 (3rd place) -> order-3 (right on all screens)
+                const orderClass = i === 0 ? 'order-2' : i === 1 ? 'order-1' : 'order-3'
+
+                return (
+                  <motion.div
+                    key={entry.username}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    className={orderClass}
+                    role="listitem"
+                  >
+                    <div className="relative">
+                      {/* Rank Icon Badge */}
+                      <div
+                        className={`absolute -top-2 left-1/2 -translate-x-1/2 z-10 ${i === 0 ? 'transform scale-125' : ''}`}
                       >
                         {getRankIcon(entry.rank)}
-                      </Box>
-                      <Box className="w-20 h-20 mx-auto mb-3 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-2xl font-bold text-white">
-                        {entry.username.charAt(0).toUpperCase()}
-                      </Box>
-                      <h3 className="font-bold text-white mb-1">{entry.username}</h3>
-                      <p className="text-gray-400 text-sm mb-3">Level {entry.level}</p>
-                      <Box className="space-y-1">
-                        <p className="text-2xl font-bold text-white">{entry.xp.toLocaleString()}</p>
-                        <p className="text-xs text-gray-400">XP</p>
-                      </Box>
+                      </div>
+
+                      {/* ProfileCard with custom styling for podium */}
+                      <div
+                        className={`bg-gradient-to-br ${getRankColor(entry.rank)} rounded-lg p-1`}
+                      >
+                        <ProfileCard
+                          name={entry.username}
+                          title={`Level ${entry.level}`}
+                          handle={entry.username}
+                          status={`${entry.xp.toLocaleString()} XP`}
+                          avatarUrl={`https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.username}`}
+                          miniAvatarUrl={`https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.username}`}
+                          showUserInfo={false}
+                          enableTilt={i === 0}
+                          className={i === 0 ? 'scale-105' : ''}
+                        />
+                      </div>
+
+                      {/* Stats below card */}
                       <Stack direction="row" justify="center" gap={4} className="mt-3 text-xs">
                         <Stack direction="row" gap={1} align="center">
                           <Trophy className="w-3 h-3 text-yellow-400" aria-hidden="true" />
@@ -213,10 +227,10 @@ export default function LeaderboardPage() {
                           <span className="text-gray-400">{entry.streak}d</span>
                         </Stack>
                       </Stack>
-                    </GlassSurface>
-                  </ElectricBorder>
-                </motion.div>
-              ))}
+                    </div>
+                  </motion.div>
+                )
+              })}
             </Grid>
           )}
 

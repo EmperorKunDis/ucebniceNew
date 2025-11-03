@@ -307,6 +307,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
           <div className="pc-content pc-avatar-content">
             <Image
               className="avatar"
+              fill
               src={avatarUrl}
               alt={`${name || 'User'} avatar`}
               loading="lazy"
@@ -321,6 +322,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
                   <div className="pc-mini-avatar">
                     <Image
                       src={miniAvatarUrl || avatarUrl}
+                      fill
                       alt={`${name || 'User'} mini avatar`}
                       loading="lazy"
                       onError={e => {
