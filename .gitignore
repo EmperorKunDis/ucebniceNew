@@ -47,6 +47,9 @@ prisma/.env
 scripts/migration/sqlite-export.json
 scripts/migration/*.backup
 
+# Knowledge base
+.claude/knowledge/*.md
+
 # ide
 .vscode/
 .idea/

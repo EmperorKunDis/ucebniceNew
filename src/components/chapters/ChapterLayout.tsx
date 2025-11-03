@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo } from 'react'
 import { motion } from 'framer-motion'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
@@ -37,6 +37,12 @@ import { getChapterQuestions } from '@/data/questions'
 interface ChapterLayoutProps {
   chapter: Chapter
 }
+
+// Memoize child components to prevent unnecessary re-renders
+const MemoizedVideoPlayer = memo(VideoPlayer)
+const MemoizedChapterContent = memo(ChapterContent)
+const MemoizedQuestionCard = memo(QuestionCard)
+const MemoizedProjectSubmission = memo(ProjectSubmission)
 
 export function ChapterLayout({ chapter }: ChapterLayoutProps) {
   const { data: session } = useSession()
@@ -245,7 +251,7 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
               expanded={expandedSections.video}
               onToggle={() => toggleSection('video')}
             >
-              <VideoPlayer videoFile={chapter.videoFile} />
+              <MemoizedVideoPlayer videoFile={chapter.videoFile} />
             </Section>
           )}
 
@@ -256,7 +262,7 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
             expanded={expandedSections.lecture}
             onToggle={() => toggleSection('lecture')}
           >
-            <ChapterContent content={chapter.lectureFile} type="lecture" />
+            <MemoizedChapterContent content={chapter.lectureFile} type="lecture" />
           </Section>
 
           {/* Studijní materiály - Questions */}
@@ -272,7 +278,7 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
                   Odpověz správně na všechny otázky a získej druhou hvězdičku! 🌟
                 </p>
                 {questions.map((question, index) => (
-                  <QuestionCard
+                  <MemoizedQuestionCard
                     key={question.id}
                     question={question}
                     questionNumber={index + 1}
@@ -297,7 +303,7 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
                 <p className="text-gray-400 mb-6">
                   Nahraj odkaz na svůj projekt a získej třetí hvězdičku! 🌟
                 </p>
-                <ProjectSubmission
+                <MemoizedProjectSubmission
                   chapterId={chapter.id}
                   onProjectSubmitted={() => {
                     setSubmittedProject(true)

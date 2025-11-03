@@ -227,6 +227,14 @@ export function CompetenceNebula({
       node.attr('transform', (d: any) => `translate(${d.x},${d.y})`)
     })
 
+    // Stop simulation after it settles to save CPU
+    simulation.on('end', () => {
+      simulation.stop()
+    })
+
+    // Set alpha decay to make simulation settle faster
+    simulation.alphaTarget(0).alphaDecay(0.05)
+
     // Zoom functionality
     if (interactive) {
       const zoomBehavior = d3
