@@ -23,7 +23,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola01.md',
     videoFile: 'Hodina1.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/c536c80b-b48a-47ef-b291-8c443389b787',
-    colabNotebook: 'kapitola_01_úvod_do_terminálu_a_příkazové_řádky.ipynb',
+    colabNotebook: 'kapitola_01.ipynb',
     aiBasicsHours: ['1'],
   },
   {
@@ -36,7 +36,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola02.md',
     videoFile: 'Hodina2.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/678e7208-8a79-486b-a747-7300fe2aee9d',
-    colabNotebook: 'kapitola_02_instalace_vývojových_nástrojů.ipynb',
+    colabNotebook: 'kapitola_02.ipynb',
     aiBasicsHours: ['2'],
   },
   {
@@ -49,7 +49,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola03.md',
     videoFile: 'Hodina3.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/a1f6282b-c815-4ab5-9986-9489dee17379',
-    colabNotebook: 'kapitola_03_git_a_verzování_kódu.ipynb',
+    colabNotebook: 'kapitola_03.ipynb',
     aiBasicsHours: ['3'],
   },
   {
@@ -62,7 +62,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola04.md',
     videoFile: 'Hodina4.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/d1fe5ac0-b977-433a-9da3-c674d12e26b2',
-    colabNotebook: 'kapitola_04_python_instalace_a_virtuální_prostředí.ipynb',
+    colabNotebook: 'kapitola_04.ipynb',
     aiBasicsHours: ['4'],
   },
   {
@@ -75,7 +75,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola05.md',
     videoFile: 'Hodina5.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/18ee9a9f-7493-4bd3-9429-0866091d47c5',
-    colabNotebook: 'kapitola_05_základy_pythonu_i_datové_typy_a_řízení_toku.ipynb',
+    colabNotebook: 'kapitola_05.ipynb',
     aiBasicsHours: ['5'],
   },
   {
@@ -88,7 +88,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola06.md',
     videoFile: 'Hodina6.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/af80cb18-a553-4df1-9dc4-23b81e735721',
-    colabNotebook: 'kapitola_06_základy_pythonu_ii_kolekce_dat.ipynb',
+    colabNotebook: 'kapitola_06.ipynb',
     aiBasicsHours: ['6'],
   },
   {
@@ -101,7 +101,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola07.md',
     videoFile: 'Hodina7.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/55dc9ce2-0be5-4961-ab56-12796d23952f',
-    colabNotebook: 'kapitola_07_funkce_a_moduly.ipynb',
+    colabNotebook: 'kapitola_07.ipynb',
     aiBasicsHours: ['7'],
   },
   {
@@ -114,7 +114,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola08.md',
     videoFile: 'Hodina8.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/c3289baf-91ca-43db-acdd-62ce686453a7',
-    colabNotebook: 'kapitola_08_práce_se_soubory_a_výjimky.ipynb',
+    colabNotebook: 'kapitola_08.ipynb',
     aiBasicsHours: ['8'],
   },
   {
@@ -127,7 +127,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola09.md',
     videoFile: undefined,
     notebookLMUrl: undefined,
-    colabNotebook: 'kapitola_09_debugging_a_testování_základů.ipynb',
+    colabNotebook: 'kapitola_09.ipynb',
     aiBasicsHours: ['9'],
   },
   {
@@ -140,7 +140,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola10.md',
     videoFile: undefined,
     notebookLMUrl: undefined,
-    colabNotebook: 'kapitola_10_projekt_1_cli_todo_aplikace.ipynb',
+    colabNotebook: 'kapitola_10.ipynb',
     aiBasicsHours: ['10'],
   },
   {
@@ -153,7 +153,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola11.md',
     videoFile: 'Hodina11.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/f8e0946d-6b93-4c04-abbf-96b281158e03',
-    colabNotebook: 'kapitola_11_objektově_orientované_programování_i.ipynb',
+    colabNotebook: 'kapitola_11.ipynb',
     aiBasicsHours: ['11'],
   },
   {
@@ -166,7 +166,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola12.md',
     videoFile: 'Hodiny12_13.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/5227f8b9-da1b-4c96-a02e-fbe757ad79ed',
-    colabNotebook: 'kapitola_12_objektově_orientované_programování_ii.ipynb',
+    colabNotebook: 'kapitola_12.ipynb',
     aiBasicsHours: ['12', '13'],
   },
   {
@@ -179,7 +179,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola13.md',
     videoFile: 'Hodiny14_15.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/be1cd0eb-2729-4263-b4dd-d3ce650ee7dc',
-    colabNotebook: 'kapitola_13_práce_s_api_a_http_requests.ipynb',
+    colabNotebook: 'kapitola_13.ipynb',
     aiBasicsHours: ['14', '15'],
   },
   {
@@ -192,7 +192,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola14.md',
     videoFile: 'Hodina16_17.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/7cb8adb2-d13f-4680-8665-ab8e2596c983',
-    colabNotebook: 'kapitola_14_web_scraping_základy.ipynb',
+    colabNotebook: 'kapitola_14.ipynb',
     aiBasicsHours: ['16', '17'],
   },
   {
@@ -205,7 +205,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola15.md',
     videoFile: 'Hodina18-20.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/b61cb4c1-7e91-476d-93a5-b793d472c4db',
-    colabNotebook: 'kapitola_15_databáze_sql_základy.ipynb',
+    colabNotebook: 'kapitola_15.ipynb',
     aiBasicsHours: ['18', '19', '20'],
   },
   {
@@ -218,7 +218,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola16.md',
     videoFile: 'Hodina21_22.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/91e2a8f4-1f7a-4b4b-a2dd-1204ac8e20ef',
-    colabNotebook: 'kapitola_16_orm_sqlalchemy.ipynb',
+    colabNotebook: 'kapitola_16.ipynb',
     aiBasicsHours: ['21', '22'],
   },
   {
@@ -231,7 +231,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola17.md',
     videoFile: 'Hodina23.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/7ee758ad-66a4-4afe-8125-768dd6f31e4c',
-    colabNotebook: 'kapitola_17_asynchronní_programování.ipynb',
+    colabNotebook: 'kapitola_17.ipynb',
     aiBasicsHours: ['23'],
   },
   {
@@ -244,7 +244,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola18.md',
     videoFile: 'Hodina24_25.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/3d1c9ea6-c6ec-47aa-8524-22b936f41ff3',
-    colabNotebook: 'kapitola_18_rest_api_vytvoření_s_fastapi.ipynb',
+    colabNotebook: 'kapitola_18.ipynb',
     aiBasicsHours: ['24', '25'],
   },
   {
@@ -257,7 +257,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola19.md',
     videoFile: 'Hodina26_27.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/8bee985b-3d02-40e5-913a-920437df100e',
-    colabNotebook: 'kapitola_19_autentizace_a_bezpečnost.ipynb',
+    colabNotebook: 'kapitola_19.ipynb',
     aiBasicsHours: ['26', '27'],
   },
   {
@@ -270,7 +270,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola20.md',
     videoFile: 'Hodina28_30.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/f9f55cc8-425d-4564-a35b-c07fc6777184',
-    colabNotebook: 'kapitola_20_projekt_2_rest_api_pro_blog.ipynb',
+    colabNotebook: 'kapitola_20.ipynb',
     aiBasicsHours: ['28', '29', '30'],
   },
   {
@@ -283,7 +283,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola21.md',
     videoFile: 'Hodina31.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/42837336-d7ae-47d3-b6b0-73e14c15ce63',
-    colabNotebook: 'kapitola_21_docker_základy.ipynb',
+    colabNotebook: 'kapitola_21.ipynb',
     aiBasicsHours: ['31'],
   },
   {
@@ -296,7 +296,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola22.md',
     videoFile: 'Hodina32.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/ef3f6ee5-2bd6-44f4-9703-94efaad5cbe9',
-    colabNotebook: 'kapitola_22_docker_compose.ipynb',
+    colabNotebook: 'kapitola_22.ipynb',
     aiBasicsHours: ['32'],
   },
   {
@@ -309,7 +309,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola23.md',
     videoFile: 'Hodina33.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/c4656e6e-4bce-4c2f-8f82-fcf533edb275',
-    colabNotebook: 'kapitola_23_cicd_pipeline.ipynb',
+    colabNotebook: 'kapitola_23.ipynb',
     aiBasicsHours: ['33'],
   },
   {
@@ -322,7 +322,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola24.md',
     videoFile: 'Hodina34_35.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/3cd8dad2-fd83-47ea-ae5b-2b14caf68526',
-    colabNotebook: 'kapitola_24_cloud_deployment_základy.ipynb',
+    colabNotebook: 'kapitola_24.ipynb',
     aiBasicsHours: ['34', '35'],
   },
   {
@@ -335,7 +335,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola25.md',
     videoFile: 'Hodina36_37.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/1cecef9c-a7b0-42f1-874d-335ae5015466',
-    colabNotebook: 'kapitola_25_mikroslužby_architektura.ipynb',
+    colabNotebook: 'kapitola_25.ipynb',
     aiBasicsHours: ['36', '37'],
   },
   {
@@ -348,7 +348,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola26.md',
     videoFile: 'Hodina38_39.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/f14f1423-d1ab-4cab-bb17-155d7fee8684',
-    colabNotebook: 'kapitola_26_performance_optimalizace.ipynb',
+    colabNotebook: 'kapitola_26.ipynb',
     aiBasicsHours: ['38', '39'],
   },
   {
@@ -361,7 +361,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola27.md',
     videoFile: 'Hodina40.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/06890184-ad8c-417b-aa86-a1709747cae8',
-    colabNotebook: 'kapitola_27_pokročilé_testování.ipynb',
+    colabNotebook: 'kapitola_27.ipynb',
     aiBasicsHours: ['40'],
   },
   {
@@ -374,7 +374,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola28.md',
     videoFile: 'Hodina41_42.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/484e72de-81d9-47f1-a783-d8786b58ac38',
-    colabNotebook: 'kapitola_28_design_patterns_v_pythonu.ipynb',
+    colabNotebook: 'kapitola_28.ipynb',
     aiBasicsHours: ['41', '42'],
   },
   {
@@ -387,7 +387,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola29.md',
     videoFile: 'Hodina43.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/bbc96e23-396f-4b1e-af67-00c55ba9c50b',
-    colabNotebook: 'kapitola_29_graphql_api.ipynb',
+    colabNotebook: 'kapitola_29.ipynb',
     aiBasicsHours: ['43'],
   },
   {
@@ -400,7 +400,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola30.md',
     videoFile: 'Hodina44_45.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/41089af2-d31e-49e9-86f1-6bf615a74d7a',
-    colabNotebook: 'kapitola_30_projekt_3_mikroslužbová_e_commerce_aplikace.ipynb',
+    colabNotebook: 'kapitola_30.ipynb',
     aiBasicsHours: ['44', '45'],
   },
   {
@@ -413,7 +413,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola31.md',
     videoFile: 'Hodina46_47.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/06e36365-a01a-4fd5-983f-5b3dd4aa8f58',
-    colabNotebook: 'kapitola_31_úvod_do_llm_a_ollama.ipynb',
+    colabNotebook: 'kapitola_31.ipynb',
     aiBasicsHours: ['46', '47'],
   },
   {
@@ -426,7 +426,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola32.md',
     videoFile: 'Hodina48.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/bb18bfaf-3e26-4e88-97f7-e4e865ca60ff',
-    colabNotebook: 'kapitola_32_ollama_api_integrace.ipynb',
+    colabNotebook: 'kapitola_32.ipynb',
     aiBasicsHours: ['48'],
   },
   {
@@ -439,7 +439,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola33.md',
     videoFile: 'Hodina49.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/a7a1111d-b3d0-4124-bdc6-b3c1b9a6cbb8',
-    colabNotebook: 'kapitola_33_langchain_základy.ipynb',
+    colabNotebook: 'kapitola_33.ipynb',
     aiBasicsHours: ['49'],
   },
   {
@@ -452,7 +452,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola34.md',
     videoFile: 'Hodina50_51.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/f08304ef-d7ad-454a-87cb-9730e4a9445c',
-    colabNotebook: 'kapitola_34_langgraph_úvod.ipynb',
+    colabNotebook: 'kapitola_34.ipynb',
     aiBasicsHours: ['50', '51'],
   },
   {
@@ -465,7 +465,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola35.md',
     videoFile: 'Hodina52_54.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/54b7117c-d20f-4bd5-bc27-36a69a212b68',
-    colabNotebook: 'kapitola_35_rag_retrieval_augmented_generation.ipynb',
+    colabNotebook: 'kapitola_35.ipynb',
     aiBasicsHours: ['52', '53', '54'],
   },
   {
@@ -478,7 +478,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola36.md',
     videoFile: 'Hodina55.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/1328fbb8-7b0f-4161-9de9-93d3b3ad4fdb',
-    colabNotebook: 'kapitola_36_agents_a_tools.ipynb',
+    colabNotebook: 'kapitola_36.ipynb',
     aiBasicsHours: ['55'],
   },
   {
@@ -491,7 +491,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola37.md',
     videoFile: 'Hodina56.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/a6430025-e9b1-4532-b411-b0c3e2632112',
-    colabNotebook: 'kapitola_37_prompt_engineering_pokročilé.ipynb',
+    colabNotebook: 'kapitola_37.ipynb',
     aiBasicsHours: ['56'],
   },
   {
@@ -504,7 +504,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola38.md',
     videoFile: 'Hodina57.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/a18b2336-70eb-4cac-9676-e4f2d256308d',
-    colabNotebook: 'kapitola_38_llm_aplikace_produkční_nasazení.ipynb',
+    colabNotebook: 'kapitola_38.ipynb',
     aiBasicsHours: ['57'],
   },
   {
@@ -517,7 +517,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola39.md',
     videoFile: 'Hodina58_59.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/39b7e46d-5017-474a-8120-3c4142fa596b',
-    colabNotebook: 'kapitola_39_evaluace_a_testování_llm_aplikací.ipynb',
+    colabNotebook: 'kapitola_39.ipynb',
     aiBasicsHours: ['58', '59'],
   },
   {
@@ -530,7 +530,7 @@ export const chapters: Chapter[] = [
     lectureFile: 'Kapitola40.md',
     videoFile: 'Hodina60.mp4',
     notebookLMUrl: 'https://notebooklm.google.com/notebook/e8e46a5c-74b4-427f-8b40-5826f92d3055',
-    colabNotebook: 'kapitola_40_finální_projekt_ai_asistent_s_langgraph.ipynb',
+    colabNotebook: 'kapitola_40.ipynb',
     aiBasicsHours: ['60'],
   },
 ]

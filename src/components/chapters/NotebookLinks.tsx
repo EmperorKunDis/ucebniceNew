@@ -11,12 +11,14 @@ interface NotebookLinksProps {
 }
 
 function NotebookLinksComponent({ chapter }: NotebookLinksProps) {
-  // Use local notebook files from public/colab_notebooks
-  const downloadUrl = chapter.colabNotebook ? `/colab_notebooks/${chapter.colabNotebook}` : null
+  // Colab notebooks are in the root of the GitHub repo
+  const colabUrl = chapter.colabNotebook
+    ? `https://colab.research.google.com/github/${GITHUB_CONFIG.user}/${GITHUB_CONFIG.repo}/blob/${GITHUB_CONFIG.branch}/${chapter.colabNotebook}`
+    : null
 
-  // For Colab, use the local file URL
-  const colabUrl = downloadUrl
-    ? `https://colab.research.google.com/github/${GITHUB_CONFIG.user}/${GITHUB_CONFIG.repo}/blob/${GITHUB_CONFIG.branch}/colab_notebooks/${chapter.colabNotebook}`
+  // Direct GitHub raw file download
+  const downloadUrl = chapter.colabNotebook
+    ? `https://raw.githubusercontent.com/${GITHUB_CONFIG.user}/${GITHUB_CONFIG.repo}/${GITHUB_CONFIG.branch}/${chapter.colabNotebook}`
     : null
 
   return (
