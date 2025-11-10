@@ -33,6 +33,7 @@ interface ProfileCardProps {
   grainUrl?: string
   behindGradient?: string
   innerGradient?: string
+  borderGradient?: string
   showBehindGradient?: boolean
   className?: string
   enableTilt?: boolean
@@ -54,6 +55,7 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
   grainUrl = '/images/grain-texture.png',
   behindGradient,
   innerGradient,
+  borderGradient,
   showBehindGradient = true,
   className = '',
   enableTilt = true,
@@ -290,8 +292,9 @@ const ProfileCardComponent: React.FC<ProfileCardProps> = ({
           ? (behindGradient ?? DEFAULT_BEHIND_GRADIENT)
           : 'none',
         '--inner-gradient': innerGradient ?? DEFAULT_INNER_GRADIENT,
+        ...(borderGradient ? { backgroundImage: borderGradient } : {}),
       }) as CSSProperties,
-    [iconUrl, grainUrl, showBehindGradient, behindGradient, innerGradient]
+    [iconUrl, grainUrl, showBehindGradient, behindGradient, innerGradient, borderGradient]
   )
 
   const handleContactClick = useCallback(() => {

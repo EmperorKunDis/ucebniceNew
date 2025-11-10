@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSession } from 'next-auth/react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
@@ -11,7 +12,6 @@ import { SectionHeader } from '@/components/ui/section-header'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { ElectricBorder } from '@/components/ui/electric-border'
 import { Button } from '@/components/ui/button'
-import { useUserStore } from '@/store/user-store'
 import { chapters } from '@/data/chapters'
 
 // Lazy load certificate generator (contains large dependencies: html2canvas, jspdf)
@@ -31,23 +31,71 @@ const CertificateGenerator = dynamic(
 )
 
 export default function CertificatePage() {
-  const { progress } = useUserStore()
+  const { data: session } = useSession()
   const [totalChapters] = useState(chapters.length)
+  const [completedCount, setCompletedCount] = useState(0)
   const [isEligible, setIsEligible] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [userData, setUserData] = useState<{
+    username: string
+    level: number
+    xp: number
+    badgesCount: number
+  }>({
+    username: '',
+    level: 1,
+    xp: 0,
+    badgesCount: 0
+  })
 
   useEffect(() => {
-    const checkEligibility = () => {
-      const total = chapters.length
+    async function loadProgress() {
+      if (!session?.user) {
+        setLoading(false)
+        return
+      }
 
-      // Eligible if completed at least 80% of chapters
-      const completionRate = (progress.length / total) * 100
-      setIsEligible(completionRate >= 80)
+      try {
+        // Load progress data
+        const progressResponse = await fetch('/api/chapters/all-progress')
+        if (progressResponse.ok) {
+          const progressData = await progressResponse.json()
+          const progressMap = progressData.progress || {}
+          
+          // Count completed chapters from server data
+          const completed = Object.values(progressMap).filter(
+            (p: any) => p.completedChapter === true
+          ).length
+          
+          setCompletedCount(completed)
+          
+          // Eligible if completed at least 80% of chapters
+          const completionRate = (completed / chapters.length) * 100
+          setIsEligible(completionRate >= 80)
+        }
+
+        // Load user stats (level, xp, badges)
+        const statsResponse = await fetch('/api/user/stats')
+        if (statsResponse.ok) {
+          const statsData = await statsResponse.json()
+          setUserData({
+            username: statsData.user?.username || statsData.user?.name || 'Student',
+            level: statsData.user?.level || 1,
+            xp: statsData.user?.xp || 0,
+            badgesCount: statsData.stats?.totalAchievements || 0
+          })
+        }
+      } catch (error) {
+        console.error('Failed to load progress:', error)
+      } finally {
+        setLoading(false)
+      }
     }
 
-    checkEligibility()
-  }, [progress])
+    loadProgress()
+  }, [session])
 
-  const completionRate = totalChapters > 0 ? (progress.length / totalChapters) * 100 : 0
+  const completionRate = totalChapters > 0 ? (completedCount / totalChapters) * 100 : 0
 
   return (
     <UnifiedPageLayout maxWidth="7xl">
@@ -63,14 +111,24 @@ export default function CertificatePage() {
         Certifikát o absolvování
       </SectionHeader>
 
-      {isEligible ? (
+      {loading ? (
+        <div className="flex items-center justify-center p-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+        </div>
+      ) : isEligible ? (
         <>
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
           >
-            <CertificateGenerator />
+            <CertificateGenerator 
+              username={userData.username}
+              level={userData.level}
+              xp={userData.xp}
+              badgesCount={userData.badgesCount}
+              completedCount={completedCount}
+            />
           </motion.div>
 
           {/* Additional info */}
@@ -140,8 +198,8 @@ export default function CertificatePage() {
 
             <div className="space-y-3">
               <p className="text-gray-400">
-                Dokončil/a jsi {progress.length} z {totalChapters} kapitol. Zbývá ti ještě{' '}
-                {Math.ceil(totalChapters * 0.8) - progress.length} kapitol.
+                Dokončil/a jsi {completedCount} z {totalChapters} kapitol. Zbývá ti ještě{' '}
+                {Math.ceil(totalChapters * 0.8) - completedCount} kapitol.
               </p>
 
               <ElectricBorder className="inline-block rounded-lg">

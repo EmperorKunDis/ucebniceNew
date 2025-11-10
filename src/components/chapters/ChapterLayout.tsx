@@ -64,6 +64,7 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
   const [loading, setLoading] = useState(true)
   const [showModuleTest, setShowModuleTest] = useState(false)
   const [moduleTestNumber, setModuleTestNumber] = useState<number | null>(null)
+  const [isChapterLocked, setIsChapterLocked] = useState(false)
 
   const questions = getChapterQuestions(chapter.id)
 
@@ -86,6 +87,27 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
       }
 
       try {
+        // Check if chapter is locked
+        const chapterNumber = parseInt(chapter.id)
+        if (chapterNumber > 1) {
+          // Load all progress to check if previous chapter is completed
+          const allProgressResponse = await fetch('/api/chapters/all-progress')
+          if (allProgressResponse.ok) {
+            const allProgressData = await allProgressResponse.json()
+            const progressMap = allProgressData.progress || {}
+            
+            // Check if previous chapter is completed
+            const previousChapterId = String(chapterNumber - 1).padStart(2, '0')
+            const isPreviousCompleted = progressMap[previousChapterId]?.completed || false
+            
+            if (!isPreviousCompleted) {
+              setIsChapterLocked(true)
+              setLoading(false)
+              return
+            }
+          }
+        }
+
         const response = await fetch(`/api/chapters/progress?chapterId=${chapter.id}`)
         const data = await response.json()
 
@@ -225,6 +247,44 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
 
   const moduleTest = moduleTestNumber ? getModuleTest(moduleTestNumber) : null
 
+  // Show locked message if chapter is locked
+  if (isChapterLocked) {
+    return (
+      <PageLayout>
+        <Box className="max-w-5xl mx-auto">
+          <GreySurface className="p-8 text-center">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', duration: 0.5 }}
+            >
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-red-500/20 rounded-full mb-6">
+                <svg className="w-10 h-10 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+            </motion.div>
+            
+            <h2 className="text-3xl font-bold text-white mb-4">
+              Kapitola je zamčená
+            </h2>
+            <p className="text-gray-400 mb-8 text-lg">
+              Pro odemčení této kapitoly musíš nejprve dokončit předchozí kapitolu.
+            </p>
+            
+            <Button
+              onClick={() => router.push('/chapters')}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+              size="lg"
+            >
+              Zpět na seznam kapitol
+            </Button>
+          </GreySurface>
+        </Box>
+      </PageLayout>
+    )
+  }
+
   return (
     <PageLayout>
       {/* Module Test Modal */}
@@ -305,9 +365,14 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
                 </p>
                 <MemoizedProjectSubmission
                   chapterId={chapter.id}
-                  onProjectSubmitted={() => {
+                  onProjectSubmitted={async () => {
                     setSubmittedProject(true)
                     toast.success('Získal jsi třetí hvězdičku! 🌟')
+                    
+                    // Auto-complete chapter when project is submitted
+                    if (!completed && !completionData) {
+                      await handleCompleteChapter()
+                    }
                   }}
                 />
               </div>
@@ -473,7 +538,7 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
           )}
 
           {/* Navigace mezi kapitolami */}
-          <ChapterNavigation currentChapterId={chapter.id} />
+          <ChapterNavigation currentChapterId={chapter.id} isCompleted={completed} />
         </Stack>
       </Box>
     </PageLayout>

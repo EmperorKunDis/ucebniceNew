@@ -28,7 +28,7 @@ const nextConfig = {
   compress: true,
   productionBrowserSourceMaps: false,
   images: {
-    domains: ['github.com', 'colab.research.google.com'],
+    domains: ['github.com', 'colab.research.google.com', 'api.dicebear.com'],
     remotePatterns: [
       {
         protocol: 'https',

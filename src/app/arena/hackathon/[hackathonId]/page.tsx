@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import {
@@ -19,7 +20,6 @@ import {
 import { Lightning } from '@/components/ui/lightning'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { ElectricBorder } from '@/components/ui/electric-border'
-import { useUserStore } from '@/store/user-store'
 import { Hackathon, Team } from '@/types/arena'
 
 // Mock data - in real app would fetch from API
@@ -121,13 +121,33 @@ const mockTeams: Team[] = [
 
 export default function HackathonDetailPage() {
   const router = useRouter()
-  const { level } = useUserStore()
+  const { data: session } = useSession()
+  const [level, setLevel] = useState(1)
   const [showRegisterModal, setShowRegisterModal] = useState(false)
   const [selectedTab, setSelectedTab] = useState<'overview' | 'teams' | 'rules'>('overview')
 
   // const hackathonId = params?.hackathonId as string
   const hackathon = mockHackathon // In real app: fetch based on hackathonId
   const teams = mockTeams
+
+  // Load user level from server
+  useEffect(() => {
+    async function loadUserLevel() {
+      if (!session?.user) return
+      
+      try {
+        const response = await fetch('/api/user/stats')
+        if (response.ok) {
+          const data = await response.json()
+          setLevel(data.user?.level || 1)
+        }
+      } catch (error) {
+        console.error('Failed to load user level:', error)
+      }
+    }
+    
+    loadUserLevel()
+  }, [session])
 
   const daysUntilStart = Math.ceil(
     (hackathon.startDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
@@ -579,7 +599,7 @@ export default function HackathonDetailPage() {
                       Potřebuješ ještě {5 - level} úrovně pro registraci.
                     </p>
                     <Link
-                      href="/lessons"
+                      href="/chapters"
                       className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-all"
                     >
                       Pokračovat v učení
