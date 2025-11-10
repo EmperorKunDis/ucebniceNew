@@ -96,13 +96,62 @@ export default function LeaderboardPage() {
   const getRankColor = (rank: number) => {
     switch (rank) {
       case 1:
-        return 'from-yellow-500/20 to-yellow-600/20 border-yellow-500/50'
+        // Zlatý tenký rámeček
+        return 'from-yellow-400/30 to-yellow-500/30 border-yellow-400/70'
       case 2:
-        return 'from-gray-400/20 to-gray-500/20 border-gray-400/50'
+        // Stříbrný tenký rámeček
+        return 'from-gray-300/30 to-gray-400/30 border-gray-300/70'
       case 3:
-        return 'from-orange-500/20 to-orange-600/20 border-orange-500/50'
+        // Bronzový tenký rámeček
+        return 'from-amber-600/30 to-amber-700/30 border-amber-600/70'
       default:
         return ''
+    }
+  }
+
+  const getRankGlow = (rank: number) => {
+    switch (rank) {
+      case 1:
+        return 'shadow-[0_0_30px_rgba(234,179,8,0.4)] hover:shadow-[0_0_50px_rgba(234,179,8,0.6)]'
+      case 2:
+        return 'shadow-[0_0_30px_rgba(192,192,192,0.4)] hover:shadow-[0_0_50px_rgba(192,192,192,0.6)]'
+      case 3:
+        return 'shadow-[0_0_30px_rgba(205,127,50,0.4)] hover:shadow-[0_0_50px_rgba(205,127,50,0.6)]'
+      default:
+        return 'hover:shadow-[0_0_20px_rgba(168,85,247,0.3)]'
+    }
+  }
+
+  const getRankGradient = (rank: number) => {
+    switch (rank) {
+      case 1:
+        // Zlatý gradient - pro glow efekt kolem karty
+        return 'radial-gradient(farthest-side circle at var(--pointer-x) var(--pointer-y),hsla(45,100%,70%,var(--card-opacity)) 4%,hsla(45,80%,60%,calc(var(--card-opacity)*0.75)) 10%,hsla(45,60%,50%,calc(var(--card-opacity)*0.5)) 50%,hsla(45,0%,40%,0) 100%),radial-gradient(35% 52% at 55% 20%,#ffd700c4 0%,#ffa50000 100%),radial-gradient(100% 100% at 50% 50%,#ffdd00ff 1%,#ffa50000 76%),conic-gradient(from 124deg at 50% 50%,#ffd700ff 0%,#ffaa00ff 40%,#ffaa00ff 60%,#ffd700ff 100%)'
+      case 2:
+        // Stříbrný gradient
+        return 'radial-gradient(farthest-side circle at var(--pointer-x) var(--pointer-y),hsla(0,0%,85%,var(--card-opacity)) 4%,hsla(0,0%,75%,calc(var(--card-opacity)*0.75)) 10%,hsla(0,0%,65%,calc(var(--card-opacity)*0.5)) 50%,hsla(0,0%,55%,0) 100%),radial-gradient(35% 52% at 55% 20%,#c0c0c0c4 0%,#80808000 100%),radial-gradient(100% 100% at 50% 50%,#e8e8e8ff 1%,#80808000 76%),conic-gradient(from 124deg at 50% 50%,#c0c0c0ff 0%,#a8a8a8ff 40%,#a8a8a8ff 60%,#c0c0c0ff 100%)'
+      case 3:
+        // Bronzový gradient
+        return 'radial-gradient(farthest-side circle at var(--pointer-x) var(--pointer-y),hsla(30,70%,60%,var(--card-opacity)) 4%,hsla(30,60%,50%,calc(var(--card-opacity)*0.75)) 10%,hsla(30,50%,40%,calc(var(--card-opacity)*0.5)) 50%,hsla(30,0%,30%,0) 100%),radial-gradient(35% 52% at 55% 20%,#cd7f32c4 0%,#8b451300 100%),radial-gradient(100% 100% at 50% 50%,#d2691eff 1%,#8b451300 76%),conic-gradient(from 124deg at 50% 50%,#cd7f32ff 0%,#b8860bff 40%,#b8860bff 60%,#cd7f32ff 100%)'
+      default:
+        // Výchozí tyrkysový gradient
+        return 'radial-gradient(farthest-side circle at var(--pointer-x) var(--pointer-y),hsla(266,100%,90%,var(--card-opacity)) 4%,hsla(266,50%,80%,calc(var(--card-opacity)*0.75)) 10%,hsla(266,25%,70%,calc(var(--card-opacity)*0.5)) 50%,hsla(266,0%,60%,0) 100%),radial-gradient(35% 52% at 55% 20%,#00ffaac4 0%,#073aff00 100%),radial-gradient(100% 100% at 50% 50%,#00c1ffff 1%,#073aff00 76%),conic-gradient(from 124deg at 50% 50%,#c137ffff 0%,#07c6ffff 40%,#07c6ffff 60%,#c137ffff 100%)'
+    }
+  }
+
+  const getRankBorderGradient = (rank: number) => {
+    switch (rank) {
+      case 1:
+        // Zlaté rámečky
+        return 'radial-gradient(farthest-side circle at var(--pointer-x) var(--pointer-y),hsla(45,100%,90%,var(--card-opacity)) 4%,hsla(45,50%,80%,calc(var(--card-opacity)*0.75)) 10%,hsla(45,25%,70%,calc(var(--card-opacity)*0.5)) 50%,hsla(45,0%,60%,0) 100%),radial-gradient(35% 52% at 55% 20%,#ffd700c4 0%,#ffa50000 100%),radial-gradient(100% 100% at 50% 50%,#ffdd00ff 1%,#ffa50000 76%),conic-gradient(from 124deg at 50% 50%,#ffd700ff 0%,#ffaa00ff 40%,#ffaa00ff 60%,#ffd700ff 100%)'
+      case 2:
+        // Stříbrné rámečky
+        return 'radial-gradient(farthest-side circle at var(--pointer-x) var(--pointer-y),hsla(0,0%,90%,var(--card-opacity)) 4%,hsla(0,0%,80%,calc(var(--card-opacity)*0.75)) 10%,hsla(0,0%,70%,calc(var(--card-opacity)*0.5)) 50%,hsla(0,0%,60%,0) 100%),radial-gradient(35% 52% at 55% 20%,#c0c0c0c4 0%,#80808000 100%),radial-gradient(100% 100% at 50% 50%,#e8e8e8ff 1%,#80808000 76%),conic-gradient(from 124deg at 50% 50%,#c0c0c0ff 0%,#a8a8a8ff 40%,#a8a8a8ff 60%,#c0c0c0ff 100%)'
+      case 3:
+        // Bronzové rámečky
+        return 'radial-gradient(farthest-side circle at var(--pointer-x) var(--pointer-y),hsla(30,90%,70%,var(--card-opacity)) 4%,hsla(30,70%,60%,calc(var(--card-opacity)*0.75)) 10%,hsla(30,50%,50%,calc(var(--card-opacity)*0.5)) 50%,hsla(30,0%,40%,0) 100%),radial-gradient(35% 52% at 55% 20%,#cd7f32c4 0%,#8b451300 100%),radial-gradient(100% 100% at 50% 50%,#d2691eff 1%,#8b451300 76%),conic-gradient(from 124deg at 50% 50%,#cd7f32ff 0%,#b8860bff 40%,#b8860bff 60%,#cd7f32ff 100%)'
+      default:
+        return undefined
     }
   }
 
@@ -213,6 +262,8 @@ export default function LeaderboardPage() {
                           showUserInfo={false}
                           enableTilt={i === 0}
                           className={i === 0 ? 'scale-105' : ''}
+                          behindGradient={getRankGradient(entry.rank)}
+                          borderGradient={getRankBorderGradient(entry.rank)}
                         />
                       </div>
 
@@ -248,22 +299,31 @@ export default function LeaderboardPage() {
                       role="listitem"
                     >
                       <Box
-                        className={`p-4 rounded-lg transition-all ${
+                        className={`p-4 rounded-lg transition-all duration-300 ${
                           entry.username === currentUsername
                             ? 'bg-purple-500/20 border-2 border-purple-500/50'
                             : 'bg-white/5 hover:bg-white/10'
-                        }`}
+                        } ${getRankGlow(entry.rank)}`}
                         aria-label={`${entry.rank}. místo: ${entry.username}${entry.username === currentUsername ? ' (Ty)' : ''}, Level ${entry.level}, ${entry.xp.toLocaleString()} XP, ${entry.badges} odznaků, ${entry.streak} denní série`}
                         aria-current={entry.username === currentUsername ? 'true' : undefined}
                       >
                         <Stack direction="row" align="center" gap={4}>
-                          <Box className="w-12 text-center">
+                          <Box className="w-12 text-center relative">
                             <span
                               className={`text-xl font-bold ${
                                 entry.username === currentUsername
                                   ? 'text-purple-300'
                                   : 'text-gray-400'
                               }`}
+                              style={{
+                                textShadow: entry.rank <= 3 
+                                  ? entry.rank === 1 
+                                    ? '0 0 20px rgba(234, 179, 8, 0.8)'
+                                    : entry.rank === 2
+                                    ? '0 0 20px rgba(192, 192, 192, 0.8)'
+                                    : '0 0 20px rgba(205, 127, 50, 0.8)'
+                                  : 'none'
+                              }}
                             >
                               #{entry.rank}
                             </span>

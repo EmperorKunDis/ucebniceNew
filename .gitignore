@@ -42,6 +42,10 @@ next-env.d.ts
 # prisma
 .env
 prisma/.env
+prisma/dev.db
+prisma/dev.db-journal
+prisma/*.db
+prisma/*.db-journal
 
 # migration
 scripts/migration/sqlite-export.json

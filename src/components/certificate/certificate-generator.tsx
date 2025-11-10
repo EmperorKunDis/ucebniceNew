@@ -5,25 +5,34 @@ import { motion } from 'framer-motion'
 import { Download, Award, Sparkles, Share2 } from 'lucide-react'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
-import { useUserStore } from '@/store/user-store'
 
 interface CertificateGeneratorProps {
   courseName?: string
   completionDate?: Date
   instructorName?: string
   certificateId?: string
+  username: string
+  level: number
+  xp: number
+  badgesCount: number
+  completedCount: number
 }
 
 export function CertificateGenerator({ 
   courseName = 'Učebnice programování s AI',
   completionDate = new Date(),
   instructorName = 'AI Mentor',
-  certificateId = `CERT-${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+  certificateId = `CERT-${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+  username,
+  level,
+  xp,
+  badgesCount,
+  completedCount
 }: CertificateGeneratorProps) {
   const certificateRef = useRef<HTMLDivElement>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [stars, setStars] = useState<Array<{ x: number; y: number; size: number }>>([])
-  const { username, level, xp, badges, progress } = useUserStore()
+
   
   // Generate random stars for background
   useEffect(() => {
@@ -66,7 +75,7 @@ export function CertificateGenerator({
   }
   
   const shareOnLinkedIn = () => {
-    const text = `Právě jsem úspěšně dokončil kurz "${courseName}"! 🎓\n\nDosáhl jsem úrovně ${level} s ${xp} XP a získal ${badges.length} odznaků.\n\n#programming #AI #learning`
+    const text = `Právě jsem úspěšně dokončil kurz "${courseName}"! 🎓\n\nDosáhl jsem úrovně ${level} s ${xp} XP a získal ${badgesCount} odznaků.\n\n#programming #AI #learning`
     const url = window.location.origin
     window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}&summary=${encodeURIComponent(text)}`, '_blank')
   }
@@ -178,7 +187,7 @@ export function CertificateGenerator({
               <p className="text-lg mb-2">úspěšně dokončil/a kurz</p>
               <h3 className="text-3xl font-bold mb-4">{courseName}</h3>
               <p className="text-purple-200">
-                s celkovým počtem {xp} XP, dosažením úrovně {level} a ziskem {badges.length} odznaků
+                s celkovým počtem {xp} XP, dosažením úrovně {level} a ziskem {badgesCount} odznaků
               </p>
             </motion.div>
             
@@ -190,7 +199,7 @@ export function CertificateGenerator({
               className="flex gap-8 mb-8"
             >
               <div className="text-center">
-                <p className="text-3xl font-bold text-yellow-400">{progress.length}</p>
+                <p className="text-3xl font-bold text-yellow-400">{completedCount}</p>
                 <p className="text-sm text-purple-200">Dokončených lekcí</p>
               </div>
               <div className="text-center">
@@ -198,7 +207,7 @@ export function CertificateGenerator({
                 <p className="text-sm text-purple-200">Dosažená úroveň</p>
               </div>
               <div className="text-center">
-                <p className="text-3xl font-bold text-yellow-400">{badges.length}</p>
+                <p className="text-3xl font-bold text-yellow-400">{badgesCount}</p>
                 <p className="text-sm text-purple-200">Získaných odznaků</p>
               </div>
             </motion.div>

@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ucebnice-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ucebnice_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme123}  # Změň v .env!
+      POSTGRES_DB: ucebnice_db
+    ports:
+      - "5433:5432"  # Použijeme port 5433 místo 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ucebnice_user -d ucebnice_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ucebnice-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  ucebnice-network:
+    driver: bridge

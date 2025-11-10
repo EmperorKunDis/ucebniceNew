@@ -3,7 +3,7 @@
  */
 
 // XP calculation constants
-export const XP_PER_CHAPTER = 100
+export const XP_PER_CHAPTER = 50
 export const XP_PER_QUIZ = 50
 export const XP_PER_CHALLENGE = 150
 export const XP_STREAK_BONUS = 25
