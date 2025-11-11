@@ -15,6 +15,7 @@ import { User, Mail, Calendar, Trophy, Zap, Target, LogOut, Loader2, Award } fro
 import { signOut } from 'next-auth/react'
 import { getProgressToNextLevel } from '@/lib/gamification'
 import Image from 'next/image'
+import { ProfilePhotoUpload } from '@/components/profile/ProfilePhotoUpload'
 
 interface UserStats {
   user: {
@@ -120,24 +121,15 @@ export default function ProfilePage() {
           <Stack direction="col" gap={6}>
             {/* Avatar and Name */}
             <Stack direction="row" gap={6} align="start" wrap>
-              <div className="relative">
-                <ElectricBorder className="rounded-full">
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 p-1">
-                    <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden">
-                      {userStats.user.image ? (
-                        <Image
-                          src={userStats.user.image}
-                          alt="Avatar"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <User className="w-12 h-12 text-gray-400" />
-                      )}
-                    </div>
-                  </div>
-                </ElectricBorder>
-                <div className="absolute -bottom-1 -right-1 bg-green-500 w-6 h-6 rounded-full border-4 border-gray-900" />
-              </div>
+              <ProfilePhotoUpload
+                currentImage={userStats.user.image}
+                userName={userStats.user.name || 'Uživatel'}
+                onUpload={async file => {
+                  // TODO: Implement upload logic
+                  console.log('Uploading file:', file.name)
+                  // You can add API call here to upload the image
+                }}
+              />
 
               <Box className="flex-1">
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">

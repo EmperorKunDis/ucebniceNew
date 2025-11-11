@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
@@ -21,7 +21,6 @@ import { GlassSurface } from '@/components/ui/glass-surface'
 import { ElectricBorder } from '@/components/ui/electric-border'
 import { Button } from '@/components/ui/button'
 import { Box, Stack, Grid } from '@/components/layout'
-import { ProfileCard } from '@/components/ui/profile-card'
 
 type LeaderboardPeriod = 'all-time' | 'monthly' | 'weekly' | 'daily'
 
@@ -34,6 +33,315 @@ interface LeaderboardEntry {
   streak: number
   change: 'up' | 'down' | 'same'
   changeValue?: number
+}
+
+// 3D Tilt Card Component with Dynamic Shine Effect
+function TiltCard({
+  children,
+  rank,
+  enable3D = false,
+}: {
+  children: React.ReactNode
+  rank: number
+  enable3D?: boolean
+}) {
+  const cardRef = useRef<HTMLDivElement>(null)
+  const maskId = `edge-mask-${rank}-${Math.random().toString(36).substr(2, 9)}`
+  const [rotateX, setRotateX] = useState(0)
+  const [rotateY, setRotateY] = useState(0)
+  const [isHovered, setIsHovered] = useState(false)
+  const [mouseX, setMouseX] = useState(0)
+  const [mouseY, setMouseY] = useState(0)
+  const [parallaxX, setParallaxX] = useState(0)
+  const [parallaxY, setParallaxY] = useState(0)
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return
+
+    const card = cardRef.current
+    const rect = card.getBoundingClientRect()
+    const x = e.clientX - rect.left // x position within the card
+    const y = e.clientY - rect.top // y position within the card
+    const centerX = rect.width / 2
+    const centerY = rect.height / 2
+
+    // Store mouse position as percentage (0-100)
+    const mouseXPercent = (x / rect.width) * 100
+    const mouseYPercent = (y / rect.height) * 100
+    setMouseX(mouseXPercent)
+    setMouseY(mouseYPercent)
+
+    // Calculate parallax effect for 3D object (opposite direction, max 30px)
+    const parallaxXValue = ((x - centerX) / centerX) * -30
+    const parallaxYValue = ((y - centerY) / centerY) * -30
+    setParallaxX(parallaxXValue)
+    setParallaxY(parallaxYValue)
+
+    // Calculate rotation based on mouse position (max 15 degrees) - only if 3D enabled
+    if (enable3D) {
+      const rotX = ((y - centerY) / centerY) * -15 // Inverted for natural feel
+      const rotY = ((x - centerX) / centerX) * 15
+      setRotateX(rotX)
+      setRotateY(rotY)
+    }
+  }
+
+  const handleMouseEnter = () => {
+    setIsHovered(true)
+  }
+
+  const handleMouseLeave = () => {
+    setRotateX(0)
+    setRotateY(0)
+    setIsHovered(false)
+    setMouseX(50)
+    setMouseY(50)
+    setParallaxX(0)
+    setParallaxY(0)
+  }
+
+  const getBackgroundGlow = (rank: number, isHovered: boolean) => {
+    // Intenzita záře - zvýrazněná barva s mírnějším zesilením při hoveru
+    const baseIntensity = isHovered ? 0.8 : 0.45
+
+    switch (rank) {
+      case 1:
+        // Zlatá záře za kartou - rozšiřuje se do pozadí
+        return {
+          background: `
+            radial-gradient(ellipse ${isHovered ? '120%' : '100%'} ${isHovered ? '110%' : '90%'} at 50% 50%,
+              rgba(255, 215, 0, ${0.7 * baseIntensity}) 0%,
+              rgba(255, 223, 0, ${0.6 * baseIntensity}) 15%,
+              rgba(234, 179, 8, ${0.5 * baseIntensity}) 30%,
+              rgba(218, 165, 32, ${0.3 * baseIntensity}) 50%,
+              rgba(184, 134, 11, ${0.15 * baseIntensity}) 70%,
+              transparent 100%
+            )
+          `,
+        }
+      case 2:
+        // Stříbrná záře za kartou - rozšiřuje se do pozadí
+        return {
+          background: `
+            radial-gradient(ellipse ${isHovered ? '120%' : '100%'} ${isHovered ? '110%' : '90%'} at 50% 50%,
+              rgba(240, 240, 240, ${0.7 * baseIntensity}) 0%,
+              rgba(220, 220, 220, ${0.6 * baseIntensity}) 15%,
+              rgba(192, 192, 192, ${0.5 * baseIntensity}) 30%,
+              rgba(169, 169, 169, ${0.3 * baseIntensity}) 50%,
+              rgba(128, 128, 128, ${0.15 * baseIntensity}) 70%,
+              transparent 100%
+            )
+          `,
+        }
+      case 3:
+        // Bronzová záře za kartou - rozšiřuje se do pozadí
+        return {
+          background: `
+            radial-gradient(ellipse ${isHovered ? '120%' : '100%'} ${isHovered ? '110%' : '90%'} at 50% 50%,
+              rgba(218, 165, 32, ${0.7 * baseIntensity}) 0%,
+              rgba(210, 150, 40, ${0.6 * baseIntensity}) 15%,
+              rgba(205, 127, 50, ${0.5 * baseIntensity}) 30%,
+              rgba(184, 115, 51, ${0.3 * baseIntensity}) 50%,
+              rgba(139, 69, 19, ${0.15 * baseIntensity}) 70%,
+              transparent 100%
+            )
+          `,
+        }
+      default:
+        return { background: 'transparent' }
+    }
+  }
+
+  const getPodiumGlowClass = (rank: number) => {
+    switch (rank) {
+      case 1:
+        return 'shadow-[0_0_60px_rgba(234,179,8,0.5),0_0_100px_rgba(234,179,8,0.3),0_0_140px_rgba(234,179,8,0.1)] hover:shadow-[0_0_100px_rgba(234,179,8,0.8),0_0_160px_rgba(234,179,8,0.6),0_0_200px_rgba(234,179,8,0.4)]'
+      case 2:
+        return 'shadow-[0_0_60px_rgba(192,192,192,0.5),0_0_100px_rgba(192,192,192,0.3),0_0_140px_rgba(192,192,192,0.1)] hover:shadow-[0_0_100px_rgba(192,192,192,0.8),0_0_160px_rgba(192,192,192,0.6),0_0_200px_rgba(192,192,192,0.4)]'
+      case 3:
+        return 'shadow-[0_0_60px_rgba(205,127,50,0.5),0_0_100px_rgba(205,127,50,0.3),0_0_140px_rgba(205,127,50,0.1)] hover:shadow-[0_0_100px_rgba(205,127,50,0.8),0_0_160px_rgba(205,127,50,0.6),0_0_200px_rgba(205,127,50,0.4)]'
+      default:
+        return ''
+    }
+  }
+
+  const get3DObject = (rank: number) => {
+    switch (rank) {
+      case 1:
+        // Zlatá trofej
+        return <div className="text-9xl opacity-20 select-none pointer-events-none">🏆</div>
+      case 2:
+        // Stříbrná medaile
+        return <div className="text-9xl opacity-20 select-none pointer-events-none">🥈</div>
+      case 3:
+        // Bronzová medaile
+        return <div className="text-9xl opacity-20 select-none pointer-events-none">🥉</div>
+      default:
+        return null
+    }
+  }
+
+  const getEdgeMetallicGradient = (mouseX: number, mouseY: number, isHovered: boolean) => {
+    // Vypočítá úhel kurzoru od středu karty - živý, dynamický pohyb stříbrného odlesku
+    const angle = Math.atan2(mouseY - 50, mouseX - 50) * (180 / Math.PI)
+
+    // MAXIMÁLNÍ INTENZITA - nepřehlédnutelný, brilantní stříbrný lesk
+    return `
+      conic-gradient(
+        from ${angle}deg at 50% 50%,
+        rgba(255, 255, 255, 1.0) 0%,
+        rgba(250, 250, 255, 1.0) 1%,
+        rgba(245, 245, 250, 0.98) 2%,
+        rgba(240, 240, 245, 0.95) 3%,
+        rgba(230, 230, 240, 0.9) 4%,
+        rgba(220, 220, 235, 0.8) 5%,
+        rgba(210, 210, 230, 0.7) 6%,
+        rgba(200, 200, 225, 0.6) 7%,
+        rgba(190, 190, 220, 0.5) 8%,
+        rgba(180, 180, 215, 0.4) 9%,
+        rgba(170, 170, 210, 0.3) 10%,
+        rgba(160, 160, 205, 0.2) 11%,
+        rgba(150, 150, 200, 0.1) 12%,
+        transparent 13%,
+        transparent 87%,
+        rgba(150, 150, 200, 0.1) 88%,
+        rgba(160, 160, 205, 0.2) 89%,
+        rgba(170, 170, 210, 0.3) 90%,
+        rgba(180, 180, 215, 0.4) 91%,
+        rgba(190, 190, 220, 0.5) 92%,
+        rgba(200, 200, 225, 0.6) 93%,
+        rgba(210, 210, 230, 0.7) 94%,
+        rgba(220, 220, 235, 0.8) 95%,
+        rgba(230, 230, 240, 0.9) 96%,
+        rgba(240, 240, 245, 0.95) 97%,
+        rgba(245, 245, 250, 0.98) 98%,
+        rgba(250, 250, 255, 1.0) 99%,
+        rgba(255, 255, 255, 1.0) 100%
+      )
+    `
+  }
+
+  const getDynamicShineOverlay = (isHovered: boolean, mouseX: number, mouseY: number) => {
+    if (!isHovered) {
+      // Jemný statický shine efekt když není hover
+      return {
+        background: `linear-gradient(135deg, 
+          rgba(255, 255, 255, 0.1) 0%, 
+          rgba(220, 220, 220, 0.08) 25%, 
+          transparent 50%, 
+          rgba(220, 220, 220, 0.06) 75%, 
+          rgba(255, 255, 255, 0.08) 100%)`,
+      }
+    }
+
+    // Dynamický shine efekt sledující kurzor
+    const spotSize = 30 // Velikost světelného bodu v %
+    const intensity = 0.6 // Maximální intenzita odlesku
+
+    return {
+      background: `
+        radial-gradient(
+          circle ${spotSize}% at ${mouseX}% ${mouseY}%,
+          rgba(255, 255, 255, ${intensity}) 0%,
+          rgba(240, 240, 240, ${intensity * 0.7}) 20%,
+          rgba(220, 220, 220, ${intensity * 0.4}) 40%,
+          transparent 70%
+        ),
+        linear-gradient(135deg, 
+          rgba(255, 255, 255, 0.15) 0%, 
+          rgba(220, 220, 220, 0.12) 25%, 
+          transparent 50%, 
+          rgba(220, 220, 220, 0.1) 75%, 
+          rgba(255, 255, 255, 0.12) 100%
+        )
+      `,
+    }
+  }
+
+  return (
+    <div style={{ perspective: enable3D ? '1200px' : '800px' }} className="relative">
+      {/* Barevná záře úplně za kartou - rozšiřuje se do pozadí */}
+      <div
+        className="absolute inset-0 transition-all duration-500"
+        style={{
+          ...getBackgroundGlow(rank, isHovered),
+          transform: isHovered ? 'translateZ(-80px) scale(1.5)' : 'translateZ(-80px) scale(1.3)',
+          filter: isHovered ? 'blur(60px)' : 'blur(50px)',
+          opacity: isHovered ? 0.85 : 0.65,
+          zIndex: -1,
+        }}
+      />
+
+      <div
+        ref={cardRef}
+        onMouseMove={handleMouseMove}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        className={`relative transition-all duration-300 ease-out rounded-[2.5rem] overflow-hidden ${getPodiumGlowClass(rank)}`}
+        style={{
+          transform: enable3D ? `rotateX(${rotateX}deg) rotateY(${rotateY}deg)` : 'none',
+          transformStyle: 'preserve-3d',
+          boxShadow: `
+            inset 0 2px 4px rgba(255, 255, 255, 0.15),
+            inset 0 -2px 4px rgba(0, 0, 0, 0.25),
+            0 8px 32px rgba(0, 0, 0, 0.4),
+            0 16px 64px rgba(0, 0, 0, 0.2)
+          `,
+        }}
+      >
+        {/* Tenké, přirozené stříbrné odlesky pohybující se po obvodu okrajů se zaoblenými rohy */}
+        {/* VÝRAZNÉ stříbrné odlesky - border přístup */}
+        <div
+          className="absolute inset-0 pointer-events-none transition-all duration-80 ease-out"
+          style={{
+            borderRadius: '2.5rem',
+            border: '3px solid transparent',
+            backgroundImage: getEdgeMetallicGradient(mouseX, mouseY, isHovered),
+            backgroundOrigin: 'border-box',
+            backgroundClip: 'border-box',
+            WebkitMask:
+              'linear-gradient(white, white) padding-box, linear-gradient(white, white) border-box',
+            WebkitMaskComposite: 'xor',
+            mask: 'linear-gradient(white, white) padding-box, linear-gradient(white, white) border-box',
+            maskComposite: 'exclude',
+            zIndex: 15,
+            filter:
+              'brightness(2.5) contrast(2.5) saturate(0.6) drop-shadow(0 0 12px rgba(255, 255, 255, 1.0))',
+            boxShadow: `
+              0 0 30px rgba(255, 255, 255, 0.9),
+              0 0 50px rgba(245, 245, 255, 0.7),
+              inset 0 0 25px rgba(255, 255, 255, 0.8)
+            `,
+          }}
+        />
+
+        {/* 3D Object with parallax effect a hloubka ostrosti */}
+        <div
+          className="absolute inset-0 flex items-center justify-center transition-transform duration-200 ease-out"
+          style={{
+            transform: `translate(${parallaxX}px, ${parallaxY}px) translateZ(50px)`,
+            filter: isHovered
+              ? 'blur(3px) drop-shadow(0 10px 30px rgba(0, 0, 0, 0.3)) opacity(0.6)'
+              : 'blur(2px) drop-shadow(0 10px 30px rgba(0, 0, 0, 0.3)) opacity(0.5)',
+            zIndex: 0.5,
+          }}
+        >
+          {get3DObject(rank)}
+        </div>
+
+        {/* Shine overlay - sleduje kurzor */}
+        <div
+          className="absolute inset-0 pointer-events-none transition-all duration-100"
+          style={{ ...getDynamicShineOverlay(isHovered, mouseX, mouseY), zIndex: 2 }}
+        />
+
+        {/* Content layer */}
+        <div className="relative" style={{ zIndex: 3 }}>
+          {children}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default function LeaderboardPage() {
@@ -93,22 +401,6 @@ export default function LeaderboardPage() {
     }
   }
 
-  const getRankColor = (rank: number) => {
-    switch (rank) {
-      case 1:
-        // Zlatý tenký rámeček
-        return 'from-yellow-400/30 to-yellow-500/30 border-yellow-400/70'
-      case 2:
-        // Stříbrný tenký rámeček
-        return 'from-gray-300/30 to-gray-400/30 border-gray-300/70'
-      case 3:
-        // Bronzový tenký rámeček
-        return 'from-amber-600/30 to-amber-700/30 border-amber-600/70'
-      default:
-        return ''
-    }
-  }
-
   const getRankGlow = (rank: number) => {
     switch (rank) {
       case 1:
@@ -119,39 +411,6 @@ export default function LeaderboardPage() {
         return 'shadow-[0_0_30px_rgba(205,127,50,0.4)] hover:shadow-[0_0_50px_rgba(205,127,50,0.6)]'
       default:
         return 'hover:shadow-[0_0_20px_rgba(168,85,247,0.3)]'
-    }
-  }
-
-  const getRankGradient = (rank: number) => {
-    switch (rank) {
-      case 1:
-        // Zlatý gradient - pro glow efekt kolem karty
-        return 'radial-gradient(farthest-side circle at var(--pointer-x) var(--pointer-y),hsla(45,100%,70%,var(--card-opacity)) 4%,hsla(45,80%,60%,calc(var(--card-opacity)*0.75)) 10%,hsla(45,60%,50%,calc(var(--card-opacity)*0.5)) 50%,hsla(45,0%,40%,0) 100%),radial-gradient(35% 52% at 55% 20%,#ffd700c4 0%,#ffa50000 100%),radial-gradient(100% 100% at 50% 50%,#ffdd00ff 1%,#ffa50000 76%),conic-gradient(from 124deg at 50% 50%,#ffd700ff 0%,#ffaa00ff 40%,#ffaa00ff 60%,#ffd700ff 100%)'
-      case 2:
-        // Stříbrný gradient
-        return 'radial-gradient(farthest-side circle at var(--pointer-x) var(--pointer-y),hsla(0,0%,85%,var(--card-opacity)) 4%,hsla(0,0%,75%,calc(var(--card-opacity)*0.75)) 10%,hsla(0,0%,65%,calc(var(--card-opacity)*0.5)) 50%,hsla(0,0%,55%,0) 100%),radial-gradient(35% 52% at 55% 20%,#c0c0c0c4 0%,#80808000 100%),radial-gradient(100% 100% at 50% 50%,#e8e8e8ff 1%,#80808000 76%),conic-gradient(from 124deg at 50% 50%,#c0c0c0ff 0%,#a8a8a8ff 40%,#a8a8a8ff 60%,#c0c0c0ff 100%)'
-      case 3:
-        // Bronzový gradient
-        return 'radial-gradient(farthest-side circle at var(--pointer-x) var(--pointer-y),hsla(30,70%,60%,var(--card-opacity)) 4%,hsla(30,60%,50%,calc(var(--card-opacity)*0.75)) 10%,hsla(30,50%,40%,calc(var(--card-opacity)*0.5)) 50%,hsla(30,0%,30%,0) 100%),radial-gradient(35% 52% at 55% 20%,#cd7f32c4 0%,#8b451300 100%),radial-gradient(100% 100% at 50% 50%,#d2691eff 1%,#8b451300 76%),conic-gradient(from 124deg at 50% 50%,#cd7f32ff 0%,#b8860bff 40%,#b8860bff 60%,#cd7f32ff 100%)'
-      default:
-        // Výchozí tyrkysový gradient
-        return 'radial-gradient(farthest-side circle at var(--pointer-x) var(--pointer-y),hsla(266,100%,90%,var(--card-opacity)) 4%,hsla(266,50%,80%,calc(var(--card-opacity)*0.75)) 10%,hsla(266,25%,70%,calc(var(--card-opacity)*0.5)) 50%,hsla(266,0%,60%,0) 100%),radial-gradient(35% 52% at 55% 20%,#00ffaac4 0%,#073aff00 100%),radial-gradient(100% 100% at 50% 50%,#00c1ffff 1%,#073aff00 76%),conic-gradient(from 124deg at 50% 50%,#c137ffff 0%,#07c6ffff 40%,#07c6ffff 60%,#c137ffff 100%)'
-    }
-  }
-
-  const getRankBorderGradient = (rank: number) => {
-    switch (rank) {
-      case 1:
-        // Zlaté rámečky
-        return 'radial-gradient(farthest-side circle at var(--pointer-x) var(--pointer-y),hsla(45,100%,90%,var(--card-opacity)) 4%,hsla(45,50%,80%,calc(var(--card-opacity)*0.75)) 10%,hsla(45,25%,70%,calc(var(--card-opacity)*0.5)) 50%,hsla(45,0%,60%,0) 100%),radial-gradient(35% 52% at 55% 20%,#ffd700c4 0%,#ffa50000 100%),radial-gradient(100% 100% at 50% 50%,#ffdd00ff 1%,#ffa50000 76%),conic-gradient(from 124deg at 50% 50%,#ffd700ff 0%,#ffaa00ff 40%,#ffaa00ff 60%,#ffd700ff 100%)'
-      case 2:
-        // Stříbrné rámečky
-        return 'radial-gradient(farthest-side circle at var(--pointer-x) var(--pointer-y),hsla(0,0%,90%,var(--card-opacity)) 4%,hsla(0,0%,80%,calc(var(--card-opacity)*0.75)) 10%,hsla(0,0%,70%,calc(var(--card-opacity)*0.5)) 50%,hsla(0,0%,60%,0) 100%),radial-gradient(35% 52% at 55% 20%,#c0c0c0c4 0%,#80808000 100%),radial-gradient(100% 100% at 50% 50%,#e8e8e8ff 1%,#80808000 76%),conic-gradient(from 124deg at 50% 50%,#c0c0c0ff 0%,#a8a8a8ff 40%,#a8a8a8ff 60%,#c0c0c0ff 100%)'
-      case 3:
-        // Bronzové rámečky
-        return 'radial-gradient(farthest-side circle at var(--pointer-x) var(--pointer-y),hsla(30,90%,70%,var(--card-opacity)) 4%,hsla(30,70%,60%,calc(var(--card-opacity)*0.75)) 10%,hsla(30,50%,50%,calc(var(--card-opacity)*0.5)) 50%,hsla(30,0%,40%,0) 100%),radial-gradient(35% 52% at 55% 20%,#cd7f32c4 0%,#8b451300 100%),radial-gradient(100% 100% at 50% 50%,#d2691eff 1%,#8b451300 76%),conic-gradient(from 124deg at 50% 50%,#cd7f32ff 0%,#b8860bff 40%,#b8860bff 60%,#cd7f32ff 100%)'
-      default:
-        return undefined
     }
   }
 
@@ -240,45 +499,55 @@ export default function LeaderboardPage() {
                     className={orderClass}
                     role="listitem"
                   >
-                    <div className="relative">
-                      {/* Rank Icon Badge */}
+                    <TiltCard rank={entry.rank} enable3D={entry.rank === 1}>
                       <div
-                        className={`absolute -top-2 left-1/2 -translate-x-1/2 z-10 ${i === 0 ? 'transform scale-125' : ''}`}
+                        className={`p-10 min-h-[380px] flex flex-col justify-center bg-white/[0.01] backdrop-blur-[0.4px] ${i === 0 ? 'min-h-[420px]' : ''}`}
                       >
-                        {getRankIcon(entry.rank)}
-                      </div>
+                        {/* Rank Icon Badge */}
+                        <div
+                          className={`flex justify-center mb-6 ${i === 0 ? 'transform scale-125 mb-8' : ''}`}
+                        >
+                          {getRankIcon(entry.rank)}
+                        </div>
 
-                      {/* ProfileCard with custom styling for podium */}
-                      <div
-                        className={`bg-gradient-to-br ${getRankColor(entry.rank)} rounded-lg p-1`}
-                      >
-                        <ProfileCard
-                          name={entry.username}
-                          title={`Level ${entry.level}`}
-                          handle={entry.username}
-                          status={`${entry.xp.toLocaleString()} XP`}
-                          avatarUrl={`https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.username}`}
-                          miniAvatarUrl={`https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.username}`}
-                          showUserInfo={false}
-                          enableTilt={i === 0}
-                          className={i === 0 ? 'scale-105' : ''}
-                          behindGradient={getRankGradient(entry.rank)}
-                          borderGradient={getRankBorderGradient(entry.rank)}
-                        />
-                      </div>
+                        {/* User Info - Simple Layout */}
+                        <Stack direction="col" gap={4} align="center">
+                          {/* Avatar */}
+                          <div
+                            className={`${i === 0 ? 'w-32 h-32 text-4xl' : 'w-28 h-28 text-3xl'} rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shrink-0 transition-all duration-500`}
+                          >
+                            {entry.username.charAt(0).toUpperCase()}
+                          </div>
 
-                      {/* Stats below card */}
-                      <Stack direction="row" justify="center" gap={4} className="mt-3 text-xs">
-                        <Stack direction="row" gap={1} align="center">
-                          <Trophy className="w-3 h-3 text-yellow-400" aria-hidden="true" />
-                          <span className="text-gray-400">{entry.badges}</span>
+                          {/* Name and Level */}
+                          <Stack direction="col" gap={1} align="center">
+                            <h3
+                              className={`${i === 0 ? 'text-2xl' : 'text-xl'} font-bold text-white`}
+                            >
+                              {entry.username}
+                            </h3>
+                            <p className="text-base text-gray-400">Level {entry.level}</p>
+                          </Stack>
+
+                          {/* XP */}
+                          <p className="text-base font-semibold text-gray-300">
+                            {entry.xp.toLocaleString()} XP
+                          </p>
                         </Stack>
-                        <Stack direction="row" gap={1} align="center">
-                          <Trophy className="w-3 h-3 text-orange-400" aria-hidden="true" />
-                          <span className="text-gray-400">{entry.streak}d</span>
+
+                        {/* Stats below */}
+                        <Stack direction="row" justify="center" gap={6} className="mt-6 text-sm">
+                          <Stack direction="row" gap={2} align="center">
+                            <Trophy className="w-4 h-4 text-yellow-400" aria-hidden="true" />
+                            <span className="text-gray-400 font-medium">{entry.badges}</span>
+                          </Stack>
+                          <Stack direction="row" gap={2} align="center">
+                            <Trophy className="w-4 h-4 text-orange-400" aria-hidden="true" />
+                            <span className="text-gray-400 font-medium">{entry.streak}d</span>
+                          </Stack>
                         </Stack>
-                      </Stack>
-                    </div>
+                      </div>
+                    </TiltCard>
                   </motion.div>
                 )
               })}
@@ -316,13 +585,14 @@ export default function LeaderboardPage() {
                                   : 'text-gray-400'
                               }`}
                               style={{
-                                textShadow: entry.rank <= 3 
-                                  ? entry.rank === 1 
-                                    ? '0 0 20px rgba(234, 179, 8, 0.8)'
-                                    : entry.rank === 2
-                                    ? '0 0 20px rgba(192, 192, 192, 0.8)'
-                                    : '0 0 20px rgba(205, 127, 50, 0.8)'
-                                  : 'none'
+                                textShadow:
+                                  entry.rank <= 3
+                                    ? entry.rank === 1
+                                      ? '0 0 20px rgba(234, 179, 8, 0.8)'
+                                      : entry.rank === 2
+                                        ? '0 0 20px rgba(192, 192, 192, 0.8)'
+                                        : '0 0 20px rgba(205, 127, 50, 0.8)'
+                                    : 'none',
                               }}
                             >
                               #{entry.rank}
