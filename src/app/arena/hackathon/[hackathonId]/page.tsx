@@ -19,7 +19,6 @@ import {
 
 import { Lightning } from '@/components/ui/lightning'
 import { GlassSurface } from '@/components/ui/glass-surface'
-import { ElectricBorder } from '@/components/ui/electric-border'
 import { Hackathon, Team } from '@/types/arena'
 
 // Mock data - in real app would fetch from API
@@ -134,7 +133,7 @@ export default function HackathonDetailPage() {
   useEffect(() => {
     async function loadUserLevel() {
       if (!session?.user) return
-      
+
       try {
         const response = await fetch('/api/user/stats')
         if (response.ok) {
@@ -145,7 +144,7 @@ export default function HackathonDetailPage() {
         console.error('Failed to load user level:', error)
       }
     }
-    
+
     loadUserLevel()
   }, [session])
 
@@ -463,21 +462,17 @@ export default function HackathonDetailPage() {
             <div className="space-y-6">
               {/* Registration CTA */}
               {hackathon.status === 'upcoming' && (
-                <ElectricBorder className="rounded-lg">
-                  <GlassSurface className="p-6 text-center">
-                    <h3 className="text-xl font-bold text-white mb-2">Připoj se k výzvě!</h3>
-                    <p className="text-gray-400 mb-4">
-                      Registrace končí za {daysUntilDeadline} dní
-                    </p>
-                    <button
-                      onClick={() => setShowRegisterModal(true)}
-                      className="w-full py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-all flex items-center justify-center gap-2"
-                    >
-                      <UserPlus className="w-5 h-5" />
-                      Registrovat se
-                    </button>
-                  </GlassSurface>
-                </ElectricBorder>
+                <GlassSurface className="p-6 text-center">
+                  <h3 className="text-xl font-bold text-white mb-2">Připoj se k výzvě!</h3>
+                  <p className="text-gray-400 mb-4">Registrace končí za {daysUntilDeadline} dní</p>
+                  <button
+                    onClick={() => setShowRegisterModal(true)}
+                    className="w-full py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-all flex items-center justify-center gap-2"
+                  >
+                    <UserPlus className="w-5 h-5" />
+                    Registrovat se
+                  </button>
+                </GlassSurface>
               )}
 
               {/* Event details */}
@@ -568,53 +563,51 @@ export default function HackathonDetailPage() {
             exit={{ scale: 0.9 }}
             onClick={e => e.stopPropagation()}
           >
-            <ElectricBorder className="rounded-lg">
-              <GlassSurface className="p-8 max-w-md">
-                <h2 className="text-2xl font-bold text-white mb-4">Registrace na hackathon</h2>
-                <p className="text-gray-400 mb-6">
-                  Pro registraci musíš mít úroveň alespoň 5. Aktuální úroveň: {level}
-                </p>
+            <GlassSurface className="p-8 max-w-md">
+              <h2 className="text-2xl font-bold text-white mb-4">Registrace na hackathon</h2>
+              <p className="text-gray-400 mb-6">
+                Pro registraci musíš mít úroveň alespoň 5. Aktuální úroveň: {level}
+              </p>
 
-                {level >= 5 ? (
-                  <div className="space-y-4">
-                    <p className="text-gray-300">Vyber možnost:</p>
-                    <button className="w-full p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all text-left">
-                      <h3 className="font-semibold text-white mb-1">Vytvořit nový tým</h3>
-                      <p className="text-sm text-gray-400">Založ nový tým a pozvi další členy</p>
-                    </button>
-                    <button className="w-full p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all text-left">
-                      <h3 className="font-semibold text-white mb-1">Připojit se k týmu</h3>
-                      <p className="text-sm text-gray-400">
-                        Najdi existující tým a požádej o přijetí
-                      </p>
-                    </button>
-                    <button className="w-full p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all text-left">
-                      <h3 className="font-semibold text-white mb-1">Solo účast</h3>
-                      <p className="text-sm text-gray-400">Pracuj sám na svém projektu</p>
-                    </button>
-                  </div>
-                ) : (
-                  <div className="text-center">
-                    <p className="text-gray-300 mb-4">
-                      Potřebuješ ještě {5 - level} úrovně pro registraci.
+              {level >= 5 ? (
+                <div className="space-y-4">
+                  <p className="text-gray-300">Vyber možnost:</p>
+                  <button className="w-full p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all text-left">
+                    <h3 className="font-semibold text-white mb-1">Vytvořit nový tým</h3>
+                    <p className="text-sm text-gray-400">Založ nový tým a pozvi další členy</p>
+                  </button>
+                  <button className="w-full p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all text-left">
+                    <h3 className="font-semibold text-white mb-1">Připojit se k týmu</h3>
+                    <p className="text-sm text-gray-400">
+                      Najdi existující tým a požádej o přijetí
                     </p>
-                    <Link
-                      href="/chapters"
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-all"
-                    >
-                      Pokračovat v učení
-                    </Link>
-                  </div>
-                )}
+                  </button>
+                  <button className="w-full p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all text-left">
+                    <h3 className="font-semibold text-white mb-1">Solo účast</h3>
+                    <p className="text-sm text-gray-400">Pracuj sám na svém projektu</p>
+                  </button>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <p className="text-gray-300 mb-4">
+                    Potřebuješ ještě {5 - level} úrovně pro registraci.
+                  </p>
+                  <Link
+                    href="/chapters"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-all"
+                  >
+                    Pokračovat v učení
+                  </Link>
+                </div>
+              )}
 
-                <button
-                  onClick={() => setShowRegisterModal(false)}
-                  className="mt-6 w-full py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-all"
-                >
-                  Zavřít
-                </button>
-              </GlassSurface>
-            </ElectricBorder>
+              <button
+                onClick={() => setShowRegisterModal(false)}
+                className="mt-6 w-full py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-all"
+              >
+                Zavřít
+              </button>
+            </GlassSurface>
           </motion.div>
         </motion.div>
       )}

@@ -7,7 +7,6 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { UnifiedPageLayout } from '@/components/layout/unified-page-layout'
 import { GlassSurface } from '@/components/ui/glass-surface'
-import { ElectricBorder } from '@/components/ui/electric-border'
 import { Button } from '@/components/ui/button'
 import { Stack, Box } from '@/components/layout'
 import { Github, Mail, Loader2, ArrowLeft } from 'lucide-react'
@@ -235,26 +234,24 @@ export default function SignInPage() {
                     )}
                   </div>
 
-                  <ElectricBorder className="rounded-lg">
-                    <Button
-                      type="submit"
-                      variant="primary"
-                      className="w-full justify-center bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                          Přihlašování...
-                        </>
-                      ) : (
-                        <>
-                          <Mail className="w-4 h-4 mr-2" />
-                          Přihlásit se emailem
-                        </>
-                      )}
-                    </Button>
-                  </ElectricBorder>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    className="w-full justify-center bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        Přihlašování...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="w-4 h-4 mr-2" />
+                        Přihlásit se emailem
+                      </>
+                    )}
+                  </Button>
                 </motion.form>
 
                 <motion.div

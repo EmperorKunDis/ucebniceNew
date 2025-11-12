@@ -6,15 +6,12 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { StatCard } from '@/components/ui/stat-card'
 import { GlassSurface } from '@/components/ui/glass-surface'
-import { ElectricBorder } from '@/components/ui/electric-border'
 import { UnifiedPageLayout } from '@/components/layout/unified-page-layout'
 import { Stack, Grid, Box } from '@/components/layout'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { User, Mail, Calendar, Trophy, Zap, Target, LogOut, Loader2, Award } from 'lucide-react'
+import { Mail, Calendar, Trophy, Zap, Target, LogOut, Loader2, Award } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 import { getProgressToNextLevel } from '@/lib/gamification'
-import Image from 'next/image'
 import { ProfilePhotoUpload } from '@/components/profile/ProfilePhotoUpload'
 
 interface UserStats {
@@ -112,11 +109,7 @@ export default function ProfilePage() {
   return (
     <UnifiedPageLayout maxWidth="4xl">
       {/* Profile Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
+      <div>
         <GlassSurface className="p-8">
           <Stack direction="col" gap={6}>
             {/* Avatar and Name */}
@@ -181,11 +174,9 @@ export default function ProfilePage() {
                 </span>
               </Stack>
               <div className="h-3 bg-white/10 rounded-full overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${levelProgress.progressPercent}%` }}
-                  transition={{ duration: 1, ease: 'easeOut' }}
-                  className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
+                <div
+                  style={{ width: `${levelProgress.progressPercent}%` }}
+                  className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-none"
                 />
               </div>
               <p className="text-xs text-gray-400 mt-1">
@@ -194,7 +185,7 @@ export default function ProfilePage() {
             </Box>
           </Stack>
         </GlassSurface>
-      </motion.div>
+      </div>
 
       {/* Stats Grid */}
       <Grid columns={2} lg={4} gap={4}>
@@ -232,11 +223,7 @@ export default function ProfilePage() {
       </Grid>
 
       {/* Achievements */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5, duration: 0.5 }}
-      >
+      <div>
         <GlassSurface className="p-8">
           <Stack direction="row" gap={2} align="center" className="mb-6">
             <Award className="w-6 h-6 text-yellow-400" />
@@ -245,28 +232,24 @@ export default function ProfilePage() {
 
           {userStats.achievements.length > 0 ? (
             <Grid columns={2} md={4} gap={4}>
-              {userStats.achievements.slice(0, 8).map((achievement, index) => (
-                <motion.div
+              {userStats.achievements.slice(0, 8).map(achievement => (
+                <div
                   key={achievement.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.6 + index * 0.05, duration: 0.3 }}
+                  className="rounded-lg border border-purple-500/30 hover:border-purple-500/50 transition-colors"
                 >
-                  <ElectricBorder className="rounded-lg">
-                    <div className="p-4 bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-all h-full">
-                      <Stack direction="col" gap={2} align="center">
-                        <div className="text-4xl">{achievement.icon}</div>
-                        <h3 className="text-sm font-medium text-white text-center">
-                          {achievement.name}
-                        </h3>
-                        <p className="text-xs text-gray-400 line-clamp-2 text-center">
-                          {achievement.description}
-                        </p>
-                        <div className="text-xs text-purple-400">+{achievement.xpReward} XP</div>
-                      </Stack>
-                    </div>
-                  </ElectricBorder>
-                </motion.div>
+                  <div className="p-4 bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-colors h-full">
+                    <Stack direction="col" gap={2} align="center">
+                      <div className="text-4xl">{achievement.icon}</div>
+                      <h3 className="text-sm font-medium text-white text-center">
+                        {achievement.name}
+                      </h3>
+                      <p className="text-xs text-gray-400 line-clamp-2 text-center">
+                        {achievement.description}
+                      </p>
+                      <div className="text-xs text-purple-400">+{achievement.xpReward} XP</div>
+                    </Stack>
+                  </div>
+                </div>
               ))}
             </Grid>
           ) : (
@@ -275,20 +258,18 @@ export default function ProfilePage() {
             </p>
           )}
         </GlassSurface>
-      </motion.div>
+      </div>
 
       {/* Actions */}
       <Stack direction="row" justify="between" align="center" wrap>
-        <ElectricBorder className="rounded-lg">
-          <Link href="/achievements">
-            <Button
-              variant="secondary"
-              className="bg-white/5 backdrop-blur-sm border border-white/20 hover:bg-white/10"
-            >
-              Zobrazit všechny úspěchy
-            </Button>
-          </Link>
-        </ElectricBorder>
+        <Link href="/achievements">
+          <Button
+            variant="secondary"
+            className="bg-white/5 backdrop-blur-sm border border-white/20 hover:bg-white/10"
+          >
+            Zobrazit všechny úspěchy
+          </Button>
+        </Link>
 
         <Button
           onClick={() => signOut({ callbackUrl: '/' })}

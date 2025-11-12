@@ -18,7 +18,6 @@ import {
 import { UnifiedPageLayout } from '@/components/layout/unified-page-layout'
 import { SectionHeader } from '@/components/ui/section-header'
 import { GlassSurface } from '@/components/ui/glass-surface'
-import { ElectricBorder } from '@/components/ui/electric-border'
 import { Button } from '@/components/ui/button'
 import { Box, Stack, Grid } from '@/components/layout'
 
@@ -685,14 +684,12 @@ export default function LeaderboardPage() {
             ? `Jsi na ${userPosition}. místě! Chceš vylepšit svou pozici?`
             : 'Chcete se dostat do žebříčku?'}
         </p>
-        <ElectricBorder className="inline-block rounded-lg">
-          <Button variant="primary" size="lg" asChild>
-            <Link href="/chapters" aria-label="Pokračovat v učení - přejít na kapitoly">
-              Pokračovat v učení
-              <ChevronRight className="w-5 h-5 ml-2" aria-hidden="true" />
-            </Link>
-          </Button>
-        </ElectricBorder>
+        <Button variant="primary" size="lg" asChild>
+          <Link href="/chapters" aria-label="Pokračovat v učení - přejít na kapitoly">
+            Pokračovat v učení
+            <ChevronRight className="w-5 h-5 ml-2" aria-hidden="true" />
+          </Link>
+        </Button>
       </motion.div>
     </UnifiedPageLayout>
   )

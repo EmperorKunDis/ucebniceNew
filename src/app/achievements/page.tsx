@@ -6,7 +6,6 @@ import { UnifiedPageLayout } from '@/components/layout/unified-page-layout'
 import { SectionHeader } from '@/components/ui/section-header'
 import { StatCard } from '@/components/ui/stat-card'
 import { GreySurface } from '@/components/ui/grey-surface'
-import { ElectricBorder } from '@/components/ui/electric-border'
 import { Stack, Grid, Box } from '@/components/layout'
 import { Trophy, Star, Lock, Award, Loader2 } from 'lucide-react'
 import { BADGES } from '@/lib/gamification'
@@ -187,13 +186,7 @@ export default function AchievementsPage() {
                         </motion.div>
                       )
 
-                      return isUnlocked ? (
-                        <ElectricBorder key={badge.id} className="rounded-xl h-full">
-                          {BadgeCard}
-                        </ElectricBorder>
-                      ) : (
-                        BadgeCard
-                      )
+                      return BadgeCard
                     })}
                   </Grid>
                 </GreySurface>
