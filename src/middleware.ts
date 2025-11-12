@@ -9,6 +9,11 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ req, token }) => {
+        // API routes are always public - don't apply auth middleware
+        if (req.nextUrl.pathname.startsWith('/api')) {
+          return true
+        }
+
         // Pokud je uživatel na auth stránce, povolit přístup
         if (req.nextUrl.pathname.startsWith('/auth')) {
           return true

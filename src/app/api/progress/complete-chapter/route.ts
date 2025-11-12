@@ -182,7 +182,9 @@ export async function POST(request: NextRequest) {
         })
       : null
 
-    if (existingChapterCompletion || existingLessonCompletion) {
+    // Only return "already completed" if the completedChapter flag is true
+    // (not just if ChapterCompletion record exists from questions/project)
+    if (existingChapterCompletion?.completedChapter || existingLessonCompletion) {
       return NextResponse.json({
         message: 'Chapter already completed',
         alreadyCompleted: true,

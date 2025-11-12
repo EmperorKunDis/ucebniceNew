@@ -20,11 +20,8 @@ export const signupSchema = z.object({
     .regex(/^[a-zA-Z0-9_]+$/, 'Uživatelské jméno může obsahovat pouze písmena, čísla a podtržítka'),
   password: z
     .string()
-    .min(8, 'Heslo musí mít alespoň 8 znaků')
-    .max(100, 'Heslo je příliš dlouhé')
-    .regex(/[A-Z]/, 'Heslo musí obsahovat alespoň jedno velké písmeno')
-    .regex(/[a-z]/, 'Heslo musí obsahovat alespoň jedno malé písmeno')
-    .regex(/[0-9]/, 'Heslo musí obsahovat alespoň jednu číslici'),
+    .min(6, 'Heslo musí mít alespoň 6 znaků')
+    .max(100, 'Heslo je příliš dlouhé'),
 })
 
 export const signinSchema = z.object({
