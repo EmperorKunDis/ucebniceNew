@@ -5,7 +5,6 @@ import * as d3 from 'd3'
 import { motion } from 'framer-motion'
 import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react'
 import { GreySurface } from '@/components/ui/grey-surface'
-import { ElectricBorder } from '@/components/ui/electric-border'
 import { useUserStore } from '@/store/user-store'
 import { skillNodes, skillLinks } from '@/data/skills-graph'
 import { SKILL_CATEGORIES, SkillNode, SkillLink } from '@/types/skills'
@@ -374,82 +373,80 @@ export function CompetenceNebula({
             exit={{ scale: 0.9 }}
             onClick={e => e.stopPropagation()}
           >
-            <ElectricBorder className="rounded-lg">
-              <GreySurface className="p-8 max-w-lg">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="text-4xl">{selectedNode.icon}</div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-white">{selectedNode.name}</h2>
-                    <p className="text-gray-400">
-                      {SKILL_CATEGORIES[selectedNode.category]?.name ?? selectedNode.category}
-                    </p>
-                  </div>
+            <GreySurface className="p-8 max-w-lg">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="text-4xl">{selectedNode.icon}</div>
+                <div>
+                  <h2 className="text-2xl font-bold text-white">{selectedNode.name}</h2>
+                  <p className="text-gray-400">
+                    {SKILL_CATEGORIES[selectedNode.category]?.name ?? selectedNode.category}
+                  </p>
                 </div>
+              </div>
 
-                <p className="text-gray-300 mb-4">{selectedNode.description}</p>
+              <p className="text-gray-300 mb-4">{selectedNode.description}</p>
 
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-semibold text-white mb-2">Úroveň zvládnutí</h3>
-                    <div className="flex items-center gap-2">
-                      {[...Array(5)].map((_, i) => (
-                        <div
-                          key={i}
-                          className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold ${
-                            i < getSkillLevel(selectedNode.id)
-                              ? 'bg-purple-500 text-white'
-                              : 'bg-gray-700 text-gray-400'
-                          }`}
-                        >
-                          {i + 1}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {selectedNode.dependencies.length > 0 && (
-                    <div>
-                      <h3 className="font-semibold text-white mb-2">Prerekvizity</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedNode.dependencies.map(depId => {
-                          const dep = skillNodes.find(n => n.id === depId)
-                          return dep ? (
-                            <span
-                              key={depId}
-                              className="px-3 py-1 bg-white/10 rounded-full text-sm text-gray-300"
-                            >
-                              {dep.icon} {dep.name}
-                            </span>
-                          ) : null
-                        })}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-semibold text-white mb-2">Úroveň zvládnutí</h3>
+                  <div className="flex items-center gap-2">
+                    {[...Array(5)].map((_, i) => (
+                      <div
+                        key={i}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold ${
+                          i < getSkillLevel(selectedNode.id)
+                            ? 'bg-purple-500 text-white'
+                            : 'bg-gray-700 text-gray-400'
+                        }`}
+                      >
+                        {i + 1}
                       </div>
-                    </div>
-                  )}
-
-                  <div>
-                    <h3 className="font-semibold text-white mb-2">Související lekce</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedNode.lessons.map(lessonId => (
-                        <a
-                          key={lessonId}
-                          href={`/lessons/${lessonId}`}
-                          className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-sm hover:bg-purple-500/30 transition-all"
-                        >
-                          {lessonId}
-                        </a>
-                      ))}
-                    </div>
+                    ))}
                   </div>
                 </div>
 
-                <button
-                  onClick={() => setSelectedNode(null)}
-                  className="mt-6 w-full py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-all"
-                >
-                  Zavřít
-                </button>
-              </GreySurface>
-            </ElectricBorder>
+                {selectedNode.dependencies.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-white mb-2">Prerekvizity</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedNode.dependencies.map(depId => {
+                        const dep = skillNodes.find(n => n.id === depId)
+                        return dep ? (
+                          <span
+                            key={depId}
+                            className="px-3 py-1 bg-white/10 rounded-full text-sm text-gray-300"
+                          >
+                            {dep.icon} {dep.name}
+                          </span>
+                        ) : null
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <h3 className="font-semibold text-white mb-2">Související lekce</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedNode.lessons.map(lessonId => (
+                      <a
+                        key={lessonId}
+                        href={`/lessons/${lessonId}`}
+                        className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-sm hover:bg-purple-500/30 transition-all"
+                      >
+                        {lessonId}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setSelectedNode(null)}
+                className="mt-6 w-full py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-all"
+              >
+                Zavřít
+              </button>
+            </GreySurface>
           </motion.div>
         </motion.div>
       )}

@@ -21,7 +21,6 @@ import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import toast from 'react-hot-toast'
 import { GreySurface } from '@/components/ui/grey-surface'
-import { ElectricBorder } from '@/components/ui/electric-border'
 import { Lightning } from '@/components/ui/lightning'
 import { useUserStore } from '@/store/user-store'
 import { Stack } from '@/components/ui/stack'
@@ -607,58 +606,56 @@ export function OnboardingFlow() {
         </Box>
 
         {/* Content */}
-        <ElectricBorder className="rounded-lg">
-          <GreySurface className="p-8">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentStep}
-                initial={{ opacity: 0, x: isAnimating ? 20 : 0 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: isAnimating ? -20 : 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Stack gap={8}>
-                  <Stack gap={4} align="center">
-                    <Box className="inline-block">{steps[currentStep]?.icon}</Box>
-                    <Stack gap={2} align="center">
-                      <Box as="h1" className="text-3xl font-bold text-white">
-                        {steps[currentStep]?.title}
-                      </Box>
-                      <Box as="p" className="text-gray-400">
-                        {steps[currentStep]?.description}
-                      </Box>
-                    </Stack>
-                  </Stack>
-
-                  <Box>{steps[currentStep]?.content}</Box>
-
-                  {/* Navigation buttons */}
-                  <Stack direction="horizontal" justify="between">
-                    <Button
-                      onClick={handleBack}
-                      disabled={currentStep === 0}
-                      variant="ghost"
-                      size="lg"
-                    >
-                      Zpět
-                    </Button>
-
-                    <Button
-                      onClick={handleNext}
-                      disabled={!canProceed()}
-                      variant="primary"
-                      size="lg"
-                      className="flex items-center gap-2"
-                    >
-                      {currentStep === steps.length - 1 ? 'Začít učení' : 'Pokračovat'}
-                      <ChevronRight className="w-5 h-5" />
-                    </Button>
+        <GreySurface className="p-8">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentStep}
+              initial={{ opacity: 0, x: isAnimating ? 20 : 0 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: isAnimating ? -20 : 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Stack gap={8}>
+                <Stack gap={4} align="center">
+                  <Box className="inline-block">{steps[currentStep]?.icon}</Box>
+                  <Stack gap={2} align="center">
+                    <Box as="h1" className="text-3xl font-bold text-white">
+                      {steps[currentStep]?.title}
+                    </Box>
+                    <Box as="p" className="text-gray-400">
+                      {steps[currentStep]?.description}
+                    </Box>
                   </Stack>
                 </Stack>
-              </motion.div>
-            </AnimatePresence>
-          </GreySurface>
-        </ElectricBorder>
+
+                <Box>{steps[currentStep]?.content}</Box>
+
+                {/* Navigation buttons */}
+                <Stack direction="horizontal" justify="between">
+                  <Button
+                    onClick={handleBack}
+                    disabled={currentStep === 0}
+                    variant="ghost"
+                    size="lg"
+                  >
+                    Zpět
+                  </Button>
+
+                  <Button
+                    onClick={handleNext}
+                    disabled={!canProceed()}
+                    variant="primary"
+                    size="lg"
+                    className="flex items-center gap-2"
+                  >
+                    {currentStep === steps.length - 1 ? 'Začít učení' : 'Pokračovat'}
+                    <ChevronRight className="w-5 h-5" />
+                  </Button>
+                </Stack>
+              </Stack>
+            </motion.div>
+          </AnimatePresence>
+        </GreySurface>
       </Stack>
     </Box>
   )

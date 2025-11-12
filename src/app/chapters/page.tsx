@@ -19,7 +19,6 @@ import {
 import { UnifiedPageLayout } from '@/components/layout/unified-page-layout'
 import { SectionHeader } from '@/components/ui/section-header'
 import { GreySurface } from '@/components/ui/grey-surface'
-import { ElectricBorder } from '@/components/ui/electric-border'
 import { Stack, Grid, Box } from '@/components/layout'
 import { chapters } from '@/data/chapters'
 
@@ -221,71 +220,67 @@ export default function ChaptersPage() {
                               </Stack>
                             </Box>
                           ) : (
-                            <ElectricBorder
-                              className={`rounded-lg h-full ${isNext ? 'border-2 border-yellow-400' : ''}`}
+                            <Link
+                              href={`/chapters/${chapter.id}`}
+                              className={`block p-4 transition-all rounded-lg h-full border ${
+                                isNext
+                                  ? 'border-yellow-400 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 hover:from-yellow-500/30 hover:to-orange-500/30'
+                                  : 'border-purple-500/30 hover:border-purple-500/50 bg-gray-900/50 hover:bg-gray-900/70'
+                              }`}
                             >
-                              <Link
-                                href={`/chapters/${chapter.id}`}
-                                className={`block p-4 transition-all rounded-lg h-full ${
-                                  isNext
-                                    ? 'bg-gradient-to-br from-yellow-500/20 to-orange-500/20 hover:from-yellow-500/30 hover:to-orange-500/30'
-                                    : 'bg-gray-900/50 hover:bg-gray-900/70'
-                                }`}
-                              >
-                                <Stack direction="col" gap={3} className="h-full">
-                                  <Stack direction="row" justify="between" align="center">
-                                    <h3 className="font-semibold text-white">
-                                      Kapitola {chapter.id}
-                                      {isNext && (
-                                        <span className="ml-2 text-xs px-2 py-0.5 bg-yellow-400/30 text-yellow-300 rounded">
-                                          Pokračovat zde
-                                        </span>
-                                      )}
-                                    </h3>
-                                    {status === 'completed' ? (
-                                      <Stack direction="row" gap={1} align="center">
-                                        <Sparkles
-                                          className={`w-4 h-4 ${star1 ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
-                                        />
-                                        <Sparkles
-                                          className={`w-4 h-4 ${star2 ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
-                                        />
-                                        <Sparkles
-                                          className={`w-4 h-4 ${star3 ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
-                                        />
-                                      </Stack>
-                                    ) : (
-                                      <ChevronRight className="w-5 h-5 text-gray-400" />
+                              <Stack direction="col" gap={3} className="h-full">
+                                <Stack direction="row" justify="between" align="center">
+                                  <h3 className="font-semibold text-white">
+                                    Kapitola {chapter.id}
+                                    {isNext && (
+                                      <span className="ml-2 text-xs px-2 py-0.5 bg-yellow-400/30 text-yellow-300 rounded">
+                                        Pokračovat zde
+                                      </span>
                                     )}
-                                  </Stack>
-
-                                  <p className="text-sm font-medium text-white flex-1">
-                                    {chapter.title}
-                                  </p>
-
-                                  <p className="text-xs text-gray-500">{chapter.description}</p>
-
-                                  <Stack
-                                    direction="row"
-                                    gap={4}
-                                    align="center"
-                                    className="text-xs text-gray-500"
-                                  >
+                                  </h3>
+                                  {status === 'completed' ? (
                                     <Stack direction="row" gap={1} align="center">
-                                      <Clock className="w-3 h-3" />
-                                      <span>~20 min</span>
+                                      <Sparkles
+                                        className={`w-4 h-4 ${star1 ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
+                                      />
+                                      <Sparkles
+                                        className={`w-4 h-4 ${star2 ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
+                                      />
+                                      <Sparkles
+                                        className={`w-4 h-4 ${star3 ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
+                                      />
                                     </Stack>
-                                    <Stack direction="row" gap={1} align="center">
-                                      <Award className="w-3 h-3" />
-                                      <span>50 XP</span>
-                                    </Stack>
-                                    <span className="capitalize px-2 py-0.5 bg-purple-500/20 text-purple-300 rounded">
-                                      střední
-                                    </span>
-                                  </Stack>
+                                  ) : (
+                                    <ChevronRight className="w-5 h-5 text-gray-400" />
+                                  )}
                                 </Stack>
-                              </Link>
-                            </ElectricBorder>
+
+                                <p className="text-sm font-medium text-white flex-1">
+                                  {chapter.title}
+                                </p>
+
+                                <p className="text-xs text-gray-500">{chapter.description}</p>
+
+                                <Stack
+                                  direction="row"
+                                  gap={4}
+                                  align="center"
+                                  className="text-xs text-gray-500"
+                                >
+                                  <Stack direction="row" gap={1} align="center">
+                                    <Clock className="w-3 h-3" />
+                                    <span>~20 min</span>
+                                  </Stack>
+                                  <Stack direction="row" gap={1} align="center">
+                                    <Award className="w-3 h-3" />
+                                    <span>50 XP</span>
+                                  </Stack>
+                                  <span className="capitalize px-2 py-0.5 bg-purple-500/20 text-purple-300 rounded">
+                                    střední
+                                  </span>
+                                </Stack>
+                              </Stack>
+                            </Link>
                           )}
                         </motion.div>
                       )
@@ -305,53 +300,51 @@ export default function ChaptersPage() {
         transition={{ delay: 0.5 }}
         className="mt-12"
       >
-        <ElectricBorder className="rounded-lg">
-          <GreySurface className="p-8 text-center">
-            <Stack direction="col" gap={4} align="center">
-              <Sparkles className="w-12 h-12 text-purple-400" />
-              <h3 className="text-2xl font-bold text-white">
+        <GreySurface className="p-8 text-center border border-purple-500/30 rounded-lg">
+          <Stack direction="col" gap={4} align="center">
+            <Sparkles className="w-12 h-12 text-purple-400" />
+            <h3 className="text-2xl font-bold text-white">
+              {Object.keys(progress).length === 0
+                ? 'Připraven začít svou AI cestu?'
+                : Object.keys(progress).length === chapters.length
+                  ? 'Gratulujeme k dokončení všech kapitol!'
+                  : 'Pokračuj ve své cestě!'}
+            </h3>
+            <p className="text-gray-400 max-w-xl">
+              {Object.keys(progress).length === 0
+                ? 'Projdi všemi 40 kapitolami, získej praktické zkušenosti s umělou inteligencí a staň se součástí naší komunity v Apex Aréně!'
+                : Object.keys(progress).length === chapters.length
+                  ? 'Dokončil jsi všechny kapitoly! Prozkoumej Apex Arénu nebo získej certifikát.'
+                  : `Dokončil jsi ${Object.keys(progress).length} z ${chapters.length} kapitol. Pokračuj s další kapitolou!`}
+            </p>
+            {nextChapter && Object.keys(progress).length < chapters.length && (
+              <Link
+                href={`/chapters/${nextChapter.id}`}
+                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:shadow-xl transition-all"
+              >
                 {Object.keys(progress).length === 0
-                  ? 'Připraven začít svou AI cestu?'
-                  : Object.keys(progress).length === chapters.length
-                    ? 'Gratulujeme k dokončení všech kapitol!'
-                    : 'Pokračuj ve své cestě!'}
-              </h3>
-              <p className="text-gray-400 max-w-xl">
-                {Object.keys(progress).length === 0
-                  ? 'Projdi všemi 40 kapitolami, získej praktické zkušenosti s umělou inteligencí a staň se součástí naší komunity v Apex Aréně!'
-                  : Object.keys(progress).length === chapters.length
-                    ? 'Dokončil jsi všechny kapitoly! Prozkoumej Apex Arénu nebo získej certifikát.'
-                    : `Dokončil jsi ${Object.keys(progress).length} z ${chapters.length} kapitol. Pokračuj s další kapitolou!`}
-              </p>
-              {nextChapter && Object.keys(progress).length < chapters.length && (
+                  ? `Začít s Kapitolou ${nextChapter.id}`
+                  : `Pokračovat s Kapitolou ${nextChapter.id}`}
+              </Link>
+            )}
+            {Object.keys(progress).length === chapters.length && (
+              <Stack direction="row" gap={4}>
                 <Link
-                  href={`/chapters/${nextChapter.id}`}
+                  href="/arena"
                   className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:shadow-xl transition-all"
                 >
-                  {Object.keys(progress).length === 0
-                    ? `Začít s Kapitolou ${nextChapter.id}`
-                    : `Pokračovat s Kapitolou ${nextChapter.id}`}
+                  Apex Aréna
                 </Link>
-              )}
-              {Object.keys(progress).length === chapters.length && (
-                <Stack direction="row" gap={4}>
-                  <Link
-                    href="/arena"
-                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:shadow-xl transition-all"
-                  >
-                    Apex Aréna
-                  </Link>
-                  <Link
-                    href="/certificate"
-                    className="px-6 py-3 bg-gradient-to-r from-yellow-600 to-orange-600 text-white rounded-lg font-semibold hover:shadow-xl transition-all"
-                  >
-                    Získat certifikát
-                  </Link>
-                </Stack>
-              )}
-            </Stack>
-          </GreySurface>
-        </ElectricBorder>
+                <Link
+                  href="/certificate"
+                  className="px-6 py-3 bg-gradient-to-r from-yellow-600 to-orange-600 text-white rounded-lg font-semibold hover:shadow-xl transition-all"
+                >
+                  Získat certifikát
+                </Link>
+              </Stack>
+            )}
+          </Stack>
+        </GreySurface>
       </motion.div>
     </UnifiedPageLayout>
   )

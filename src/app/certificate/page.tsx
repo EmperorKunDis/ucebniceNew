@@ -10,7 +10,6 @@ import { ChevronLeft, Lock, Trophy } from 'lucide-react'
 import { UnifiedPageLayout } from '@/components/layout/unified-page-layout'
 import { SectionHeader } from '@/components/ui/section-header'
 import { GlassSurface } from '@/components/ui/glass-surface'
-import { ElectricBorder } from '@/components/ui/electric-border'
 import { Button } from '@/components/ui/button'
 import { chapters } from '@/data/chapters'
 
@@ -45,7 +44,7 @@ export default function CertificatePage() {
     username: '',
     level: 1,
     xp: 0,
-    badgesCount: 0
+    badgesCount: 0,
   })
 
   useEffect(() => {
@@ -61,14 +60,14 @@ export default function CertificatePage() {
         if (progressResponse.ok) {
           const progressData = await progressResponse.json()
           const progressMap = progressData.progress || {}
-          
+
           // Count completed chapters from server data
           const completed = Object.values(progressMap).filter(
             (p: any) => p.completedChapter === true
           ).length
-          
+
           setCompletedCount(completed)
-          
+
           // Eligible if completed at least 80% of chapters
           const completionRate = (completed / chapters.length) * 100
           setIsEligible(completionRate >= 80)
@@ -82,7 +81,7 @@ export default function CertificatePage() {
             username: statsData.user?.username || statsData.user?.name || 'Student',
             level: statsData.user?.level || 1,
             xp: statsData.user?.xp || 0,
-            badgesCount: statsData.stats?.totalAchievements || 0
+            badgesCount: statsData.stats?.totalAchievements || 0,
           })
         }
       } catch (error) {
@@ -122,7 +121,7 @@ export default function CertificatePage() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
           >
-            <CertificateGenerator 
+            <CertificateGenerator
               username={userData.username}
               level={userData.level}
               xp={userData.xp}
@@ -155,14 +154,12 @@ export default function CertificatePage() {
               </div>
 
               <div className="mt-6 pt-6 border-t border-gray-700">
-                <ElectricBorder className="inline-block rounded-lg">
-                  <Button variant="primary" asChild>
-                    <Link href="/arena">
-                      Přejít do Apex Arény
-                      <Trophy className="w-5 h-5 ml-2" />
-                    </Link>
-                  </Button>
-                </ElectricBorder>
+                <Button variant="primary" asChild>
+                  <Link href="/arena">
+                    Přejít do Apex Arény
+                    <Trophy className="w-5 h-5 ml-2" />
+                  </Link>
+                </Button>
               </div>
             </GlassSurface>
           </motion.div>
@@ -202,14 +199,12 @@ export default function CertificatePage() {
                 {Math.ceil(totalChapters * 0.8) - completedCount} kapitol.
               </p>
 
-              <ElectricBorder className="inline-block rounded-lg">
-                <Button variant="primary" asChild>
-                  <Link href="/chapters">
-                    Pokračovat v učení
-                    <ChevronLeft className="w-5 h-5 ml-2 rotate-180" />
-                  </Link>
-                </Button>
-              </ElectricBorder>
+              <Button variant="primary" asChild>
+                <Link href="/chapters">
+                  Pokračovat v učení
+                  <ChevronLeft className="w-5 h-5 ml-2 rotate-180" />
+                </Link>
+              </Button>
             </div>
           </GlassSurface>
         </motion.div>

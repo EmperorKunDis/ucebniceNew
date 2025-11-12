@@ -6,7 +6,6 @@ import dynamic from 'next/dynamic'
 import { PageLayout } from '@/components/layout/page-layout'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { GreySurface } from '@/components/ui/grey-surface'
-import { ElectricBorder } from '@/components/ui/electric-border'
 import { Button } from '@/components/ui/button'
 import { Stack, Grid, Box } from '@/components/layout'
 import { motion } from 'framer-motion'
@@ -66,15 +65,13 @@ export default function HomePage() {
               </p>
 
               <Stack direction="row" gap={4} wrap>
-                <ElectricBorder className="rounded-lg">
-                  <Link
-                    href={username ? '/chapters' : '/onboarding'}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:shadow-xl transition-all"
-                  >
-                    {username ? 'Pokračovat v učení' : 'Začít učení'}
-                    <ChevronRight className="w-5 h-5" />
-                  </Link>
-                </ElectricBorder>
+                <Link
+                  href={username ? '/chapters' : '/onboarding'}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:shadow-xl transition-all"
+                >
+                  {username ? 'Pokračovat v učení' : 'Začít učení'}
+                  <ChevronRight className="w-5 h-5" />
+                </Link>
 
                 <Button variant="secondary" size="lg" asChild>
                   <Link href="/demo">Vyzkoušet demo</Link>
@@ -165,15 +162,13 @@ export default function HomePage() {
               <p className="text-xl text-gray-300 text-center">
                 Přidej se k tisícům studentů, kteří už mění svůj život díky programování.
               </p>
-              <ElectricBorder className="rounded-lg">
-                <Link
-                  href={username ? '/chapters' : '/onboarding'}
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg text-lg font-semibold hover:shadow-xl transition-all"
-                >
-                  {username ? 'Pokračovat v kurzu' : 'Zaregistrovat se zdarma'}
-                  <ChevronRight className="w-6 h-6" />
-                </Link>
-              </ElectricBorder>
+              <Link
+                href={username ? '/chapters' : '/onboarding'}
+                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg text-lg font-semibold hover:shadow-xl transition-all"
+              >
+                {username ? 'Pokračovat v kurzu' : 'Zaregistrovat se zdarma'}
+                <ChevronRight className="w-6 h-6" />
+              </Link>
             </Stack>
           </GreySurface>
         </Box>

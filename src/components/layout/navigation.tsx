@@ -6,7 +6,6 @@ import { GreySurface } from '@/components/ui/grey-surface'
 import { Stack } from '@/components/layout'
 import { Box } from '@/components/ui/box'
 import { Button } from '@/components/ui/button'
-import { ElectricBorder } from '@/components/ui/electric-border'
 import { useUserStore } from '@/store/user-store'
 import { Menu, X } from 'lucide-react'
 import { useState } from 'react'
@@ -65,8 +64,12 @@ export function Navigation() {
               ))}
 
               {isAuthenticated ? (
-                <Link href="/profile" className="flex items-center gap-2">
-                  <Box className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold overflow-hidden">
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-2 no-underline"
+                  style={{ textDecoration: 'none' }}
+                >
+                  <Box className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold overflow-hidden shrink-0">
                     {avatar ? (
                       <img
                         src={avatar}
@@ -77,7 +80,7 @@ export function Navigation() {
                       username.charAt(0).toUpperCase()
                     )}
                   </Box>
-                  <span className="text-white hover:text-gray-300 transition-colors">
+                  <span className="text-white hover:text-gray-300 transition-colors whitespace-nowrap">
                     {username}
                   </span>
                 </Link>
@@ -86,11 +89,9 @@ export function Navigation() {
                   <Button variant="ghost" asChild>
                     <Link href="/auth/signin">Přihlásit se</Link>
                   </Button>
-                  <ElectricBorder className="rounded-lg">
-                    <Button variant="primary" asChild>
-                      <Link href="/onboarding">Začít zdarma</Link>
-                    </Button>
-                  </ElectricBorder>
+                  <Button variant="primary" asChild>
+                    <Link href="/onboarding">Začít zdarma</Link>
+                  </Button>
                 </Stack>
               )}
             </Stack>

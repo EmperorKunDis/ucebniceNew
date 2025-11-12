@@ -136,3 +136,96 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
 }
+
+/* COMPLETE NAVIGATION FIX - Remove ALL flickering effects */
+
+/* Remove underline and borders from ALL navigation elements */
+nav,
+nav *,
+nav a,
+nav a:hover,
+nav a:focus,
+nav a:active,
+nav button,
+nav button:hover,
+nav button:focus,
+nav div,
+nav span {
+  text-decoration: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* KILL ALL pseudo-elements in navigation */
+nav *::before,
+nav *::after,
+nav::before,
+nav::after {
+  display: none !important;
+  content: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* COMPLETELY REMOVE ElectricBorder from navigation */
+nav .electric-border,
+nav .electric-border *,
+nav .electric-border .eb-layers,
+nav .electric-border .eb-stroke,
+nav .electric-border .eb-glow-1,
+nav .electric-border .eb-glow-2,
+nav .electric-border .eb-background-glow,
+nav .electric-border .eb-content,
+nav .electric-border svg,
+nav .eb-svg {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Hide all ElectricBorder visual layers */
+nav .eb-layers,
+nav .eb-stroke,
+nav .eb-glow-1,
+nav .eb-glow-2,
+nav .eb-background-glow,
+nav .eb-svg {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Disable ALL animations and transitions in nav */
+nav,
+nav *,
+nav *::before,
+nav *::after {
+  animation: none !important;
+  transition: color 0.15s ease, opacity 0.15s ease !important;
+}
+
+/* Remove focus/hover outlines that might appear as rectangles */
+nav a:focus-visible,
+nav a:focus,
+nav button:focus-visible,
+nav button:focus,
+nav *:focus-visible,
+nav *:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* Disable browser tooltips completely */
+nav [title] {
+  pointer-events: none;
+}
+
+nav [title]:hover::before,
+nav [title]:hover::after,
+nav [title]::before,
+nav [title]::after {
+  display: none !important;
+  content: none !important;
+}

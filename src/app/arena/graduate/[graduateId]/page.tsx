@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { 
+import {
   ChevronLeft,
   Github,
   Linkedin,
@@ -16,12 +16,11 @@ import {
   Briefcase,
   Code,
   BookOpen,
-  Video
+  Video,
 } from 'lucide-react'
 
 import { Lightning } from '@/components/ui/lightning'
 import { GlassSurface } from '@/components/ui/glass-surface'
-import { ElectricBorder } from '@/components/ui/electric-border'
 import { Graduate } from '@/types/arena'
 
 // Mock data - in real app would fetch from API
@@ -33,25 +32,38 @@ const mockGraduate: Graduate = {
   bio: 'Passionate full-stack developer specializující se na AI a machine learning. Miluji řešení složitých problémů a vytváření inovativních aplikací. Mám zkušenosti s vývojem webových aplikací, mobilních aplikací a AI modelů.',
   graduatedAt: new Date('2023-12-15'),
   certificateId: 'CERT-2023-001',
-  skills: ['Python', 'TensorFlow', 'React', 'Node.js', 'Docker', 'TypeScript', 'PostgreSQL', 'AWS', 'FastAPI', 'Next.js'],
+  skills: [
+    'Python',
+    'TensorFlow',
+    'React',
+    'Node.js',
+    'Docker',
+    'TypeScript',
+    'PostgreSQL',
+    'AWS',
+    'FastAPI',
+    'Next.js',
+  ],
   portfolio: [
     {
       id: 'port-1',
       title: 'AI Chatbot pro zákaznickou podporu',
-      description: 'Inteligentní chatbot využívající NLP pro automatizaci zákaznické podpory. Snížil dobu odpovědi o 70%.',
+      description:
+        'Inteligentní chatbot využívající NLP pro automatizaci zákaznické podpory. Snížil dobu odpovědi o 70%.',
       url: 'https://github.com/user/ai-chatbot',
       type: 'project',
       thumbnail: '/project1.jpg',
-      technologies: ['Python', 'TensorFlow', 'FastAPI', 'React']
+      technologies: ['Python', 'TensorFlow', 'FastAPI', 'React'],
     },
     {
       id: 'port-2',
       title: 'Real-time Analytics Dashboard',
-      description: 'Webová aplikace pro vizualizaci dat v reálném čase s pokročilými grafy a filtrovaní.',
+      description:
+        'Webová aplikace pro vizualizaci dat v reálném čase s pokročilými grafy a filtrovaní.',
       url: 'https://github.com/user/analytics-dashboard',
       type: 'project',
       thumbnail: '/project2.jpg',
-      technologies: ['Next.js', 'D3.js', 'WebSocket', 'PostgreSQL']
+      technologies: ['Next.js', 'D3.js', 'WebSocket', 'PostgreSQL'],
     },
     {
       id: 'port-3',
@@ -59,7 +71,7 @@ const mockGraduate: Graduate = {
       description: 'Článek o implementaci ML modelů v produkčním prostředí',
       url: 'https://medium.com/@user/ml-production',
       type: 'article',
-      technologies: ['Machine Learning', 'MLOps', 'Python']
+      technologies: ['Machine Learning', 'MLOps', 'Python'],
     },
     {
       id: 'port-4',
@@ -67,55 +79,62 @@ const mockGraduate: Graduate = {
       description: 'Oficiální certifikace od Google pro TensorFlow development',
       url: '/certificates/tensorflow.pdf',
       type: 'certificate',
-      technologies: ['TensorFlow', 'Deep Learning']
-    }
+      technologies: ['TensorFlow', 'Deep Learning'],
+    },
   ],
   hackathonWins: 2,
   github: 'https://github.com/codemaster',
   linkedIn: 'https://linkedin.com/in/codemaster',
   website: 'https://jannovák.dev',
   lookingForWork: true,
-  preferredRoles: ['ML Engineer', 'Full-Stack Developer', 'AI Researcher']
+  preferredRoles: ['ML Engineer', 'Full-Stack Developer', 'AI Researcher'],
 }
 
 const skillCategories = {
-  'Languages': ['Python', 'TypeScript', 'JavaScript'],
-  'Frameworks': ['React', 'Next.js', 'Node.js', 'FastAPI'],
+  Languages: ['Python', 'TypeScript', 'JavaScript'],
+  Frameworks: ['React', 'Next.js', 'Node.js', 'FastAPI'],
   'AI/ML': ['TensorFlow', 'PyTorch', 'Scikit-learn'],
-  'Databases': ['PostgreSQL', 'MongoDB', 'Redis'],
-  'DevOps': ['Docker', 'Kubernetes', 'AWS', 'CI/CD']
+  Databases: ['PostgreSQL', 'MongoDB', 'Redis'],
+  DevOps: ['Docker', 'Kubernetes', 'AWS', 'CI/CD'],
 }
 
 export default function GraduateDetailPage() {
   // const params = useParams()
   const router = useRouter()
-  const [selectedCategory, setSelectedCategory] = useState<'all' | 'project' | 'article' | 'certificate'>('all')
+  const [selectedCategory, setSelectedCategory] = useState<
+    'all' | 'project' | 'article' | 'certificate'
+  >('all')
 
   // const graduateId = params?.graduateId as string
   const graduate = mockGraduate // In real app: fetch based on graduateId (params.graduateId)
-  
+
   if (!graduate) {
     return <div>Absolvent nenalezen</div>
   }
-  
+
   const filteredPortfolio = graduate.portfolio.filter(
     item => selectedCategory === 'all' || item.type === selectedCategory
   )
-  
+
   const getPortfolioIcon = (type: string) => {
     switch (type) {
-      case 'project': return <Code className="w-4 h-4" />
-      case 'article': return <BookOpen className="w-4 h-4" />
-      case 'presentation': return <Video className="w-4 h-4" />
-      case 'certificate': return <Award className="w-4 h-4" />
-      default: return <Globe className="w-4 h-4" />
+      case 'project':
+        return <Code className="w-4 h-4" />
+      case 'article':
+        return <BookOpen className="w-4 h-4" />
+      case 'presentation':
+        return <Video className="w-4 h-4" />
+      case 'certificate':
+        return <Award className="w-4 h-4" />
+      default:
+        return <Globe className="w-4 h-4" />
     }
   }
-  
+
   const getCategorizedSkills = () => {
     const categorized: Record<string, string[]> = {}
     const uncategorized: string[] = []
-    
+
     graduate.skills.forEach(skill => {
       let found = false
       Object.entries(skillCategories).forEach(([category, skills]) => {
@@ -127,32 +146,44 @@ export default function GraduateDetailPage() {
       })
       if (!found) uncategorized.push(skill)
     })
-    
+
     if (uncategorized.length > 0) {
       categorized['Other'] = uncategorized
     }
-    
+
     return categorized
   }
-  
+
   return (
     <div className="min-h-screen relative">
       <Lightning />
-      
+
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 p-4">
         <div className="max-w-7xl mx-auto">
-          <GlassSurface className="p-6" borderRadius={16} blur={20} backgroundOpacity={0.02} opacity={0.95}>
+          <GlassSurface
+            className="p-6"
+            borderRadius={16}
+            blur={20}
+            backgroundOpacity={0.02}
+            opacity={0.95}
+          >
             <div className="flex items-center justify-between">
-              <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <Link
+                href="/"
+                className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent"
+              >
                 Učebnice AI
               </Link>
-              
+
               <div className="flex items-center gap-6">
                 <Link href="/arena" className="text-gray-300 hover:text-white transition-colors">
                   Apex Aréna
                 </Link>
-                <Link href="/dashboard" className="text-gray-300 hover:text-white transition-colors">
+                <Link
+                  href="/dashboard"
+                  className="text-gray-300 hover:text-white transition-colors"
+                >
                   Dashboard
                 </Link>
                 <Link href="/profile" className="text-gray-300 hover:text-white transition-colors">
@@ -163,7 +194,7 @@ export default function GraduateDetailPage() {
           </GlassSurface>
         </div>
       </nav>
-      
+
       {/* Main content */}
       <main className="relative z-10 pt-24 pb-12 px-4">
         <div className="max-w-7xl mx-auto">
@@ -174,24 +205,27 @@ export default function GraduateDetailPage() {
             <ChevronLeft className="w-5 h-5" />
             Zpět na Arénu
           </button>
-          
+
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Profile sidebar */}
             <div className="lg:col-span-1 space-y-6">
               <GlassSurface className="p-6 text-center">
                 <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-4xl font-bold text-white">
-                  {graduate.fullName.split(' ').map(n => n[0]).join('')}
+                  {graduate.fullName
+                    .split(' ')
+                    .map(n => n[0])
+                    .join('')}
                 </div>
                 <h1 className="text-2xl font-bold text-white mb-1">{graduate.fullName}</h1>
                 <p className="text-gray-400 mb-4">@{graduate.username}</p>
-                
+
                 {graduate.lookingForWork && (
                   <div className="mb-4 px-3 py-1 bg-green-500/20 text-green-300 rounded-full inline-flex items-center gap-2">
                     <Briefcase className="w-4 h-4" />
                     <span className="text-sm">Hledá práci</span>
                   </div>
                 )}
-                
+
                 <div className="space-y-2 mb-6">
                   {graduate.github && (
                     <a
@@ -234,7 +268,7 @@ export default function GraduateDetailPage() {
                     Kontakt
                   </a>
                 </div>
-                
+
                 {/* Stats */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
@@ -247,35 +281,33 @@ export default function GraduateDetailPage() {
                   </div>
                 </div>
               </GlassSurface>
-              
+
               {/* Certificate */}
-              <ElectricBorder className="rounded-lg">
-                <GlassSurface className="p-6 text-center">
-                  <Award className="w-12 h-12 mx-auto mb-3 text-yellow-400" />
-                  <h3 className="font-semibold text-white mb-2">Certifikát absolventa</h3>
-                  <p className="text-sm text-gray-400 mb-4">
-                    {graduate.graduatedAt.toLocaleDateString('cs-CZ', {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric'
-                    })}
-                  </p>
-                  <p className="text-xs text-gray-500 mb-4">ID: {graduate.certificateId}</p>
-                  <button className="w-full py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-all flex items-center justify-center gap-2">
-                    <Download className="w-4 h-4" />
-                    Stáhnout certifikát
-                  </button>
-                </GlassSurface>
-              </ElectricBorder>
+              <GlassSurface className="p-6 text-center">
+                <Award className="w-12 h-12 mx-auto mb-3 text-yellow-400" />
+                <h3 className="font-semibold text-white mb-2">Certifikát absolventa</h3>
+                <p className="text-sm text-gray-400 mb-4">
+                  {graduate.graduatedAt.toLocaleDateString('cs-CZ', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                  })}
+                </p>
+                <p className="text-xs text-gray-500 mb-4">ID: {graduate.certificateId}</p>
+                <button className="w-full py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-all flex items-center justify-center gap-2">
+                  <Download className="w-4 h-4" />
+                  Stáhnout certifikát
+                </button>
+              </GlassSurface>
             </div>
-            
+
             {/* Main content area */}
             <div className="lg:col-span-2 space-y-6">
               {/* Bio */}
               <GlassSurface className="p-6">
                 <h2 className="text-2xl font-bold text-white mb-4">O mně</h2>
                 <p className="text-gray-300 leading-relaxed">{graduate.bio}</p>
-                
+
                 {graduate.preferredRoles.length > 0 && (
                   <div className="mt-6">
                     <h3 className="text-lg font-semibold text-white mb-3">Hledané pozice</h3>
@@ -292,7 +324,7 @@ export default function GraduateDetailPage() {
                   </div>
                 )}
               </GlassSurface>
-              
+
               {/* Skills */}
               <GlassSurface className="p-6">
                 <h2 className="text-2xl font-bold text-white mb-6">Dovednosti</h2>
@@ -314,7 +346,7 @@ export default function GraduateDetailPage() {
                   ))}
                 </div>
               </GlassSurface>
-              
+
               {/* Portfolio */}
               <GlassSurface className="p-6">
                 <div className="flex items-center justify-between mb-6">
@@ -330,15 +362,18 @@ export default function GraduateDetailPage() {
                             : 'bg-white/10 text-gray-400 hover:text-white'
                         }`}
                       >
-                        {cat === 'all' ? 'Vše' :
-                         cat === 'project' ? 'Projekty' :
-                         cat === 'article' ? 'Články' :
-                         'Certifikáty'}
+                        {cat === 'all'
+                          ? 'Vše'
+                          : cat === 'project'
+                            ? 'Projekty'
+                            : cat === 'article'
+                              ? 'Články'
+                              : 'Certifikáty'}
                       </button>
                     ))}
                   </div>
                 </div>
-                
+
                 <div className="grid gap-4">
                   {filteredPortfolio.map((item, i) => (
                     <motion.div
@@ -378,11 +413,9 @@ export default function GraduateDetailPage() {
                       </div>
                     </motion.div>
                   ))}
-                  
+
                   {filteredPortfolio.length === 0 && (
-                    <p className="text-center text-gray-400 py-8">
-                      Žádné položky v této kategorii
-                    </p>
+                    <p className="text-center text-gray-400 py-8">Žádné položky v této kategorii</p>
                   )}
                 </div>
               </GlassSurface>
