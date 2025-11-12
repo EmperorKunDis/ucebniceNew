@@ -48,13 +48,14 @@ ingress:
         - ucebnice.praut.cz  # CHANGE THIS
 
 config:
-  NEXTAUTH_URL: "https://ucebnice.praut.cz"  # CHANGE THIS
+  NEXTAUTH_URL: "https://ucebnice.praut.cz"
   NODE_ENV: "production"
+  NEXT_PUBLIC_APP_URL: "https://ucebnice.praut.cz"
 
 # Secrets are managed via Sealed Secrets
 # See: argocd/ucebnice-sealed-secret.yaml
 # The sealed secret creates a secret named "ucebnice-secret" with these keys:
-#   - DATABASE_URL
+#   - DATABASE_URL (use this format: postgresql://ucebnice_user:STRONG_PASSWORD@ucebnice-postgres:5432/ucebnice_db)
 #   - NEXTAUTH_SECRET
 #   - GOOGLE_CLIENT_ID
 #   - GOOGLE_CLIENT_SECRET
@@ -64,11 +65,30 @@ config:
 #
 # To create/update sealed secrets, run:
 #   ./scripts/kubernetes/create-sealed-secrets.sh ucebnice
-secrets: {}
+secrets:
+  existingSecret: "ucebnice-secret"
 
 prisma:
-  runMigrations: false
+  runMigrations: true
   runSeed: false
+
+postgresql:
+  enabled: true
+  auth:
+    username: ucebnice_user
+    password: "" # Set this to a STRONG password in sealed secret
+    database: ucebnice_db
+  persistence:
+    enabled: true
+    storageClass: "longhorn"
+    size: 20Gi
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
 
 podDisruptionBudget:
   enabled: true

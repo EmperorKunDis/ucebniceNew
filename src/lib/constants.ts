@@ -203,10 +203,10 @@ export const RATE_LIMITS = {
 
 export const VALIDATION = {
   PASSWORD: {
-    MIN_LENGTH: 8,
+    MIN_LENGTH: 6,
     MAX_LENGTH: 100,
-    REQUIRE_UPPERCASE: true,
-    REQUIRE_NUMBER: true,
+    REQUIRE_UPPERCASE: false,
+    REQUIRE_NUMBER: false,
     REQUIRE_SPECIAL_CHAR: false,
   },
   EMAIL: {

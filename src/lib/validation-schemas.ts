@@ -13,7 +13,7 @@ export const emailSchema = z
   .email('Neplatná emailová adresa')
   .max(VALIDATION.EMAIL.MAX_LENGTH, 'Email je příliš dlouhý')
 
-// Password validation - requires 8+ chars, 1 uppercase, 1 number
+// Password validation - requires 6+ chars (simplified for better UX)
 export const passwordSchema = z
   .string()
   .min(
@@ -21,8 +21,6 @@ export const passwordSchema = z
     `Heslo musí mít alespoň ${VALIDATION.PASSWORD.MIN_LENGTH} znaků`
   )
   .max(VALIDATION.PASSWORD.MAX_LENGTH, 'Heslo je příliš dlouhé')
-  .regex(/[A-Z]/, 'Heslo musí obsahovat alespoň jedno velké písmeno')
-  .regex(/[0-9]/, 'Heslo musí obsahovat alespoň jedno číslo')
 
 // Username validation
 export const usernameSchema = z
