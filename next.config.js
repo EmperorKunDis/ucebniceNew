@@ -28,13 +28,25 @@ const nextConfig = {
   compress: true,
   productionBrowserSourceMaps: false,
   images: {
-    domains: ['github.com', 'colab.research.google.com', 'api.dicebear.com'],
     remotePatterns: [
       {
         protocol: 'https',
         hostname: '**.googleusercontent.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'github.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'colab.research.google.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.dicebear.com',
+      },
     ],
+    unoptimized: false,
   },
   async headers() {
     const isDev = process.env.NODE_ENV === 'development'

@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { Camera, Upload, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import Image from 'next/image'
+import { useUserStore } from '@/store/user-store'
+import { useSession } from 'next-auth/react'
 
 interface ProfilePhotoUploadProps {
   currentImage?: string | null
@@ -19,6 +20,8 @@ export function ProfilePhotoUpload({
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const { setUser } = useUserStore()
+  const { data: session, update } = useSession()
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -32,16 +35,49 @@ export function ProfilePhotoUpload({
     reader.readAsDataURL(file)
 
     // Upload
-    if (onUpload) {
-      setIsUploading(true)
-      try {
+    setIsUploading(true)
+    try {
+      if (onUpload) {
         await onUpload(file)
-        setIsModalOpen(false)
-      } catch (error) {
-        console.error('Upload failed:', error)
-      } finally {
-        setIsUploading(false)
+      } else {
+        // Default upload implementation
+        const formData = new FormData()
+        formData.append('file', file)
+
+        const response = await fetch('/api/user/profile-image', {
+          method: 'POST',
+          body: formData,
+        })
+
+        if (!response.ok) {
+          const error = await response.json()
+          throw new Error(error.error || 'Upload failed')
+        }
+
+        const data = await response.json()
+
+        // Update user store with new avatar
+        if (session?.user) {
+          setUser({
+            userId: session.user.id,
+            username: session.user.username || session.user.name || 'User',
+            email: session.user.email || '',
+            avatar: data.imageUrl,
+          })
+        }
+
+        // Update NextAuth session
+        await update({ ...session, user: { ...session?.user, image: data.imageUrl } })
+
+        // Reload page to show new image
+        window.location.reload()
       }
+      setIsModalOpen(false)
+    } catch (error) {
+      console.error('Upload failed:', error)
+      alert('Nepodařilo se nahrát obrázek. Zkuste to prosím znovu.')
+    } finally {
+      setIsUploading(false)
     }
   }
 
@@ -59,11 +95,9 @@ export function ProfilePhotoUpload({
           <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden relative">
             {currentImage || previewUrl ? (
               <>
-                <Image
+                <img
                   src={previewUrl || currentImage || ''}
                   alt={userName}
-                  width={128}
-                  height={128}
                   className="w-full h-full object-cover"
                 />
                 {/* Overlay on hover */}
@@ -126,13 +160,7 @@ export function ProfilePhotoUpload({
               {previewUrl && (
                 <div className="mb-6 flex justify-center">
                   <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-purple-500/50">
-                    <Image
-                      src={previewUrl}
-                      alt="Náhled"
-                      width={128}
-                      height={128}
-                      className="w-full h-full object-cover"
-                    />
+                    <img src={previewUrl} alt="Náhled" className="w-full h-full object-cover" />
                   </div>
                 </div>
               )}

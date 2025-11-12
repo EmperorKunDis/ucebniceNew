@@ -24,12 +24,11 @@ const navItems: NavItem[] = [
   { label: 'Kapitoly', href: '/chapters' },
   { label: 'Apex Aréna', href: '/arena' },
   { label: 'Žebříček', href: '/leaderboard' },
-  { label: 'Profil', href: '/profile', showWhenAuth: true },
 ]
 
 export function Navigation() {
   const pathname = usePathname()
-  const { username } = useUserStore()
+  const { username, avatar } = useUserStore()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const isAuthenticated = !!username
 
@@ -66,17 +65,22 @@ export function Navigation() {
               ))}
 
               {isAuthenticated ? (
-                <Stack
-                  direction="row"
-                  gap={2}
-                  align="center"
-                  className="px-3 py-1 bg-white/10 rounded-full"
-                >
-                  <Box className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold">
-                    {username.charAt(0).toUpperCase()}
+                <Link href="/profile" className="flex items-center gap-2">
+                  <Box className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold overflow-hidden">
+                    {avatar ? (
+                      <img
+                        src={avatar}
+                        alt={username || 'User'}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      username.charAt(0).toUpperCase()
+                    )}
                   </Box>
-                  <span className="text-white">{username}</span>
-                </Stack>
+                  <span className="text-white hover:text-gray-300 transition-colors">
+                    {username}
+                  </span>
+                </Link>
               ) : (
                 <Stack direction="row" gap={3} align="center">
                   <Button variant="ghost" asChild>
@@ -130,12 +134,28 @@ export function Navigation() {
                   <Box className="h-px bg-gray-700 my-2" />
 
                   {isAuthenticated ? (
-                    <Stack direction="row" gap={2} align="center" className="px-4 py-2">
-                      <Box className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold">
-                        {username.charAt(0).toUpperCase()}
+                    <Link
+                      href="/profile"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+                        pathname === '/profile'
+                          ? 'text-white bg-white/10 font-medium'
+                          : 'text-gray-300 hover:text-white hover:bg-white/10'
+                      }`}
+                    >
+                      <Box className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold overflow-hidden">
+                        {avatar ? (
+                          <img
+                            src={avatar}
+                            alt={username || 'User'}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          username.charAt(0).toUpperCase()
+                        )}
                       </Box>
-                      <span className="text-white">{username}</span>
-                    </Stack>
+                      <span>{username}</span>
+                    </Link>
                   ) : (
                     <Stack direction="col" gap={2} className="mx-4">
                       <Link href="/auth/signin" onClick={() => setMobileMenuOpen(false)}>

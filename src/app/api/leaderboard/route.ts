@@ -66,6 +66,8 @@ async function fetchLeaderboardData(period: string) {
     select: {
       id: true,
       username: true,
+      name: true,
+      image: true,
       xp: true,
       level: true,
       currentStreak: true,
@@ -84,7 +86,9 @@ async function fetchLeaderboardData(period: string) {
   // Format leaderboard data
   const leaderboard = users.map((user, index) => ({
     rank: index + 1,
-    username: user.username || 'Anonymous',
+    username: user.username || user.name || 'Anonymous',
+    name: user.name,
+    image: user.image,
     xp: user.xp,
     level: user.level,
     badges: user.achievements.length,

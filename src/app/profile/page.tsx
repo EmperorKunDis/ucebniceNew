@@ -124,11 +124,6 @@ export default function ProfilePage() {
               <ProfilePhotoUpload
                 currentImage={userStats.user.image}
                 userName={userStats.user.name || 'Uživatel'}
-                onUpload={async file => {
-                  // TODO: Implement upload logic
-                  console.log('Uploading file:', file.name)
-                  // You can add API call here to upload the image
-                }}
               />
 
               <Box className="flex-1">

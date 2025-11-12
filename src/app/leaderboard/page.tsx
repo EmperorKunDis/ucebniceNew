@@ -27,6 +27,8 @@ type LeaderboardPeriod = 'all-time' | 'monthly' | 'weekly' | 'daily'
 interface LeaderboardEntry {
   rank: number
   username: string
+  name?: string | null
+  image?: string | null
   xp: number
   level: number
   badges: number
@@ -514,9 +516,17 @@ export default function LeaderboardPage() {
                         <Stack direction="col" gap={4} align="center">
                           {/* Avatar */}
                           <div
-                            className={`${i === 0 ? 'w-32 h-32 text-4xl' : 'w-28 h-28 text-3xl'} rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shrink-0 transition-all duration-500`}
+                            className={`${i === 0 ? 'w-32 h-32 text-4xl' : 'w-28 h-28 text-3xl'} rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shrink-0 transition-all duration-500 overflow-hidden`}
                           >
-                            {entry.username.charAt(0).toUpperCase()}
+                            {entry.image ? (
+                              <img
+                                src={entry.image}
+                                alt={entry.name || entry.username}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              entry.username.charAt(0).toUpperCase()
+                            )}
                           </div>
 
                           {/* Name and Level */}
@@ -599,8 +609,16 @@ export default function LeaderboardPage() {
                             </span>
                           </Box>
 
-                          <Box className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shrink-0">
-                            {entry.username.charAt(0).toUpperCase()}
+                          <Box className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shrink-0 overflow-hidden">
+                            {entry.image ? (
+                              <img
+                                src={entry.image}
+                                alt={entry.name || entry.username}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              entry.username.charAt(0).toUpperCase()
+                            )}
                           </Box>
 
                           <Stack direction="col" gap={0} className="flex-1 min-w-0">
