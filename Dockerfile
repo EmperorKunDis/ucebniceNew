@@ -47,6 +47,7 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+# Note: Prisma CLI will be installed at runtime in init container if migrations are enabled
 
 # Set correct permissions
 RUN chown -R nextjs:nodejs /app

@@ -38,6 +38,9 @@ spec:
             - sh
             - -c
             - |
+              # Install prisma CLI at runtime (matches version in package.json)
+              npm install --no-save prisma@6.19.0
+              # Run migration
               npx prisma migrate deploy
           env:
             - name: DATABASE_URL
