@@ -38,13 +38,30 @@ spec:
             - sh
             - -c
             - |
+              {{- if .Values.postgresql.enabled }}
+              # URL-encode the password for use in connection string
+              ENCODED_PASSWORD=$(node -e "console.log(encodeURIComponent('${POSTGRES_PASSWORD}'))")
+              # Construct DATABASE_URL from PostgreSQL secret
+              export DATABASE_URL="postgresql://{{ .Values.postgresql.auth.username }}:${ENCODED_PASSWORD}@{{ include "ucebnice.fullname" . }}-postgres.{{ .Release.Namespace }}.svc.cluster.local:5432/{{ .Values.postgresql.auth.database }}?sslmode=disable"
+              {{- end }}
+              # Install prisma CLI at runtime (matches version in package.json)
+              npm install --no-save prisma@6.19.0
+              # Run migration
               npx prisma migrate deploy
           env:
+            {{- if .Values.postgresql.enabled }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ucebnice.fullname" . }}-postgres-secret
+                  key: password
+            {{- else }}
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
                   name: {{ include "ucebnice.fullname" . }}-secret
                   key: DATABASE_URL
+            {{- end }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
       {{- end }}
@@ -64,10 +81,29 @@ spec:
             {{- toYaml .Values.readinessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          command:
+            - sh
+            - -c
+            - |
+              {{- if .Values.postgresql.enabled }}
+              # URL-encode the password for use in connection string
+              ENCODED_PASSWORD=$(node -e "console.log(encodeURIComponent('${POSTGRES_PASSWORD}'))")
+              # Construct DATABASE_URL from PostgreSQL secret
+              export DATABASE_URL="postgresql://{{ .Values.postgresql.auth.username }}:${ENCODED_PASSWORD}@{{ include "ucebnice.fullname" . }}-postgres.{{ .Release.Namespace }}.svc.cluster.local:5432/{{ .Values.postgresql.auth.database }}?sslmode=disable"
+              {{- end }}
+              # Start the application
+              exec node server.js
           env:
             {{- range $key, $value := .Values.env }}
             - name: {{ $key }}
               value: {{ $value | quote }}
+            {{- end }}
+            {{- if .Values.postgresql.enabled }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ucebnice.fullname" . }}-postgres-secret
+                  key: password
             {{- end }}
           envFrom:
             - configMapRef:

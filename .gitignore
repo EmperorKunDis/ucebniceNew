@@ -72,4 +72,5 @@ storybook-static
 # Kubernetes secrets (never commit unsealed secrets!)
 *-secret.yaml
 !*-sealed-secret.yaml
+!helm/**/templates/*-secret.yaml
 sealed-secrets-key-backup.yaml
