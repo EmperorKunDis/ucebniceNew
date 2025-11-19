@@ -38,7 +38,7 @@ spec:
             - sh
             - -c
             - |
-              npx prisma migrate deploy
+              ./node_modules/.bin/prisma migrate deploy
           env:
             - name: DATABASE_URL
               valueFrom:

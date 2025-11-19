@@ -39,9 +39,15 @@ sealed-secrets-staging: ## Create sealed secrets for staging environment
 sealed-secrets-production: ## Create sealed secrets for production environment
 	./scripts/kubernetes/create-sealed-secrets.sh $(NAMESPACE_PROD)
 
+sealed-postgres-secret: ## Create PostgreSQL sealed secret only
+	./scripts/kubernetes/create-postgres-sealed-secret.sh $(NAMESPACE_PROD)
+
 apply-sealed-secrets: ## Apply sealed secrets to cluster
 	@echo "Applying sealed secrets..."
 	kubectl apply -f argocd/harbor-registry-sealed-secret.yaml
+	@if [ -f argocd/postgres-sealed-secret.yaml ]; then \
+		kubectl apply -f argocd/postgres-sealed-secret.yaml; \
+	fi
 	kubectl apply -f argocd/ucebnice-sealed-secret.yaml
 	@echo "Sealed secrets applied. Secrets will be automatically decrypted by the controller."
 
@@ -139,6 +145,59 @@ db-migrate-staging: ## Run database migrations in staging
 
 db-migrate-production: ## Run database migrations in production
 	kubectl -n $(NAMESPACE_PROD) exec -it $(shell kubectl -n $(NAMESPACE_PROD) get pod -l app.kubernetes.io/name=ucebnice -o jsonpath='{.items[0].metadata.name}') -- npx prisma migrate deploy
+
+# PostgreSQL commands (for in-cluster PostgreSQL)
+postgres-connect-staging: ## Connect to PostgreSQL in staging
+	kubectl -n $(NAMESPACE_STAGING) exec -it $(NAMESPACE_STAGING)-postgres-0 -- psql -U ucebnice -d ucebnice
+
+postgres-connect-production: ## Connect to PostgreSQL in production
+	kubectl -n $(NAMESPACE_PROD) exec -it $(NAMESPACE_PROD)-postgres-0 -- psql -U ucebnice -d ucebnice
+
+postgres-logs-staging: ## View PostgreSQL logs in staging
+	kubectl -n $(NAMESPACE_STAGING) logs -f $(NAMESPACE_STAGING)-postgres-0
+
+postgres-logs-production: ## View PostgreSQL logs in production
+	kubectl -n $(NAMESPACE_PROD) logs -f $(NAMESPACE_PROD)-postgres-0
+
+postgres-backup-staging: ## Backup PostgreSQL database in staging
+	@echo "Creating backup..."
+	kubectl -n $(NAMESPACE_STAGING) exec $(NAMESPACE_STAGING)-postgres-0 -- pg_dump -U ucebnice ucebnice > backup-staging-$(shell date +%Y%m%d-%H%M%S).sql
+	@echo "Backup created: backup-staging-$(shell date +%Y%m%d-%H%M%S).sql"
+
+postgres-backup-production: ## Backup PostgreSQL database in production
+	@echo "Creating backup..."
+	kubectl -n $(NAMESPACE_PROD) exec $(NAMESPACE_PROD)-postgres-0 -- pg_dump -U ucebnice ucebnice > backup-production-$(shell date +%Y%m%d-%H%M%S).sql
+	@echo "Backup created: backup-production-$(shell date +%Y%m%d-%H%M%S).sql"
+
+postgres-restore-staging: ## Restore PostgreSQL database in staging (requires BACKUP_FILE variable)
+	@if [ -z "$(BACKUP_FILE)" ]; then \
+		echo "Error: BACKUP_FILE not specified"; \
+		echo "Usage: make postgres-restore-staging BACKUP_FILE=backup.sql"; \
+		exit 1; \
+	fi
+	@echo "Restoring from $(BACKUP_FILE)..."
+	kubectl -n $(NAMESPACE_STAGING) cp $(BACKUP_FILE) $(NAMESPACE_STAGING)-postgres-0:/tmp/restore.sql
+	kubectl -n $(NAMESPACE_STAGING) exec $(NAMESPACE_STAGING)-postgres-0 -- psql -U ucebnice -d ucebnice -f /tmp/restore.sql
+	@echo "Restore complete"
+
+postgres-restore-production: ## Restore PostgreSQL database in production (requires BACKUP_FILE variable)
+	@if [ -z "$(BACKUP_FILE)" ]; then \
+		echo "Error: BACKUP_FILE not specified"; \
+		echo "Usage: make postgres-restore-production BACKUP_FILE=backup.sql"; \
+		exit 1; \
+	fi
+	@echo "⚠️  WARNING: Restoring production database!"
+	@read -p "Are you sure? (yes/no): " confirm && [ "$$confirm" = "yes" ] || (echo "Cancelled" && exit 1)
+	@echo "Restoring from $(BACKUP_FILE)..."
+	kubectl -n $(NAMESPACE_PROD) cp $(BACKUP_FILE) $(NAMESPACE_PROD)-postgres-0:/tmp/restore.sql
+	kubectl -n $(NAMESPACE_PROD) exec $(NAMESPACE_PROD)-postgres-0 -- psql -U ucebnice -d ucebnice -f /tmp/restore.sql
+	@echo "Restore complete"
+
+postgres-status: ## Check PostgreSQL pod status
+	@echo "=== Staging ==="
+	@kubectl -n $(NAMESPACE_STAGING) get pods -l app.kubernetes.io/component=database || echo "Not deployed in staging"
+	@echo "\n=== Production ==="
+	@kubectl -n $(NAMESPACE_PROD) get pods -l app.kubernetes.io/component=database || echo "Not deployed in production"
 
 # Cleanup commands
 clean: ## Remove local Docker images

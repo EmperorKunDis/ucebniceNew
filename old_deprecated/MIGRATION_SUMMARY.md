@@ -3,12 +3,14 @@
 ## ✅ Provedené změny
 
 ### 1. **Prisma Schema** (`prisma/schema.prisma`)
+
 - ✅ Změněn provider z `postgresql` na `sqlite`
 - ✅ Odstraněny PostgreSQL-specifické typy (`@db.Uuid`, `@db.VarChar`, `@db.Text`, `@db.Timestamptz`)
 - ✅ Odstraněny PostgreSQL preview features (`fullTextSearchPostgres`, `postgresqlExtensions`)
 - ✅ Schéma je nyní kompatibilní se SQLite
 
 ### 2. **Environment konfigurace**
+
 - ✅ Vytvořen `.env` soubor pro Prisma CLI:
   ```
   DATABASE_URL="file:./dev.db"
@@ -21,18 +23,22 @@
   ```
 
 ### 3. **Databáze**
+
 - ✅ Vytvořena SQLite databáze: `prisma/dev.db` (336 KB)
 - ✅ Všechny tabulky úspěšně vytvořeny
 - ✅ Seed data naplněna (40 lekcí)
 - ✅ Databázové operace (CRUD) fungují správně
 
 ### 4. **Dokumentace**
+
 - ✅ Vytvořen `DATABASE_SETUP.md` s kompletním návodem
 - ✅ Vytvořen testovací skript `test-db-connection.mjs`
 - ✅ Aktualizován `.gitignore` pro ignorování SQLite souborů
 
 ### 5. **Gitignore**
+
 Přidáno do `.gitignore`:
+
 ```
 prisma/dev.db
 prisma/dev.db-journal
@@ -57,11 +63,13 @@ prisma/*.db-journal
 Pokud chcete přepnout zpět na PostgreSQL pro produkční deployment:
 
 1. **Obnovte PostgreSQL schéma z gitu:**
+
    ```bash
    git show HEAD~1:prisma/schema.prisma > prisma/schema.prisma
    ```
 
 2. **Aktualizujte `.env`:**
+
    ```bash
    DATABASE_URL="postgresql://user:password@localhost:5432/dbname"
    ```
@@ -78,7 +86,7 @@ Pokud chcete přepnout zpět na PostgreSQL pro produkční deployment:
 ✅ Snadný reset databáze (`rm prisma/dev.db`)  
 ✅ Portable - celá databáze v jednom souboru  
 ✅ Ideální pro testy a CI/CD  
-✅ Nižší spotřeba paměti  
+✅ Nižší spotřeba paměti
 
 ## 📝 Důležité poznámky
 
@@ -107,12 +115,15 @@ npm run dev
 ## 🆘 Troubleshooting
 
 ### Problém: "Environment variable not found: DATABASE_URL"
+
 **Řešení:** Ujistěte se, že máte vytvořen `.env` soubor v root složce projektu.
 
 ### Problém: Databáze je prázdná po seed
+
 **Řešení:** Zkontrolujte, že máte správnou cestu v DATABASE_URL a že Prisma Client je vygenerován (`npx prisma generate`).
 
 ### Problém: Migrace hlásí drift
+
 **Řešení:** Smažte `prisma/migrations` složku a použijte `npx prisma db push` místo migrate.
 
 ---
