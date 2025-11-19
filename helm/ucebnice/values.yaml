@@ -131,15 +131,18 @@ secrets:
 # PostgreSQL configuration (optional - if deploying postgres in cluster)
 postgresql:
   enabled: false
+  image:
+    repository: postgres
+    tag: "16-alpine"
+    pullPolicy: IfNotPresent
   auth:
     username: ucebnice
-    password: changeme
+    password: changeme  # Change in production via sealed secrets
     database: ucebnice
-  primary:
-    persistence:
-      enabled: true
-      storageClass: "longhorn"
-      size: 10Gi
+  persistence:
+    enabled: true
+    storageClass: ""  # Use default storage class or specify (e.g., "longhorn", "local-path")
+    size: 10Gi
   resources:
     limits:
       cpu: 1000m

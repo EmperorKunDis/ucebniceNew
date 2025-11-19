@@ -67,8 +67,29 @@ config:
 secrets: {}
 
 prisma:
-  runMigrations: false
+  runMigrations: true  # Enable for initial setup, then disable
   runSeed: false
+
+# Enable PostgreSQL in cluster
+# NOTE: Password is managed via sealed secret (argocd/postgres-sealed-secret.yaml)
+# DO NOT put the password here - it would be exposed in git!
+postgresql:
+  enabled: true
+  auth:
+    username: ucebnice
+    password: ""  # Managed via sealed secret - leave empty!
+    database: ucebnice
+  persistence:
+    enabled: true
+    storageClass: "longhorn"  # Use cluster default or specify
+    size: 10Gi
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 0.5Gi
 
 podDisruptionBudget:
   enabled: true
