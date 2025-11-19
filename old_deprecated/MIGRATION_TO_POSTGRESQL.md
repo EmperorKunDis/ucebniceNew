@@ -22,15 +22,15 @@ services:
     restart: always
     environment:
       POSTGRES_USER: ucebnice_user
-      POSTGRES_PASSWORD: your_secure_password_here  # ZMĚŇ!
+      POSTGRES_PASSWORD: your_secure_password_here # ZMĚŇ!
       POSTGRES_DB: ucebnice_db
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./prisma/init.sql:/docker-entrypoint-initdb.d/init.sql  # Volitelné
+      - ./prisma/init.sql:/docker-entrypoint-initdb.d/init.sql # Volitelné
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ucebnice_user -d ucebnice_db"]
+      test: ['CMD-SHELL', 'pg_isready -U ucebnice_user -d ucebnice_db']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -177,7 +177,7 @@ async function main() {
   // Migrace Users
   const users = await sqlite.user.findMany()
   console.log(`Migrace ${users.length} uživatelů...`)
-  
+
   for (const user of users) {
     await postgres.user.upsert({
       where: { id: user.id },
@@ -193,7 +193,7 @@ async function main() {
 }
 
 main()
-  .catch((e) => {
+  .catch(e => {
     console.error('❌ Chyba při migraci:', e)
     process.exit(1)
   })
@@ -267,7 +267,6 @@ async function main() {
     // Vymazat test data
     await prisma.user.delete({ where: { id: testUser.id } })
     console.log('✅ Test mazání úspěšný')
-
   } catch (error) {
     console.error('❌ Chyba:', error)
     process.exit(1)
@@ -436,14 +435,14 @@ docker-compose up -d
 
 ## 📊 Porovnání SQLite vs PostgreSQL
 
-| Vlastnost | SQLite | PostgreSQL |
-|-----------|--------|------------|
-| **Výkon** | Dobré pro čtení | Výborné pro vše |
-| **Concurrent writes** | Omezené | Výborné |
-| **Škálování** | Omezené | Výborné |
-| **Produkce** | Nevhodné | Ideální |
-| **Backup** | Jednoduchý soubor | Potřeba pg_dump |
-| **Setup** | Žádný | Docker/Server |
+| Vlastnost             | SQLite            | PostgreSQL      |
+| --------------------- | ----------------- | --------------- |
+| **Výkon**             | Dobré pro čtení   | Výborné pro vše |
+| **Concurrent writes** | Omezené           | Výborné         |
+| **Škálování**         | Omezené           | Výborné         |
+| **Produkce**          | Nevhodné          | Ideální         |
+| **Backup**            | Jednoduchý soubor | Potřeba pg_dump |
+| **Setup**             | Žádný             | Docker/Server   |
 
 ---
 
