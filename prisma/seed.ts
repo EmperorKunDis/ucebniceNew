@@ -6,9 +6,9 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('Seeding database...')
 
-  // Seed lessons for all chapters
+  // Seed chapters for all chapters
   for (const chapter of chapters) {
-    await prisma.lesson.upsert({
+    await prisma.chapter.upsert({
       where: {
         chapterId: chapter.id,
       },
@@ -30,7 +30,7 @@ async function main() {
     })
   }
 
-  console.log(`Seeded ${chapters.length} lessons`)
+  console.log(`Seeded ${chapters.length} chapters`)
 }
 
 main()

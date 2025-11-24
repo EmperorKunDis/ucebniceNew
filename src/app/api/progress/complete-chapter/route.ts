@@ -146,21 +146,21 @@ export async function POST(request: NextRequest) {
 
     const { chapterId } = validation.data
 
-    // Check if lesson exists for this chapter
-    const lesson = await prisma.lesson.findFirst({
+    // Check if chapter exists
+    const chapter = await prisma.chapter.findFirst({
       where: { chapterId },
     })
 
-    if (!lesson) {
-      // Lesson doesn't exist - return 404
-      // Lessons should be pre-seeded in the database
+    if (!chapter) {
+      // Chapter doesn't exist - return 404
+      // Chapters should be pre-seeded in the database
       return NextResponse.json(
         { error: `Chapter ${chapterId} not found. Please contact support.` },
         { status: 404 }
       )
     }
 
-    // Check if already completed (check both ChapterCompletion and old CompletedLesson)
+    // Check if already completed (check both ChapterCompletion and old CompletedChapter)
     const existingChapterCompletion = await prisma.chapterCompletion.findUnique({
       where: {
         userId_chapterId: {
@@ -170,19 +170,19 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Also check old completed lesson system
-    const existingLessonCompletion = lesson
-      ? await prisma.completedLesson.findUnique({
+    // Also check old completed chapter system
+    const existingChapterCompletionOld = chapter
+      ? await prisma.completedChapter.findUnique({
           where: {
-            userId_lessonId: {
+            userId_chapterId: {
               userId: session.user.id,
-              lessonId: lesson.id,
+              chapterId: chapter.id,
             },
           },
         })
       : null
 
-    if (existingChapterCompletion || existingLessonCompletion) {
+    if (existingChapterCompletion || existingChapterCompletionOld) {
       return NextResponse.json({
         message: 'Chapter already completed',
         alreadyCompleted: true,
@@ -196,7 +196,7 @@ export async function POST(request: NextRequest) {
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       include: {
-        completedLessons: true,
+        completedChapters: true,
         achievements: {
           include: {
             achievement: true,
@@ -227,7 +227,7 @@ export async function POST(request: NextRequest) {
     // Check for new achievements
     const existingBadgeIds = user.achievements.map(a => a.achievement.badgeId)
     const newBadgeIds = checkAchievements(
-      user.completedLessons.length + 1, // +1 for the current completion
+      user.completedChapters.length + 1, // +1 for the current completion
       newStreak,
       0, // TODO: track challenges
       0, // TODO: track perfect scores
@@ -236,17 +236,17 @@ export async function POST(request: NextRequest) {
 
     // Create completion record and update user in a transaction
     const result = await prisma.$transaction(async tx => {
-      // Mark lesson as completed (use upsert to avoid duplicate errors)
-      const completion = await tx.completedLesson.upsert({
+      // Mark chapter as completed (use upsert to avoid duplicate errors)
+      const completion = await tx.completedChapter.upsert({
         where: {
-          userId_lessonId: {
+          userId_chapterId: {
             userId: session.user.id,
-            lessonId: lesson.id,
+            chapterId: chapter.id,
           },
         },
         create: {
           userId: session.user.id,
-          lessonId: lesson.id,
+          chapterId: chapter.id,
           xpEarned: XP_PER_CHAPTER,
         },
         update: {}, // Don't update if already exists
