@@ -205,16 +205,16 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // Get lesson titles for recent completions
+    // Get chapter titles for recent completions
     const recentCompletions = await Promise.all(
       recentCompletionsRaw.map(async completion => {
-        const lesson = await prisma.lesson.findFirst({
+        const chapter = await prisma.chapter.findFirst({
           where: { chapterId: completion.chapterId },
         })
         return {
           id: completion.id,
           chapterId: completion.chapterId,
-          lessonTitle: lesson?.title || `Chapter ${completion.chapterId}`,
+          chapterTitle: chapter?.title || `Chapter ${completion.chapterId}`,
           completedAt: completion.completedAt,
           xpEarned: 100, // Base XP for chapter completion
         }

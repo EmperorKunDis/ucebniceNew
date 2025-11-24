@@ -56,6 +56,9 @@ model User {
   currentStreak Int @default(0)
   longestStreak Int @default(0)
 
+  // Admin access
+  isAdmin Boolean @default(false)
+
   // Metadata
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -63,9 +66,9 @@ model User {
   // Relations
   accounts           Account[]
   sessions           Session[]
-  completedLessons   CompletedLesson[]
+  completedChapters  CompletedChapter[]
   achievements       UserAchievement[]
-  lessonProgress     LessonProgress[]
+  chapterProgress    ChapterProgress[]
   cognitiveGlitches  CognitiveGlitchAttempt[]
   chapterCompletions ChapterCompletion[]
   questionAnswers    QuestionAnswer[]
@@ -89,7 +92,7 @@ model VerificationToken {
 
 // Application specific models
 
-model Lesson {
+model Chapter {
   id          String  @id @default(uuid())
   chapterId   String  @unique
   title       String
@@ -101,43 +104,43 @@ model Lesson {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  completedBy CompletedLesson[]
-  progress    LessonProgress[]
+  completedBy CompletedChapter[]
+  progress    ChapterProgress[]
 
   // Indexes for performance
   @@index([difficulty])
   @@index([order])
 }
 
-model CompletedLesson {
+model CompletedChapter {
   id          String   @id @default(uuid())
   userId      String
-  lessonId    String
+  chapterId   String
   completedAt DateTime @default(now())
   xpEarned    Int
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chapter Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, lessonId])
+  @@unique([userId, chapterId])
   @@index([userId])
-  @@index([lessonId])
+  @@index([chapterId])
   @@index([completedAt])
 }
 
-model LessonProgress {
+model ChapterProgress {
   id          String   @id @default(uuid())
   userId      String
-  lessonId    String
+  chapterId   String
   progress    Int      @default(0)
   lastUpdated DateTime @default(now())
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chapter Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, lessonId])
+  @@unique([userId, chapterId])
   @@index([userId])
-  @@index([lessonId])
+  @@index([chapterId])
   @@index([lastUpdated])
 }
 
