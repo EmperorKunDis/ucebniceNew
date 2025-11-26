@@ -1,66 +1,66 @@
-# Formáty dat a jejich práce v Pythonu
+# Formáty dat: V jakém jazyce si povídají počítače?
 
-## 33.1 Různé formáty dat
+Když si chcete přečíst knihu, otevřete ji a čtete česky. Když si chce AI "přečíst" data, potřebuje je mít v určitém formátu. Stejně jako existují různé jazyky (čeština, angličtina), existují různé datové formáty. Každý se hodí na něco jiného.
 
-V této části se představení čtyř základních formátů dat, které jsou v praxi nejčastěji využívány: CSV, JSON, XML a Parquet. Každý z těchto formátů má své specifické vlastnosti a vhodné oblasti využití.
-
-- **CSV (Comma-Separated Values)** – jednoduchý textový formát, kde jsou hodnoty odděleny čárkami (nebo jinými oddělovači). Je vhodný pro tabulková data, která lze snadno číst i v běžných tabulkových aplikacích.
-- **JSON (JavaScript Object Notation)** – strukturovaný formát, který umožňuje ukládat data v podobě objektů a polí. Je čitelný pro lidi i stroje a často se používá pro výměnu dat mezi webovými aplikacemi.
-- **XML (eXtensible Markup Language)** – podobně jako JSON, ale s využitím značkovacího jazyka. Je vhodný pro složitější hierarchické struktury a pro scénáře, kde je potřeba definovat vlastní značky.
-- **Parquet** – sloučený formát, který ukládá data ve sloupcové struktuře a je optimalizován pro analytické zpracování. Je často používán v datových skladech a v prostředí, kde je důležitá komprese a rychlé čtení.
-
-Všechny tyto formáty se v praxi často střídají a je důležité rozumět, kdy je vhodné je použít.
-
-## 33.2 Import a export dat
-
-Tato sekce představuje praktickou ukázku, jak načíst a uložit data z různých formátů. Cílem je ukázat, že i když se formáty liší, principy práce s nimi jsou podobné a lze je zvládnout pomocí jednoduchých příkazů.
-
-1. **Načítání dat** – ukázka, jak otevřít soubor a přečíst jeho obsah do programové proměnné.
-2. **Zpracování dat** – jednoduché operace, jako je filtrování nebo transformace, které ukazují, že data po načtení mohou být dále upravována.
-3. **Ukládání dat** – demonstrace, jak data po úpravách znovu uložit do souboru ve stejném nebo jiném formátu.
-
-Důležitým bodem je, že při práci s různými formáty je potřeba věnovat pozornost jejich specifickým vlastnostem, např. jak se zachází s oddělovači v CSV nebo s hierarchií v XML.
-
-## 33.3 Import a export s Pandas
-
-V poslední části se studenti seznámí s knihovnou Pandas, která je standardním nástrojem pro práci s daty v Pythonu. Zde se zaměří na:
-
-- **Načítání dat** – ukázka, jak Pandas načte soubor CSV nebo JSON do DataFrame, což je tabulková struktura, která umožňuje snadné manipulace.
-- **Zpracování dat** – demonstrace základních operací, jako je výběr sloupců, filtrování řádků a agregace.
-- **Ukládání dat** – ukázka, jak DataFrame uložit zpět do souboru CSV nebo JSON, čímž se ukazuje obousměrná cesta mezi kódem a soubory.
-
-Tato část je zaměřena na praktické dovednosti, které studenti okamžitě mohou aplikovat ve svých projektech.
-
-# Závěr
-
-V průběhu této přednášky jsme se seznámili s čtyřmi základními formáty dat, probrali principy jejich importu a exportu a ukázali, jak je prakticky využít v Pythonu s pomocí knihovny Pandas. Tyto znalosti jsou klíčové pro práci s daty v každém projektu, ať už se jedná o jednoduché tabulky nebo složitější struktury.
-
-**Co si odnést:**
-
-- Přehled základních formátů a jejich vlastností.
-- Praktické dovednosti načítání a ukládání dat.
-- Základy práce s Pandas pro manipulaci s daty.
-
-**Další kroky:**
-
-- Vyzkoušejte si načítání a ukládání dat v různých formátech sami.
-- Prozkoumejte další funkce Pandas, které umožňují pokročilé zpracování dat.
-- Přemýšlejte, jaké formáty budou nejvhodnější pro konkrétní typ dat, který máte k dispozici.
+Dnes si představíme "velkou čtyřku", se kterou se setkáte v 99 % případů.
 
 ---
 
-## GAPS & QUESTIONS
+## 1. CSV (Comma-Separated Values) – Jednoduchý seznam
 
-- **Detailní specifikace formátů**: V zadání nejsou uvedeny konkrétní vlastnosti nebo příklady souborů pro CSV, JSON, XML a Parquet.
-- **Příklady kódu**: Pro ilustraci importu a exportu by bylo vhodné uvést konkrétní ukázky kódu.
-- **Rozšířená práce s Pandas**: Není zmíněna možnost práce s jinými formáty než CSV a JSON v Pandas.
-- **Bezpečnostní a kvalita dat**: Není řešeno, jak se vyrovnat s chybami v datech nebo jak zajistit jejich kvalitu.
-- **Přechod na další témata**: V zadání není uvedeno, jak tato přednáška propojuje s dalšími tématy kurzu.
+Představte si nákupní seznam, kde jsou položky oddělené čárkou.
+`Jablka, 5, Ovoce`
+`Mléko, 1, Mléčné výrobky`
 
-## EDIT NOTES
+- **Co to je:** Nejjednodušší tabulka. Každý řádek je jeden záznam, sloupce jsou oddělené čárkou (nebo středníkem).
+- **Výhoda:** Otevřete to v Excelu, v Poznámkovém bloku, přečte to každý program na světě. Je to "univerzální dárce krve" mezi daty.
+- **Nevýhoda:** Neumí složité věci (např. seznam v seznamu).
 
-- **Tón**: Voleno analytický a poutavý, aby se udržela pozornost široké cílové skupiny bez technického zdatného publika.
-- **Struktura**: Dodržena hierarchie H1/H2 podle požadavků.
-- **Rozsah**: Text je přibližně 1700 slov, což odpovídá 60minutové přednášce s pomalým vyprávěním a interakcí.
-- **Bez halucinací**: Všechny informace jsou odvozeny z poskytnutých podkladů; při rozšíření o definice formátů byly použity obecně známé vlastnosti.
-- **Závěrečné CTA**: Přidáno shrnutí a návrh na další kroky pro motivaci čtenáře k praxi.
+## 2. JSON (JavaScript Object Notation) – Krabice v krabici
+
+Představte si, že balíte věci na dovolenou. Máte velký kufr. V něm máte tašku s oblečením. V ní máte ponožky.
+JSON funguje přesně takhle – je to hierarchický strom.
+
+```json
+{
+  "jméno": "Jan Novák",
+  "adresa": {
+    "město": "Praha",
+    "ulice": "Dlouhá"
+  },
+  "koníčky": ["fotbal", "čtení"]
+}
+```
+
+- **Co to je:** Formát, který používají webové stránky a aplikace pro komunikaci.
+- **Výhoda:** Umí popsat složité vztahy (člověk má adresu a ta adresa má město).
+- **Nevýhoda:** Zabírá více místa než CSV.
+
+## 3. XML (eXtensible Markup Language) – Přísný úředník
+
+Vypadá podobně jako HTML kód webových stránek. Všechno musí být pečlivě zabaleno do značek.
+`<jmeno>Jan Novák</jmeno>`
+
+- **Co to je:** Starší, velmi robustní formát.
+- **Výhoda:** Je extrémně přesný a bezpečný. Používají ho banky a úřady.
+- **Nevýhoda:** Je "ukecaný". Spousta textu kolem samotných dat.
+
+## 4. Parquet – Digitální archivář
+
+Představte si knihovnu, kde nejsou knihy seřazené po jedné, ale jsou rozřezané a všechny stránky č. 1 jsou v jedné krabici, stránky č. 2 v druhé.
+Zní to šíleně? Pro počítač je to geniální. Když chce přečíst jen "názvy knih" (stránka 1), sáhne do jedné krabice a nemusí listovat celou knihovnou.
+
+- **Co to je:** Moderní formát pro "Big Data".
+- **Výhoda:** Je extrémně rychlý a úsporný (komprimovaný).
+- **Nevýhoda:** Nepřečtete ho očima, potřebujete speciální program.
+
+---
+
+## Shrnutí kapitoly
+
+- **CSV** je jako Excel – jednoduchá tabulka pro lidi i stroje.
+- **JSON** je jako hnízdo krabiček – skvělý pro web a aplikace.
+- **XML** je jako úřední formulář – přísný a bezpečný.
+- **Parquet** je jako komprimovaný archiv – super rychlý pro obří data.
+
+---

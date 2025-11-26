@@ -1,185 +1,64 @@
-# Projekt Bludiště: Oživte umělou inteligenci s Pygame
+# Svět očima AI: Jak počítač "vidí" a "hraje"
 
-V minulých kapitolách jsme se naučili, jak AI prohledává abstraktní mapy a grafy pomocí algoritmů jako BFS, DFS a A\*. Dnes to všechno spojíme a oživíme! Přestaneme si o bludištích jen povídat a jedno si naprogramujeme od začátku do konce.
+V minulých kapitolách jsme si kreslili mapy a hledali cesty. Ale jak to vypadá z pohledu samotné umělé inteligence? Když hrajete videohru, vidíte grafiku, stromy, nepřátele. AI nic z toho nevidí. Vidí jen čísla.
 
-Vytvoříme interaktivní grafickou aplikaci pomocí knihovny **Pygame**, kde na vlastní oči uvidíte, jak si umělá inteligence, krok za krokem, hledá cestu ven z náhodně vygenerovaného bludiště. Toto je váš první velký vizuální AI projekt.
-
----
-
-## Část 1: Příprava plátna – Základy Pygame
-
-Pygame je knihovna pro tvorbu 2D her a multimediálních aplikací v Pythonu. Nejprve si ji nainstalujeme.
-
-```bash
-pip install pygame
-```
-
-Každá Pygame aplikace potřebuje základní kostru: okno, hlavní smyčku, která běží dokola, a zpracování událostí (jako zavření okna).
-
-```python
-import pygame
-
-# Inicializace Pygame
-pygame.init()
-
-# Nastavení okna
-SIRKA, VYSKA = 800, 600
-OKNO = pygame.display.set_mode((SIRKA, VYSKA))
-pygame.display.set_caption("AI v bludišti")
-
-# Hlavní herní smyčka
-bezi = True
-while bezi:
-    # Zpracování událostí
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            bezi = False
-
-    # Vykreslení pozadí (černá barva)
-    OKNO.fill((0, 0, 0))
-
-    # Aktualizace obrazovky
-    pygame.display.flip()
-
-pygame.quit()
-```
-
-_Když tento kód spustíte, měli byste vidět prázdné černé okno, které můžete zavřít. To je naše plátno._
+V této kapitole se podíváme pod kapotu virtuálních světů. Zjistíme, jak AI vnímá své okolí, jak se rozhoduje a proč je pro ni hra jen velká matematická tabulka.
 
 ---
 
-## Část 2: Generování a kreslení bludiště
+## Agent a Prostředí: Dva tanečníci
 
-Nyní si vytvoříme bludiště. Místo pevně daného si vygenerujeme náhodné pomocí algoritmu, který je podobný DFS. To zajistí, že pokaždé budeme řešit nový problém.
+V každé simulaci nebo hře existují dvě hlavní entity:
 
-Tento kód je komplexnější, ale v zásadě vytváří mřížku a náhodně "proráží" zdi mezi buňkami, aby vytvořil cesty.
+1.  **Agent (AI):** To je ten, kdo jedná. Může to být postava ve hře, robotický vysavač nebo autopilot v letadle.
+2.  **Prostředí (Svět):** Všechno kolem agenta. Bludiště, silnice, šachovnice.
 
-```python
-# (Tento kód vložte do stejného souboru, před hlavní smyčku)
-import random
+Jejich vztah funguje v nekonečné smyčce zvané **Smyčka vnímání a akce (Perception-Action Loop)**:
 
-VELIKOST_BUNKY = 20
-SLOUPCE, RADKY = SIRKA // VELIKOST_BUNKY, VYSKA // VELIKOST_BUNKY
-
-# Funkce pro kreslení mřížky a zdí
-def nakresli_bludiste(bludiste_bunky):
-    for radek in range(RADKY):
-        for sloupec in range(SLOUPCE):
-            bunka = bludiste_bunky[radek][sloupec]
-            x, y = sloupec * VELIKOST_BUNKY, radek * VELIKOST_BUNKY
-            if bunka['zdi']['top']:
-                pygame.draw.line(OKNO, (255, 255, 255), (x, y), (x + VELIKOST_BUNKY, y))
-            if bunka['zdi']['right']:
-                pygame.draw.line(OKNO, (255, 255, 255), (x + VELIKOST_BUNKY, y), (x + VELIKOST_BUNKY, y + VELIKOST_BUNKY))
-            if bunka['zdi']['bottom']:
-                pygame.draw.line(OKNO, (255, 255, 255), (x + VELIKOST_BUNKY, y + VELIKOST_BUNKY), (x, y + VELIKOST_BUNKY))
-            if bunka['zdi']['left']:
-                pygame.draw.line(OKNO, (255, 255, 255), (x, y + VELIKOST_BUNKY), (x, y))
-
-# Funkce pro generování bludiště (zjednodušený Randomized DFS)
-def generuj_bludiste():
-    bunky = [{'zdi': {'top': True, 'right': True, 'bottom': True, 'left': True}, 'navstiveno': False} for _ in range(SLOUPCE)]
-    bludiste_bunky = [bunky[:] for _ in range(RADKY)]
-
-    zasobnik = []
-    aktualni_radek, aktualni_sloupec = 0, 0
-    bludiste_bunky[aktualni_radek][aktualni_sloupec]['navstiveno'] = True
-    zasobnik.append((aktualni_radek, aktualni_sloupec))
-
-    while zasobnik:
-        sousedni = []
-        # Najdi nenavštívené sousedy
-        if aktualni_radek > 0 and not bludiste_bunky[aktualni_radek - 1][aktualni_sloupec]['navstiveno']:
-            sousedni.append('top')
-        if aktualni_sloupec < SLOUPCE - 1 and not bludiste_bunky[aktualni_radek][aktualni_sloupec + 1]['navstiveno']:
-            sousedni.append('right')
-        if aktualni_radek < RADKY - 1 and not bludiste_bunky[aktualni_radek + 1][aktualni_sloupec]['navstiveno']:
-            sousedni.append('bottom')
-        if aktualni_sloupec > 0 and not bludiste_bunky[aktualni_radek][aktualni_sloupec - 1]['navstiveno']:
-            sousedni.append('left')
-
-        if sousedni:
-            vybrany_smer = random.choice(sousedni)
-            if vybrany_smer == 'top':
-                bludiste_bunky[aktualni_radek][aktualni_sloupec]['zdi']['top'] = False
-                bludiste_bunky[aktualni_radek - 1][aktualni_sloupec]['zdi']['bottom'] = False
-                aktualni_radek -= 1
-            # ... (podobná logika pro right, bottom, left)
-            # Pro zjednodušení zde vynecháme zbytek kódu pro generování,
-            # v plném projektu by se zde prorážely další zdi.
-            # V našem případě si vystačíme s jednoduchou mřížkou.
-            # Pro plnou funkčnost by bylo nutné doplnit zbytek podmínek.
-    # Statická definice pro jednoduchost
-    return [
-        [0,0,0,1,0,0],
-        [0,1,0,1,0,1],
-        [0,1,0,0,0,0],
-        [0,0,1,1,1,0],
-        [0,0,0,0,0,0]
-    ]
-```
-
-_Poznámka: Plné generování bludiště je nad rámec této lekce, proto pro A_ použijeme jednodušší, staticky definované bludiště z minulé kapitoly.\*
+1.  **Vnímání (SENSE):** Agent se podívá kolem sebe. "Vidím zeď vlevo a volno vpravo."
+2.  **Myšlení (THINK):** Agent použije svůj mozek (algoritmus jako A\* nebo BFS). "Cíl je vpravo, takže chci jít doprava."
+3.  **Akce (ACT):** Agent provede pohyb. "Jdu o krok doprava."
+4.  **Reakce prostředí:** Svět se změní. Agent je na nové pozici. A smyčka začíná znovu.
 
 ---
 
-## Část 3: A\* v Pygame – Vizualizace "myšlení" AI
+## Jak AI "vidí"? Senzory vs. Data
 
-Nyní integrujeme náš A\* algoritmus z minulé kapitoly a upravíme ho tak, aby nekreslil jen výsledek, ale aby nám **ukazoval svůj postup v reálném čase**.
+Lidé mají oči. AI má **senzory** nebo přímý přístup k datům.
 
-Upravíme A\* tak, aby každý krok svého prohledávání `yield`oval (vracel) svůj aktuální stav. V hlavní smyčce Pygame pak budeme tyto kroky postupně vykreslovat.
+### 1. Mřížkové vidění (Grid World)
 
-```python
-# (Vložte do stejného souboru)
-# Použijeme A* kód z minulé kapitoly, ale mírně upravený pro Pygame
+V jednoduchých hrách (jako Pac-Man nebo naše bludiště) AI vidí svět jako šachovnici.
 
-def a_star_vizualizace(bludiste, start, cil, okno):
-    # ... (kód A* algoritmu z kapitoly 13) ...
-    # Hlavní změna bude uvnitř `while kandidati:` smyčky:
-    # Místo okamžitého běhu budeme po každém kroku (prozkoumání uzlu)
-    # vykreslovat aktuální stav a `yield`ovat.
+- Nevidí "zeď". Vidí políčko s hodnotou `1`.
+- Nevidí "cestu". Vidí políčko s hodnotou `0`.
+- Je to jako kdybyste hráli šachy se zavázanýma očima a někdo vám jen hlásil souřadnice: "Na E5 je pěšec."
 
-    # Příklad úpravy:
-    # while kandidati:
-    #     ...
-    #     uzavrena_sada.add(aktualni)
-    #
-    #     # Vykreslíme aktuální stav prohledávání
-    #     nakresli_prohledavani(uzavrena_sada, kandidati)
-    #     pygame.display.flip()
-    #     yield # Pozastaví běh a vrátí kontrolu hlavní smyčce
-    #
-    #     ... (zbytek logiky pro sousedy)
+### 2. Paprskové vidění (Raycasting)
 
-    # Pro zjednodušení zde neuvádíme celý kód znovu,
-    # ale princip spočívá v integraci kreslení do algoritmu.
-    pass # Nahraďte reálnou implementací
+V 3D střílečkách AI často používá "neviditelné laserové paprsky".
 
-# V hlavní smyčce pak budeme volat:
-# a_star_generator = a_star_vizualizace(...)
-# try:
-#     next(a_star_generator)
-# except StopIteration:
-#     # Algoritmus doběhl
-#     pass
-```
-
-_Jelikož je plná implementace s generátory pokročilejší, zaměřme se na výsledek: animaci, kde se políčka postupně barví podle toho, jak je A_ prozkoumává.\*
-
-**Jak by vizualizace vypadala:**
-
-1.  Start a cíl jsou označeny.
-2.  Políčka, která A\* zvažuje (jsou v `open_set`), se vykreslí modře.
-3.  Políčka, která už prozkoumal (jsou v `closed_set`), se vykreslí šedě.
-4.  Sledujete, jak se modrá "vlna" inteligentně šíří směrem k cíli.
-5.  Nakonec se zeleně vykreslí nalezená nejkratší cesta.
+- Agent vyšle paprsek před sebe.
+- Pokud paprsek do něčeho narazí po 5 metrech, AI ví: "Přede mnou je překážka 5 metrů daleko."
+- Tímto způsobem si "ohmatává" svět kolem sebe, podobně jako netopýr echolokací.
 
 ---
 
-## Závěr: Od kódu k živé simulaci
+## Simulace: Bezpečné hřiště pro učení
 
-Gratuluji! Dnes jste udělali obrovský krok od psaní abstraktních algoritmů k tvorbě živých, interaktivních vizualizací. Vidět, jak algoritmus "přemýšlí" a prohledává bludiště, je jeden z nejlepších způsobů, jak skutečně pochopit jeho sílu a efektivitu.
+Proč AI trénujeme ve hrách a simulacích, a ne rovnou v realitě?
+Představte si, že učíte autonomní auto řídit.
 
-Pygame je fantastický nástroj pro podobné vizualizace a prototypování herní AI. To, co jste se dnes naučili, je základem pro umělou inteligenci v mnoha 2D hrách.
+- **Realita:** První chyba = bouračka za milion korun a ohrožení života.
+- **Simulace:** První chyba = restart hry.
 
-**Vaše výzva:** Zkuste si v našem bludišti vytvořit složitější překážky. Nebo zkuste implementovat a vizualizovat "hloupější" BFS algoritmus a porovnejte, o kolik více políček musí prozkoumat ve srovnání s "chytrým" A\*. Experimentujte a bavte se!
+Simulace nám umožňují zrychlit čas. To, co by v reálu trvalo roky (např. evoluce robota, který se učí chodit), můžeme v počítači nasimulovat za pár hodin. AI může "zemřít" milionkrát, aby se naučila, jak jednou přežít.
+
+---
+
+## Shrnutí kapitoly
+
+- **Agent** je ten, kdo se rozhoduje. **Prostředí** je svět, ve kterém žije.
+- Fungují v cyklu: **Vnímej -> Mysli -> Konei**.
+- AI nevidí grafiku, vidí **data** (mřížku čísel nebo vzdálenosti).
+- **Simulace** jsou klíčové pro bezpečný trénink AI před nasazením do reality.

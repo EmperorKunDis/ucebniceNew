@@ -6,116 +6,137 @@ Představte si, že se probudíte a váš telefon vám už připravil playlist n
 
 ## Co je to vlastně ta umělá inteligence?
 
-Zapomeňte na chvíli na roboty z filmů. V jádru je umělá inteligence prostě snaha naučit počítače dělat úkoly, které by normálně vyžadovaly lidský mozek. Může to být cokoliv od rozpoznání kočky na obrázku po složení hudby.
+Zapomeňte na chvíli na roboty z filmů, kteří chtějí ovládnout svět. V jádru je umělá inteligence (AI) prostě snaha naučit počítače dělat úkoly, které by normálně vyžadovaly lidský mozek. Může to být cokoliv – od rozpoznání kočky na obrázku, přes překlad textu z angličtiny do češtiny, až po složení hudby.
 
 Představte si AI jako dva různé druhy "mysli":
 
-- **Slabá AI (Weak AI):** Tohle je 99 % toho, s čím se dnes setkáváme. Je to specialista na jeden úkol. Váš hlasový asistent je geniální v rozpoznávání příkazů, ale nezačne s vámi filozofovat o smyslu života. Je jako špičkový kuchař, který umí uvařit dokonalé jídlo, ale neopraví vám auto.
-- **Silná AI (Strong AI):** To je ten svatý grál – stroj s vědomím a inteligencí srovnatelnou s lidskou. Zatím je to čistě teoretický koncept, který zaměstnává spíše filozofy a filmaře než programátory.
+### 1. Slabá AI (Weak AI) – Specialista
 
-My se v tomto kurzu budeme věnovat té **slabé AI**, která je neuvěřitelně užitečná a mění svět právě teď.
+Tohle je 99 % toho, s čím se dnes setkáváme. Je to **specialista na jeden úkol**.
 
----
+- Váš hlasový asistent v mobilu je geniální v rozpoznávání příkazů, ale nezačne s vámi filozofovat o smyslu života.
+- Šachový program porazí mistra světa, ale neumí si zavázat tkaničky.
+- **Analogie:** Je to jako špičkový kuchař, který umí uvařit dokonalé jídlo, ale neopraví vám auto ani nevyléčí chřipku.
 
-## Klíčové pojmy, které vám otevřou dveře
+### 2. Silná AI (Strong AI) – Univerzál
 
-Abychom mohli stavět dům, potřebujeme cihly. V AI jsou našimi cihlami tyto koncepty:
+To je ten "svatý grál" – stroj s vědomím a inteligencí srovnatelnou s lidskou. Stroj, který by chápal svět jako my, měl by emoce a dokázal by se učit cokoliv. Zatím je to čistě teoretický koncept, který zaměstnává spíše filozofy a filmaře než programátory.
 
-- **Strojové učení (Machine Learning):** Místo toho, abyste počítači přesně řekli, co má dělat, mu dáte hromadu příkladů a necháte ho, ať se to naučí sám. Je to jako učit dítě rozpoznat psa. Neřeknete mu "pokud to má čtyři nohy, ocas a štěká, je to pes". Ukážete mu deset psů a řeknete "tohle je pes". Po chvíli ho pozná samo.
-- **Hluboké učení (Deep Learning):** To je takové strojové učení na steroidech. Používá "neuronové sítě", které jsou volně inspirované strukturou lidského mozku. Díky nim se počítač dokáže naučit velmi složité věci, jako je překlad jazyků v reálném čase nebo řízení auta.
-- **Neuronové sítě (Neural Networks):** Představte si velkou firmu, kde každý zaměstnanec (neuron) má na starost malý úkol. Dostane informaci od kolegů, zpracuje ji a pošle dál. Když se všichni tito "zaměstnanci" spojí a spolupracují, dokážou vyřešit i velmi komplexní problém.
-- **Datová věda (Data Science):** To je řemeslo, které to všechno umožňuje. Datoví vědci jsou detektivové, kteří v obrovském množství dat hledají vzory, příběhy a odpovědi na otázky. Bez dat by se žádná AI neměla z čeho učit.
+**My se v tomto kurzu budeme věnovat té slabé AI, která je neuvěřitelně užitečná a mění svět právě teď.**
 
 ---
 
-## Kde všude AI pomáhá? Příklady, které znáte
+## Klíčové pojmy: Cihly, ze kterých stavíme
 
-Umělá inteligence není jen pro vědce v laboratořích. Používáte ji každý den:
+Abychom mohli stavět dům, potřebujeme cihly. V AI jsou našimi cihlami tyto koncepty. Nebojte se cizích názvů, hned si je vysvětlíme.
 
-1.  **Zdravotnictví:** Lékaři používají AI k analýze rentgenových snímků. AI dokáže najít miniaturní nádory, které by lidské oko mohlo přehlédnout, a to s neuvěřitelnou přesností.
-2.  **Finance:** Vaše banka používá AI k ochraně vašeho účtu. Systém se naučí, jak běžně utrácíte, a pokud se objeví podezřelá transakce (třeba nákup v zemi, kde nejste), okamžitě ji zablokuje a upozorní vás.
-3.  **Doprava:** Autonomní auta jsou jen špička ledovce. AI optimalizuje semafory ve městech, aby se tvořilo méně kolon, a logistické firmy díky ní plánují trasy tak, aby ušetřily palivo a čas.
-4.  **Zábava:** Služby jako Netflix nebo Spotify analyzují, co se vám líbí, a doporučují vám další filmy a hudbu. Cílem je udržet vás u obrazovky (nebo se sluchátky) co nejdéle.
-5.  **Zákaznický servis:** Když píšete dotaz na webu, často vám jako první odpovídá chatbot. Ty nejlepší už dnes dokáží vyřešit většinu běžných problémů a lidskému operátorovi předají jen ty složitější případy.
+### Strojové učení (Machine Learning)
+
+Klasické programování funguje jako recept: "Vezmi dvě vejce, rozbij je, zamíchej." Počítač dělá přesně to, co mu řeknete.
+**Strojové učení** je jiné. Místo receptu ukážete počítači výsledek.
+
+- **Příklad:** Chcete naučit počítač poznat psa.
+  - _Klasicky:_ Museli byste popsat psa: "Má čtyři nohy, ocas, srst, čumák..." (Ale co když je to kočka? Nebo stůl s kožešinou?)
+  - _Strojové učení:_ Ukážete počítači 1000 fotek psů a 1000 fotek věcí, co nejsou psi. Počítač si sám najde pravidla ("Aha, tyhle uši a tenhle tvar čumáku znamenají psa").
+
+### Hluboké učení (Deep Learning)
+
+To je strojové učení "na steroidech". Používá tzv. **neuronové sítě**.
+
+- Představte si to jako velkou firmu. Jeden zaměstnanec (neuron) sám o sobě moc nezmůže. Ale když jich máte miliony a jsou uspořádaní do oddělení (vrstev), dokážou společně vyřešit neuvěřitelně složité úkoly – třeba řídit auto v hustém provozu.
+
+### Datová věda (Data Science)
+
+To je řemeslo, které to všechno umožňuje. Datoví vědci jsou jako detektivové. Prohrabávají se horami dat (čísel, textů, obrázků) a hledají v nich skryté stopy a vzory. Bez kvalitních dat by se AI neměla z čeho učit.
 
 ---
 
-## Váš první projekt: Naučte počítač rozhodovat!
+## Kde všude AI pomáhá? (Ani o tom nevíte)
 
-Pojďme si to vyzkoušet. Vytvoříme jednoduchý "rozhodovací strom". Je to jeden z nejjednodušších a nejlépe pochopitelných algoritmů strojového učení. Náš cíl? Naučit počítač, aby na základě jednoduchých otázek poznal, jestli je ovoce jablko, nebo pomeranč.
+Umělá inteligence není jen v laboratořích NASA. Používáte ji každý den:
 
-**Co budete potřebovat?**
-Pro náš první projekt použijeme **Google Colab**. Je to jako online poznámkový blok, kde můžete psát text a spouštět Python kód přímo v prohlížeči, bez jakékoliv instalace.
+1.  **Zdravotnictví:** Lékaři používají AI jako "druhé oči". AI projde tisíce rentgenových snímků a upozorní lékaře na podezřelé stíny, které by unavené lidské oko mohlo přehlédnout.
+2.  **Finance:** Vaše banka má AI hlídače. Ten se naučil, jak běžně utrácíte. Když se najednou objeví platba za diamanty v Tichomoří, AI zbystří a transakci zablokuje, aby ochránila vaše peníze.
+3.  **Doprava:** Navigace v autě nepočítá jen vzdálenost. Používá AI k předpovídání dopravy. "V pátek odpoledne tu bývá zácpa, raději tě pošlu jinudy."
+4.  **Zábava (Netflix, Spotify):** "Protože jste sledovali Romantickou komedii, mohlo by se vám líbit..." To je AI, která analyzuje váš vkus a snaží se vám nabídnout to, co vás potěší.
+5.  **E-maily:** Váš spam filtr je AI. Naučil se, že e-maily s předmětem "VYHRÁLI JSTE MILION!!!" jsou většinou podvod, a rovnou je hází do koše.
 
-1.  Jděte na [colab.research.google.com](https://colab.research.google.com).
-2.  Klikněte na "Nový poznámkový blok".
+---
 
-**Krok 1: Připravíme si "data"**
+## Jak se počítač učí? (Velmi zjednodušeně)
 
-V reálném světě bychom měli velkou tabulku s daty. Pro náš příklad si je vytvoříme sami. Budeme mít data o ovoci – jeho váhu v gramech a texturu (0 = hladká, 1 = hrbolatá).
+Představte si, že chcete naučit počítač rozeznat **Jablko** od **Pomeranče**.
 
-```python
-# V Pythonu používáme knihovny, které nám usnadňují práci.
-# Scikit-learn je zlatý standard pro strojové učení.
-from sklearn import tree
+1.  **Vstupy (Data):** Musíme ovoce popsat čísly.
+    - Váha: 150 gramů.
+    - Povrch: Hladký (0) nebo Hrbolatý (1).
+2.  **Trénink:** Ukážeme počítači tabulku:
+    - 140g, Hladký -> JABLKO
+    - 130g, Hladký -> JABLKO
+    - 150g, Hrbolatý -> POMERANČ
+    - 160g, Hrbolatý -> POMERANČ
+3.  **Model:** Počítač si vytvoří pravidlo (model). Třeba: "Pokud je to hrbolaté, je to pomeranč. Pokud je to hladké, je to jablko."
+4.  **Předpověď:** Pak mu ukážete nové ovoce: 155g, Hrbolatý. Počítač použije své pravidlo a řekne: "To bude asi POMERANČ!"
 
-# Naše "trénovací" data: [váha v gramech, textura (0=hladká, 1=hrbolatá)]
-# Například [140, 0] je 140g hladké ovoce.
-features = [[140, 0], [130, 0], [150, 1], [170, 1]]
+Takhle jednoduše to v principu funguje. V praxi jsou těch pravidel miliony, ale základ je stejný.
 
-# A tady jsou "správné odpovědi" (štítky). 0 = jablko, 1 = pomeranč.
-# První ovoce (140g, hladké) je jablko, třetí (150g, hrbolaté) je pomeranč.
-labels = [0, 0, 1, 1]
+---
+
+## Naše dílna: Nástroje pro práci s AI
+
+Aby tesař mohl stavět dům, potřebuje kladivo a pilu. My budeme stavět AI, takže potřebujeme své nástroje.
+
+### Python - Jazyk AI
+
+**Python** je programovací jazyk, který si zamilovala celá AI komunita. Proč?
+
+- Je jednoduchý a čitelný (vypadá skoro jako angličtina).
+- Má obrovské množství hotových knihoven pro AI (jako LEGO kostky, které můžete poskládat).
+- Používají ho všichni - od začátečníků po Google a NASA.
+
+### Google Colab / Jupyter Notebooks - Interaktivní sešit
+
+Představte si sešit, kde můžete psát text, vkládat obrázky, **a zároveň spouštět živý kód**.
+
+- **Jupyter Notebook:** Interaktivní prostředí, kde píšete kód do "buněk" a spouštíte ho kousek po kousku.
+- **Google Colab:** To samé, ale běží v prohlížeči a nemusíte nic instalovat. Je to jako Google Docs pro programátory.
+
+V praxi to znamená: Napíšete řádek kódu, zmáčknete Shift+Enter, a hned vidíte výsledek. Pak napíšete další řádek. Je to jako konverzace s počítačem.
+
+---
+
+## První AI koncept: Rozhodovací strom
+
+Představte si, že jdete na procházku a ptáte se: "Mám si vzít deštník?"
+Váš mozek vytvoří **rozhodovací strom**:
+
+```
+Prší venku?
+├─ ANO → Vezmi deštník
+└─ NE
+   └─ Je předpověď deště?
+      ├─ ANO → Vezmi deštník
+      └─ NE → Nemusíš brát deštník
 ```
 
-_Vložte tento kód do buňky v Colabu a spusťte ho stisknutím Shift+Enter._
+Rozhodovací strom je jeden z nejjednodušších AI algoritmů. Funguje jako série otázek typu "ANO/NE", které vedou k rozhodnutí.
 
-**Krok 2: Vytvoříme a natrénujeme model**
+**Příklad použití:**
 
-Teď vytvoříme prázdný rozhodovací strom a "nakrmíme" ho našimi daty. Tomuto procesu se říká **trénování modelu**.
+- **Lékařská diagnostika:** "Má pacient horečku? ANO → Má vyrážku? ANO → Možná spalničky."
+- **Schvalování úvěru:** "Má příjem vyšší než 30 000? ANO → Má dobrou historii? ANO → Schválit úvěr."
 
-```python
-# Vytvoříme prázdný model (klasifikátor) rozhodovacího stromu.
-clf = tree.DecisionTreeClassifier()
-
-# Natrénujeme model. Metoda .fit() najde vzory v našich datech.
-# Počítač se teď "učí", jaká váha a textura odpovídá jablku a jaká pomeranči.
-clf = clf.fit(features, labels)
-```
-
-_Vložte do další buňky a spusťte._
-
-**Krok 3: Zeptáme se modelu na předpověď**
-
-Model je natrénovaný! Teď se ho můžeme zeptat, co si myslí o novém kusu ovoce, který ještě neviděl. Co třeba 160g hrbolaté ovoce?
-
-```python
-# Zeptáme se modelu: "Co je ovoce, které váží 160g a má hrbolatou texturu?"
-# Odpověď 0 znamená jablko, 1 znamená pomeranč.
-prediction = clf.predict([[160, 1]])
-
-# Vytiskneme výsledek srozumitelnou formou.
-if prediction == 0:
-    print("Předpověď: Je to Jablko!")
-else:
-    print("Předpověď: Je to Pomeranč!")
-
-# Zkuste změnit hodnoty! Co třeba [120, 0] (120g hladké)?
-```
-
-_Vložte do další buňky a spusťte. Gratulujeme, právě jste natrénovali a použili svůj první AI model!_
+Je to intuitivní, vysvětlitelné (vidíte každý krok) a přesně tak, jak často rozhodujete i vy sami.
 
 ---
 
-## Závěr: Vaše cesta teprve začíná
+## Shrnutí kapitoly
 
-Dnes jste udělali obrovský krok. Pochopili jste, že umělá inteligence není žádná černá magie, ale mocný nástroj postavený na datech a logice.
+- **AI (Umělá inteligence)** je snaha naučit stroje myslet a učit se.
+- **Slabá AI** je specialista na jeden úkol (dnešní realita). **Silná AI** je univerzální mysl (zatím sci-fi).
+- **Strojové učení** znamená, že se počítač učí z příkladů (dat), místo aby měl pevně daný recept.
+- AI je všude kolem nás – v telefonu, v bance, v autě i v nemocnici.
 
-**Co jste se naučili:**
+V příští kapitole se podíváme na to, jaké nástroje budeme potřebovat, abychom si takovou AI mohli sami vyzkoušet postavit. Nebojte, nebude to bolet!
 
-- Rozdíl mezi slabou a silnou AI.
-- Co je strojové učení, hluboké učení a neuronová síť.
-- Jak AI ovlivňuje svět od medicíny po zábavu.
-- Napsali jste svůj první funkční kód, který se "učí" z dat.
-
-Vaše výzva? Zkuste si v Colabu hrát. Přidejte do dat další ovoce. Co kdybychom přidali třetí vlastnost, třeba barvu? Jak by to změnilo kód? Nebojte se experimentovat. Právě jste otevřeli dveře do jednoho z nejvíce vzrušujících oborů současnosti. V příští kapitole se podíváme hlouběji na strojové učení.
+---
