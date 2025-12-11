@@ -22,7 +22,8 @@ const customJestConfig = {
     '!src/app/**/page.tsx',
     '!src/app/**/layout.tsx',
   ],
-  testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/'],
+  testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/', '<rootDir>/e2e/'],
+  modulePathIgnorePatterns: ['<rootDir>/.next/'],
   transformIgnorePatterns: [
     'node_modules/(?!(@auth/prisma-adapter)/)',
   ],

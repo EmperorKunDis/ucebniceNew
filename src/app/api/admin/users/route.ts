@@ -12,11 +12,25 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url)
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '50')
+    const parsedPage = parseInt(searchParams.get('page') || '1')
+    const parsedLimit = parseInt(searchParams.get('limit') || '50')
+    const page = Math.max(parsedPage, 1)
+    const limit = Math.min(Math.max(parsedLimit, 1), 100)
     const search = searchParams.get('search') || ''
-    const sortBy = searchParams.get('sortBy') || 'createdAt'
-    const sortOrder = searchParams.get('sortOrder') || 'desc'
+
+    // Whitelist allowed sort fields to prevent injection
+    const ALLOWED_SORT_FIELDS = [
+      'createdAt',
+      'email',
+      'name',
+      'username',
+      'xp',
+      'level',
+      'updatedAt',
+    ]
+    const requestedSort = searchParams.get('sortBy') || 'createdAt'
+    const sortBy = ALLOWED_SORT_FIELDS.includes(requestedSort) ? requestedSort : 'createdAt'
+    const sortOrder = searchParams.get('sortOrder') === 'asc' ? 'asc' : 'desc'
 
     const skip = (page - 1) * limit
 

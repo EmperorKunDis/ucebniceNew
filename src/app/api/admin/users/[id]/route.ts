@@ -21,6 +21,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
           orderBy: {
             completedAt: 'desc',
           },
+          take: 50, // Limit to prevent loading excessive data
         },
         achievements: {
           include: {
@@ -29,11 +30,42 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
           orderBy: {
             unlockedAt: 'desc',
           },
+          take: 50, // Limit to prevent loading excessive data
         },
-        chapterCompletions: true,
-        questionAnswers: true,
-        projectSubmissions: true,
-        moduleTestAttempts: true,
+        chapterCompletions: {
+          take: 50, // Limit to prevent loading excessive data
+          orderBy: {
+            updatedAt: 'desc',
+          },
+        },
+        questionAnswers: {
+          take: 100, // Limit to prevent loading excessive data
+          orderBy: {
+            answeredAt: 'desc',
+          },
+        },
+        projectSubmissions: {
+          take: 50, // Limit to prevent loading excessive data
+          orderBy: {
+            submittedAt: 'desc',
+          },
+        },
+        moduleTestAttempts: {
+          take: 20, // Limit to prevent loading excessive data
+          orderBy: {
+            completedAt: 'desc',
+          },
+        },
+        _count: {
+          select: {
+            completedChapters: true,
+            achievements: true,
+            chapterCompletions: true,
+            questionAnswers: true,
+            projectSubmissions: true,
+            moduleTestAttempts: true,
+          },
+        },
       },
     })
 

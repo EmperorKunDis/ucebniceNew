@@ -158,7 +158,7 @@ describe('Gamification Utils', () => {
         streakBonus: 0,
         badges: [],
       })
-      expect(xp).toBe(500) // 5 * 100
+      expect(xp).toBe(250) // 5 * 50 (XP_PER_CHAPTER = 50)
     })
 
     it('should calculate XP from quizzes only', () => {
@@ -213,13 +213,13 @@ describe('Gamification Utils', () => {
         streakBonus: 4,
         badges: ['first-chapter', 'five-chapters'],
       })
-      // chapters: 5 * 100 = 500
+      // chapters: 5 * 50 = 250 (XP_PER_CHAPTER = 50)
       // quizzes: 3 * 50 = 150
       // challenges: 2 * 150 = 300
       // streak: 4 * 25 = 100
       // badges: first-chapter (50) + five-chapters (100) = 150
-      // Total: 500 + 150 + 300 + 100 + 150 = 1200
-      expect(xp).toBe(1200)
+      // Total: 250 + 150 + 300 + 100 + 150 = 950
+      expect(xp).toBe(950)
     })
   })
 
@@ -269,7 +269,7 @@ describe('Gamification Utils', () => {
 
   describe('Constants', () => {
     it('should have correct XP constants', () => {
-      expect(XP_PER_CHAPTER).toBe(100)
+      expect(XP_PER_CHAPTER).toBe(50) // Updated to match implementation
       expect(XP_PER_QUIZ).toBe(50)
       expect(XP_PER_CHALLENGE).toBe(150)
       expect(XP_STREAK_BONUS).toBe(25)

@@ -193,7 +193,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Fetch recent chapter completions with lesson info
+    // Fetch recent chapter completions
     const recentCompletionsRaw = await prisma.chapterCompletion.findMany({
       where: {
         userId: session.user.id,
@@ -205,21 +205,25 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // Get chapter titles for recent completions
-    const recentCompletions = await Promise.all(
-      recentCompletionsRaw.map(async completion => {
-        const chapter = await prisma.chapter.findFirst({
-          where: { chapterId: completion.chapterId },
-        })
-        return {
-          id: completion.id,
-          chapterId: completion.chapterId,
-          chapterTitle: chapter?.title || `Chapter ${completion.chapterId}`,
-          completedAt: completion.completedAt,
-          xpEarned: 100, // Base XP for chapter completion
-        }
-      })
-    )
+    // Batch fetch all chapter titles in a single query (fixing N+1)
+    const chapterIds = recentCompletionsRaw.map(c => c.chapterId)
+    const chapters =
+      chapterIds.length > 0
+        ? await prisma.chapter.findMany({
+            where: { chapterId: { in: chapterIds } },
+            select: { chapterId: true, title: true },
+          })
+        : []
+    const chapterTitleMap = new Map(chapters.map(c => [c.chapterId, c.title]))
+
+    // Map completions using the pre-fetched chapter titles
+    const recentCompletions = recentCompletionsRaw.map(completion => ({
+      id: completion.id,
+      chapterId: completion.chapterId,
+      chapterTitle: chapterTitleMap.get(completion.chapterId) || `Chapter ${completion.chapterId}`,
+      completedAt: completion.completedAt,
+      xpEarned: 100, // Base XP for chapter completion
+    }))
 
     // Calculate level progress
     const levelProgress = getProgressToNextLevel(user.xp)
