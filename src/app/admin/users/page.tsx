@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 
 interface User {
   id: string
@@ -24,7 +24,7 @@ export default function UsersManagement() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setLoading(true)
     try {
       const params = new URLSearchParams({
@@ -36,15 +36,15 @@ export default function UsersManagement() {
       const data = await res.json()
       setUsers(data.users)
       setTotalPages(data.pagination.totalPages)
-    } catch (error) {
-      console.error('Error fetching users:', error)
+    } catch {
+      // Silent fail - loading state already shown
     }
     setLoading(false)
-  }
+  }, [page, search])
 
   useEffect(() => {
     fetchUsers()
-  }, [page, search])
+  }, [fetchUsers])
 
   const handleDelete = async (userId: string) => {
     if (!confirm('Are you sure you want to delete this user?')) return
@@ -52,8 +52,7 @@ export default function UsersManagement() {
     try {
       await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' })
       fetchUsers()
-    } catch (error) {
-      console.error('Error deleting user:', error)
+    } catch {
       alert('Failed to delete user')
     }
   }

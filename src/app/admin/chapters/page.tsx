@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 
 interface Chapter {
   id: string
@@ -22,7 +22,7 @@ export default function ChaptersManagement() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
 
-  const fetchChapters = async () => {
+  const fetchChapters = useCallback(async () => {
     setLoading(true)
     try {
       const params = new URLSearchParams({
@@ -33,15 +33,15 @@ export default function ChaptersManagement() {
       const data = await res.json()
       setChapters(data.chapters)
       setTotalPages(data.pagination.totalPages)
-    } catch (error) {
-      console.error('Error fetching chapters:', error)
+    } catch {
+      // Silent fail - loading state already shown
     }
     setLoading(false)
-  }
+  }, [page])
 
   useEffect(() => {
     fetchChapters()
-  }, [page])
+  }, [fetchChapters])
 
   const handleDelete = async (chapterId: string) => {
     if (!confirm('Are you sure you want to delete this chapter?')) return
@@ -49,8 +49,7 @@ export default function ChaptersManagement() {
     try {
       await fetch(`/api/admin/chapters/${chapterId}`, { method: 'DELETE' })
       fetchChapters()
-    } catch (error) {
-      console.error('Error deleting chapter:', error)
+    } catch {
       alert('Failed to delete chapter')
     }
   }

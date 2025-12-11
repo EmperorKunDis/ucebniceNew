@@ -21,7 +21,6 @@ import { Button } from '@/components/ui/button'
 import { getModuleTest } from '@/data/module-tests'
 import {
   Book,
-  FileText,
   ChevronDown,
   PlayCircle,
   CheckCircle,
@@ -61,7 +60,7 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
   const [answeredQuestions, setAnsweredQuestions] = useState(false)
   const [submittedProject, setSubmittedProject] = useState(false)
   const [questionAnswers, setQuestionAnswers] = useState<Map<string, boolean>>(new Map())
-  const [loading, setLoading] = useState(true)
+  const [, setLoading] = useState(true)
   const [showModuleTest, setShowModuleTest] = useState(false)
   const [moduleTestNumber, setModuleTestNumber] = useState<number | null>(null)
   const [isChapterLocked, setIsChapterLocked] = useState(false)
@@ -240,7 +239,7 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
   }
 
   const handleTestAbandon = () => {
-    toast.info('Test ukončen')
+    toast('Test ukončen')
     setShowModuleTest(false)
     setModuleTestNumber(null)
   }

@@ -72,9 +72,9 @@ test.describe('Chapter Completion Flow', () => {
       password: 'Test123!',
     })
 
-    // Create a lesson and mark it as completed
+    // Create a chapter and mark it as completed
     const db = getTestDb()
-    const lesson = await db.lesson.create({
+    const chapter = await db.chapter.create({
       data: {
         chapterId: '01',
         title: 'Kapitola 1',
@@ -85,10 +85,10 @@ test.describe('Chapter Completion Flow', () => {
       },
     })
 
-    await db.completedLesson.create({
+    await db.completedChapter.create({
       data: {
         userId: user.id,
-        lessonId: lesson.id,
+        chapterId: chapter.id,
         xpEarned: 100,
       },
     })
@@ -120,9 +120,9 @@ test.describe('Chapter Completion Flow', () => {
       password: 'Test123!',
     })
 
-    // Create and complete a lesson
+    // Create and complete a chapter
     const db = getTestDb()
-    const lesson = await db.lesson.create({
+    const chapter = await db.chapter.create({
       data: {
         chapterId: '02',
         title: 'Kapitola 2',
@@ -133,10 +133,10 @@ test.describe('Chapter Completion Flow', () => {
       },
     })
 
-    await db.completedLesson.create({
+    await db.completedChapter.create({
       data: {
         userId: user.id,
-        lessonId: lesson.id,
+        chapterId: chapter.id,
         xpEarned: 100,
       },
     })
@@ -178,8 +178,8 @@ test.describe('Chapter Completion Flow', () => {
 
     const db = getTestDb()
 
-    // Create lesson
-    const lesson = await db.lesson.create({
+    // Create chapter
+    await db.chapter.create({
       data: {
         chapterId: '03',
         title: 'Kapitola 3',

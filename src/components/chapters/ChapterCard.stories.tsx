@@ -27,7 +27,9 @@ const mockChapterBasic: Chapter = {
   number: 1,
   title: 'Úvod do programování',
   description: 'Základy programování v Pythonu. Naučíme se první příkazy a principy.',
-  hours: 1,
+  hours: '1',
+  textFile: 'chapter-1.md',
+  lectureFile: 'lecture-1.md',
   videoFile: '/videos/chapter-1.mp4',
   notebookLMUrl: 'https://notebooklm.google.com/notebook/123',
 }
@@ -38,7 +40,9 @@ const mockChapterWithNotebook: Chapter = {
   title: 'Proměnné a datové typy',
   description:
     'Práce s proměnnými, čísly, textem a dalšími základními datovými typy. Naučíme se ukládat a zpracovávat data.',
-  hours: 2,
+  hours: '2',
+  textFile: 'chapter-2.md',
+  lectureFile: 'lecture-2.md',
   videoFile: '/videos/chapter-2.mp4',
   notebookLMUrl: 'https://notebooklm.google.com/notebook/456',
   colabNotebook: 'https://colab.research.google.com/drive/xyz',
@@ -49,7 +53,9 @@ const mockChapterNoVideo: Chapter = {
   number: 3,
   title: 'Podmínky a cykly',
   description: 'Řízení toku programu pomocí podmínek if/else a cyklů for/while.',
-  hours: 3,
+  hours: '3',
+  textFile: 'chapter-3.md',
+  lectureFile: 'lecture-3.md',
   notebookLMUrl: 'https://notebooklm.google.com/notebook/789',
 }
 
@@ -59,7 +65,9 @@ const mockChapterLongDescription: Chapter = {
   title: 'Funkce a moduly',
   description:
     "Vytváření vlastních funkcí pro organizaci kódu. Import a použití externích knihoven. Naučíme se strukturovat větší projekty do modulů a balíčků. Pochopíme koncept DRY (Don't Repeat Yourself) a jak psát znovupoužitelný kód.",
-  hours: 4,
+  hours: '4',
+  textFile: 'chapter-4.md',
+  lectureFile: 'lecture-4.md',
   videoFile: '/videos/chapter-4.mp4',
   notebookLMUrl: 'https://notebooklm.google.com/notebook/abc',
   colabNotebook: 'https://colab.research.google.com/drive/abc',
@@ -95,6 +103,9 @@ export const LongDescription: Story = {
 
 // Multiple chapters showcase
 export const MultipleChapters: Story = {
+  args: {
+    chapter: mockChapterBasic,
+  },
   render: () => (
     <div className="flex flex-col gap-4">
       <ChapterCard chapter={mockChapterBasic} />

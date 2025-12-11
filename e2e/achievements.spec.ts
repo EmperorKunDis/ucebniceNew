@@ -22,8 +22,8 @@ test.describe('Achievements Flow', () => {
 
     const db = getTestDb()
 
-    // Create lesson
-    const lesson = await db.lesson.create({
+    // Create chapter
+    await db.chapter.create({
       data: {
         chapterId: '01',
         title: 'První kapitola',
@@ -164,9 +164,9 @@ test.describe('Achievements Flow', () => {
       },
     })
 
-    // Create lessons
+    // Create chapters
     for (let i = 1; i <= 7; i++) {
-      const lesson = await db.lesson.create({
+      const chapter = await db.chapter.create({
         data: {
           chapterId: String(i).padStart(2, '0'),
           title: `Kapitola ${i}`,
@@ -177,10 +177,10 @@ test.describe('Achievements Flow', () => {
         },
       })
 
-      await db.completedLesson.create({
+      await db.completedChapter.create({
         data: {
           userId: user.id,
-          lessonId: lesson.id,
+          chapterId: chapter.id,
           xpEarned: 100,
         },
       })
@@ -231,7 +231,7 @@ test.describe('Achievements Flow', () => {
 
   test('should show achievement notification when unlocked', async ({ page }) => {
     // Create test user
-    const user = await createTestUser({
+    await createTestUser({
       email: 'notification@example.com',
       username: 'notificationuser',
       name: 'Notification User',
@@ -240,8 +240,8 @@ test.describe('Achievements Flow', () => {
 
     const db = getTestDb()
 
-    // Create lesson
-    await db.lesson.create({
+    // Create chapter
+    await db.chapter.create({
       data: {
         chapterId: '05',
         title: 'Kapitola 5',

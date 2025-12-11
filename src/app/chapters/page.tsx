@@ -6,7 +6,6 @@ import Link from 'next/link'
 import {
   ChevronRight,
   Lock,
-  CheckCircle,
   Clock,
   Award,
   Sparkles,
@@ -31,7 +30,6 @@ interface ChapterProgress {
 
 export default function ChaptersPage() {
   const [progress, setProgress] = useState<Record<string, ChapterProgress>>({})
-  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     // Fetch fresh progress data from API
@@ -44,8 +42,6 @@ export default function ChaptersPage() {
         }
       } catch (error) {
         console.error('Error fetching progress:', error)
-      } finally {
-        setIsLoading(false)
       }
     }
 

@@ -61,7 +61,7 @@ export function validateEnv(): Env {
 
   if (!result.success) {
     console.error('❌ Invalid environment variables:')
-    result.error.errors.forEach(err => {
+    result.error.issues.forEach((err: z.ZodIssue) => {
       console.error(`  ${err.path.join('.')}: ${err.message}`)
     })
 

@@ -12,6 +12,7 @@ import { Stack, Box } from '@/components/layout'
 import { Github, Mail, Loader2, ArrowLeft } from 'lucide-react'
 import Image from 'next/image'
 import { signInSchema } from '@/lib/validation-schemas'
+import { z } from 'zod'
 import toast from 'react-hot-toast'
 
 export default function SignInPage() {
@@ -32,9 +33,10 @@ export default function SignInPage() {
 
     if (!validation.success) {
       const errors: Record<string, string> = {}
-      validation.error.errors.forEach(err => {
-        if (err.path.length > 0) {
-          errors[err.path[0].toString()] = err.message
+      validation.error.issues.forEach((err: z.ZodIssue) => {
+        const firstPath = err.path[0]
+        if (firstPath !== undefined) {
+          errors[firstPath.toString()] = err.message
         }
       })
       setValidationErrors(errors)

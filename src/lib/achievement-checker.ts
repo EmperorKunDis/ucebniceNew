@@ -18,29 +18,21 @@ export async function checkAndAwardAchievements(userId: string): Promise<BadgeId
     const newBadges: BadgeId[] = []
 
     // Získej statistiky uživatele
-    const [
-      completedChapters,
-      allQuestionAnswers,
-      allProjects,
-      allTestAttempts,
-      chapterCompletions,
-    ] = await Promise.all([
-      prisma.chapterCompletion.count({
-        where: { userId },
-      }),
-      prisma.questionAnswer.findMany({
-        where: { userId, correct: true },
-      }),
-      prisma.projectSubmission.count({
-        where: { userId },
-      }),
-      prisma.moduleTestAttempt.findMany({
-        where: { userId, completed: true },
-      }),
-      prisma.chapterCompletion.findMany({
-        where: { userId },
-      }),
-    ])
+    const [allQuestionAnswers, allProjects, allTestAttempts, chapterCompletions] =
+      await Promise.all([
+        prisma.questionAnswer.findMany({
+          where: { userId, correct: true },
+        }),
+        prisma.projectSubmission.count({
+          where: { userId },
+        }),
+        prisma.moduleTestAttempt.findMany({
+          where: { userId, completed: true },
+        }),
+        prisma.chapterCompletion.findMany({
+          where: { userId },
+        }),
+      ])
 
     const correctQuestions = allQuestionAnswers.length
     // Count chapters with specific achievements
@@ -151,8 +143,8 @@ export async function checkAndAwardAchievements(userId: string): Promise<BadgeId
     }
 
     return newBadges
-  } catch (error) {
-    console.error('Error checking achievements:', error)
+  } catch {
+    // Silent fail - return empty array on error
     return []
   }
 }

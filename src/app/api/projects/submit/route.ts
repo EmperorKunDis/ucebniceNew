@@ -136,7 +136,7 @@ export async function GET(request: NextRequest) {
 
     // Validate query parameters
     const validation = validateQueryParams(searchParams, chapterProgressQuerySchema)
-    if (!validation.success) {
+    if (!validation.success || !validation.data) {
       return NextResponse.json(
         { error: 'Validation failed', details: validation.errors },
         { status: 400 }

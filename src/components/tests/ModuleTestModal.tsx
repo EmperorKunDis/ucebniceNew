@@ -6,7 +6,6 @@ import { X, ChevronLeft, ChevronRight, Clock, Award, Star, Trophy } from 'lucide
 import { Button } from '@/components/ui/button'
 import { GreySurface } from '@/components/ui/grey-surface'
 import { ModuleTest, calculateTestScore } from '@/data/module-tests'
-import toast from 'react-hot-toast'
 
 interface ModuleTestModalProps {
   moduleTest: ModuleTest
@@ -27,14 +26,23 @@ export function ModuleTestModal({ moduleTest, onComplete, onAbandon }: ModuleTes
   const [selectedOption, setSelectedOption] = useState<number | null>(null)
   const [startTime] = useState(Date.now())
   const [showResults, setShowResults] = useState(false)
-  const [testResults, setTestResults] = useState<any>(null)
+  const [testResults, setTestResults] = useState<{
+    stars: number
+    score: number
+    timeBonus: number
+    totalXP: number
+    percentage: number
+    timeElapsed: number
+    correctCount: number
+    answers: (number | null)[]
+  } | null>(null)
 
   const currentQuestion = moduleTest.questions[currentQuestionIndex]
   const progress = ((currentQuestionIndex + 1) / moduleTest.questions.length) * 100
 
   useEffect(() => {
     // Load saved answer for current question
-    setSelectedOption(answers[currentQuestionIndex])
+    setSelectedOption(answers[currentQuestionIndex] ?? null)
   }, [currentQuestionIndex, answers])
 
   const handleOptionSelect = (optionIndex: number) => {
@@ -90,14 +98,15 @@ export function ModuleTestModal({ moduleTest, onComplete, onAbandon }: ModuleTes
       })
 
       if (!response.ok) {
-        console.error('Failed to submit test')
+        // Silent fail - user already sees results
       }
-    } catch (error) {
-      console.error('Error submitting test:', error)
+    } catch {
+      // Silent fail - user already sees results
     }
   }
 
   const handleCompleteResults = () => {
+    if (!testResults) return
     onComplete({
       score: testResults.correctCount,
       timeElapsed: testResults.timeElapsed,
@@ -174,11 +183,11 @@ export function ModuleTestModal({ moduleTest, onComplete, onAbandon }: ModuleTes
                 {/* Question */}
                 <div className="mb-8">
                   <h3 className="text-xl font-semibold text-white mb-6">
-                    {currentQuestion.question}
+                    {currentQuestion?.question}
                   </h3>
 
                   <div className="space-y-3">
-                    {currentQuestion.options.map((option, index) => (
+                    {currentQuestion?.options.map((option, index) => (
                       <button
                         key={index}
                         onClick={() => handleOptionSelect(index)}
@@ -199,7 +208,7 @@ export function ModuleTestModal({ moduleTest, onComplete, onAbandon }: ModuleTes
                   <Button
                     onClick={handlePrevious}
                     disabled={currentQuestionIndex === 0}
-                    variant="outline"
+                    variant="secondary"
                   >
                     <ChevronLeft className="w-4 h-4 mr-2" />
                     Předchozí
@@ -238,7 +247,7 @@ export function ModuleTestModal({ moduleTest, onComplete, onAbandon }: ModuleTes
                 </div>
               </GreySurface>
             </motion.div>
-          ) : (
+          ) : testResults ? (
             <motion.div
               key="results"
               initial={{ opacity: 0, scale: 0.9 }}
@@ -304,7 +313,7 @@ export function ModuleTestModal({ moduleTest, onComplete, onAbandon }: ModuleTes
                 </Button>
               </GreySurface>
             </motion.div>
-          )}
+          ) : null}
         </AnimatePresence>
       </div>
     </div>

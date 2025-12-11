@@ -1,4 +1,4 @@
-import { test, expect, devices } from '@playwright/test'
+import { test, expect } from '@playwright/test'
 import { cleanupTestDb, createTestUser, disconnectTestDb } from './helpers/test-db'
 
 test.describe('Mobile Responsive Tests', () => {

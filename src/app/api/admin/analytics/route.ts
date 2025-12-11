@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma'
  * GET /api/admin/analytics
  * Get comprehensive analytics and statistics
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   const adminCheck = await requireAdmin()
   if (adminCheck) return adminCheck
 

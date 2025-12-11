@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { BADGES } from '@/lib/gamification'
-import { XP, BADGE_IDS } from '@/lib/constants'
+import { XP } from '@/lib/constants'
 import { validateAPIRequest, completeOnboardingSchema } from '@/lib/validation-schemas'
 
 const ONBOARDING_XP = XP.ONBOARDING_COMPLETE
@@ -53,7 +52,9 @@ export async function POST(request: NextRequest) {
       return validation.response
     }
 
-    const { goal, experience } = validation.data
+    // Note: goal and experience are validated but not stored in current schema
+    // They could be stored in user metadata if needed
+    const { goal: _goal, experience: _experience } = validation.data
 
     // Get current user
     const user = await prisma.user.findUnique({

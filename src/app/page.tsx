@@ -1,10 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { PageLayout } from '@/components/layout/page-layout'
-import { GlassSurface } from '@/components/ui/glass-surface'
 import { GreySurface } from '@/components/ui/grey-surface'
 import { Button } from '@/components/ui/button'
 import { Stack, Grid, Box } from '@/components/layout'
@@ -12,7 +9,6 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { ChevronRight, Code2, Brain, Trophy, Users } from 'lucide-react'
 import { useUserStore } from '@/store/user-store'
-import { usePerformanceCheck } from '@/hooks/use-performance-check'
 
 // Lazy load heavy components
 const ProfileCard = dynamic(
@@ -26,14 +22,8 @@ const ProfileCard = dynamic(
 )
 
 export default function HomePage() {
-  const router = useRouter()
-  const { username, onboardingCompleted } = useUserStore()
-  const hasGoodPerformance = usePerformanceCheck()
+  const { username } = useUserStore()
 
-  // Surface component based on performance
-  const HeroSurface = hasGoodPerformance ? GlassSurface : GreySurface
-
-  // Removed auto-redirect - let users browse freely first
   return (
     <PageLayout>
       {/* Hero section */}

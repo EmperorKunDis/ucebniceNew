@@ -75,14 +75,14 @@ export const onboardingRegisterSchema = signUpSchema
 // Onboarding step 3 - Goal
 export const onboardingGoalSchema = z.object({
   goal: z.enum(['career', 'skills', 'ai', 'fun'], {
-    errorMap: () => ({ message: 'Vyberte prosím svůj cíl' }),
+    message: 'Vyberte prosím svůj cíl',
   }),
 })
 
 // Onboarding step 4 - Experience
 export const onboardingExperienceSchema = z.object({
   experience: z.enum(['beginner', 'some', 'intermediate', 'advanced'], {
-    errorMap: () => ({ message: 'Vyberte prosím svou zkušenost' }),
+    message: 'Vyberte prosím svou zkušenost',
   }),
 })
 
@@ -110,9 +110,10 @@ export type ProfileUpdateData = z.infer<typeof profileUpdateSchema>
  */
 export function formatZodErrors(error: z.ZodError): Record<string, string> {
   const errors: Record<string, string> = {}
-  error.errors.forEach(err => {
-    if (err.path.length > 0) {
-      errors[err.path[0].toString()] = err.message
+  error.issues.forEach((err: z.ZodIssue) => {
+    const firstPath = err.path[0]
+    if (firstPath !== undefined) {
+      errors[firstPath.toString()] = err.message
     }
   })
   return errors

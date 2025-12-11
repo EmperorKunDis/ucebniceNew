@@ -85,14 +85,14 @@ export async function validateRequestBody<T>(
     const result = schema.safeParse(body)
 
     if (!result.success) {
-      const errors = result.error.errors
-        .map(err => `${err.path.join('.')}: ${err.message}`)
+      const errors = result.error.issues
+        .map((err: z.ZodIssue) => `${err.path.join('.')}: ${err.message}`)
         .join(', ')
       return { success: false, error: errors }
     }
 
     return { success: true, data: result.data }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Neplatná data požadavku' }
   }
 }
