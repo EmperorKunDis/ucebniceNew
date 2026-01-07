@@ -104,6 +104,8 @@ model Chapter {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  questions   Question[]
+
   completedBy CompletedChapter[]
   progress    ChapterProgress[]
 
@@ -111,6 +113,7 @@ model Chapter {
   @@index([difficulty])
   @@index([order])
 }
+
 
 model CompletedChapter {
   id          String   @id @default(uuid())
@@ -276,4 +279,24 @@ model ModuleTestAttempt {
   @@index([score])
   @@index([createdAt])
   @@index([userId, moduleNumber])
+}
+
+// Questions for each chapter (comprehensive model)
+model Question {
+  id             String   @id @default(uuid())
+  chapterId      String
+  questionNumber Int      // 1, 2, 3 for ordering
+  questionText   String
+  options        Json     // Array of strings: ["option1", "option2", "option3"]
+  correctAnswer  Int      // Index of correct option (0, 1, 2, etc.)
+  explanation    String?  // Optional explanation
+  xpReward       Int      @default(10)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  chapter Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  @@unique([chapterId, questionNumber])
+  @@index([chapterId])
 }

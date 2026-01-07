@@ -551,7 +551,11 @@ export function OnboardingFlow() {
   }
 
   const handleBack = () => {
-    if (currentStep > 0) {
+    if (currentStep === 0) {
+      // On first step, go back to homepage
+      router.push('/')
+    } else {
+      // On other steps, go to previous step
       setIsAnimating(true)
       setTimeout(() => {
         setCurrentStep(currentStep - 1)
@@ -632,12 +636,7 @@ export function OnboardingFlow() {
 
                 {/* Navigation buttons */}
                 <Stack direction="horizontal" justify="between">
-                  <Button
-                    onClick={handleBack}
-                    disabled={currentStep === 0}
-                    variant="ghost"
-                    size="lg"
-                  >
+                  <Button onClick={handleBack} variant="ghost" size="lg">
                     Zpět
                   </Button>
 
