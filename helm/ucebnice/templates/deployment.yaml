@@ -45,7 +45,8 @@ spec:
               export DATABASE_URL="postgresql://{{ .Values.postgresql.auth.username }}:${ENCODED_PASSWORD}@{{ include "ucebnice.fullname" . }}-postgres.{{ .Release.Namespace }}.svc.cluster.local:5432/{{ .Values.postgresql.auth.database }}?sslmode=disable"
               {{- end }}
               # Install prisma CLI at runtime (matches version in package.json)
-              npm install --no-save prisma@6.19.0
+              # Use --legacy-peer-deps to prevent version conflicts and --exact for precise version
+              npm install --no-save --legacy-peer-deps --exact prisma@6.19.0
               # Run migration
               npx prisma migrate deploy
           env:

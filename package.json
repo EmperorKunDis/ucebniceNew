@@ -41,7 +41,7 @@
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
-    "@prisma/client": "^6.19.0",
+    "@prisma/client": "6.19.0",
     "@radix-ui/react-slot": "^1.2.3",
     "@sentry/nextjs": "^10.17.0",
     "@tanstack/react-query": "^5.90.5",
@@ -97,7 +97,7 @@
     "jest-environment-jsdom": "^30.2.0",
     "lint-staged": "^16.2.3",
     "prettier": "^3.6.2",
-    "prisma": "^6.19.0",
+    "prisma": "6.19.0",
     "storybook": "^9.1.10",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-react": "^5.30.1",
