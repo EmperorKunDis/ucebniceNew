@@ -1,7 +1,15 @@
 #!/usr/bin/env tsx
 /**
- * Export all data from SQLite database to JSON
+ * ARCHIVED: This script was used for SQLite → PostgreSQL migration
  *
+ * ⚠️  This script does NOT work with Prisma 7 because:
+ * - Prisma 7 removed the `datasources` configuration option
+ * - The approach of overriding datasource at runtime is no longer supported
+ *
+ * This file is kept for historical reference only.
+ * The SQLite → PostgreSQL migration has been completed.
+ *
+ * Original purpose: Export all data from SQLite database to JSON
  * Usage: tsx scripts/migration/export-sqlite-data.ts
  */
 

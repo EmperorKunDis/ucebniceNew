@@ -10,12 +10,17 @@
  * 3. Export file exists at scripts/migration/sqlite-export.json
  */
 
+import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
+import { Pool } from 'pg'
 import fs from 'fs'
 import path from 'path'
 
 // Create Prisma client pointing to PostgreSQL
-const prisma = new PrismaClient()
+const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+const adapter = new PrismaPg(pool)
+const prisma = new PrismaClient({ adapter })
 
 interface ExportData {
   version: string

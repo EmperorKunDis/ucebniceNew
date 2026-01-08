@@ -1,4 +1,7 @@
+import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
+import { Pool } from 'pg'
 
 /**
  * Test database helper
@@ -6,12 +9,13 @@ import { PrismaClient } from '@prisma/client'
  */
 
 let prisma: PrismaClient
+let pool: Pool
 
 export function getTestDb() {
   if (!prisma) {
-    prisma = new PrismaClient({
-      datasourceUrl: process.env.DATABASE_URL || 'file:./test.db',
-    })
+    pool = new Pool({ connectionString: process.env.DATABASE_URL })
+    const adapter = new PrismaPg(pool)
+    prisma = new PrismaClient({ adapter })
   }
   return prisma
 }
@@ -33,6 +37,9 @@ export async function cleanupTestDb() {
 export async function disconnectTestDb() {
   if (prisma) {
     await prisma.$disconnect()
+  }
+  if (pool) {
+    await pool.end()
   }
 }
 
