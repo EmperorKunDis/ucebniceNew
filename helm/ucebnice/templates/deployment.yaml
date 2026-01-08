@@ -45,9 +45,9 @@ spec:
               # Construct DATABASE_URL from PostgreSQL secret
               export DATABASE_URL="postgresql://{{ .Values.postgresql.auth.username }}:${ENCODED_PASSWORD}@{{ include "ucebnice.fullname" . }}-postgres.{{ .Release.Namespace }}.svc.cluster.local:5432/{{ .Values.postgresql.auth.database }}?sslmode=disable"
               {{- end }}
-              # Run Prisma migrations (Prisma CLI is included in the Docker image)
-              echo "Running Prisma migrations..."
-              npx prisma migrate deploy
+              # Run Prisma migrations using npx (downloads and caches Prisma CLI)
+              echo "Running Prisma migrations with version 6.19.0..."
+              npx --yes prisma@6.19.0 migrate deploy
               echo "Migrations completed successfully"
           env:
             {{- if .Values.postgresql.enabled }}
