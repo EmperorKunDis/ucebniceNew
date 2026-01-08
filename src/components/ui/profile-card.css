@@ -95,23 +95,26 @@
   transform: translate3d(0, 0, 0.1px) rotateX(var(--rotate-y)) rotateY(var(--rotate-x));
 }
 
-.pc-card * {
+/* OPRAVA: Odstraněn .pc-card * selektor - místo toho stylujeme každý element zvlášť */
+
+.pc-inside {
   display: grid;
   grid-area: 1/-1;
   border-radius: var(--card-radius);
   transform: translate3d(0, 0, 0.1px);
   pointer-events: none;
-}
-
-.pc-inside {
   inset: 1px;
   position: absolute;
   background-image: var(--inner-gradient);
   background-color: rgba(0, 0, 0, 0.9);
-  transform: translate3d(0, 0, 0.01px);
 }
 
 .pc-shine {
+  display: grid;
+  grid-area: 1/-1;
+  border-radius: var(--card-radius);
+  transform: translate3d(0, 0, 0.1px);
+  pointer-events: none;
   mask-image: var(--icon);
   mask-mode: luminance;
   mask-repeat: repeat;
@@ -225,6 +228,10 @@
 }
 
 .pc-glare {
+  display: grid;
+  grid-area: 1/-1;
+  border-radius: var(--card-radius);
+  pointer-events: none;
   transform: translate3d(0, 0, 1.1px);
   overflow: hidden;
   background-image: radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y),
@@ -236,15 +243,24 @@
 }
 
 .pc-avatar-content {
+  display: grid;
+  grid-area: 1/-1;
+  border-radius: var(--card-radius);
+  pointer-events: none;
   mix-blend-mode: screen;
   overflow: hidden;
+  position: relative;
 }
 
+/* OPRAVA: Avatar obrázek - zajistí že zabere celou kartu */
 .pc-avatar-content .avatar {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
   opacity: calc(1.75 - var(--pointer-from-center));
 }
 
@@ -292,6 +308,7 @@
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
+  position: relative;
 }
 
 .pc-mini-avatar img {
@@ -341,6 +358,10 @@
 }
 
 .pc-content {
+  display: grid;
+  grid-area: 1/-1;
+  border-radius: var(--card-radius);
+  pointer-events: none;
   max-height: 100%;
   overflow: hidden;
   text-align: center;
