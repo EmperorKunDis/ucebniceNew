@@ -13,6 +13,7 @@
   --icon: none;
   --behind-gradient: none;
   --inner-gradient: none;
+  --card-gradient: none;
   --sunpillar-1: hsl(2, 100%, 73%);
   --sunpillar-2: hsl(53, 100%, 69%);
   --sunpillar-3: hsl(93, 100%, 69%);
@@ -75,7 +76,7 @@
     0 0,
     50% 50%,
     0 0;
-  background-image:
+  background-image: var(--card-gradient,
     radial-gradient(farthest-side circle at var(--pointer-x) var(--pointer-y),
       hsla(266, 100%, 90%, var(--card-opacity)) 4%,
       hsla(266, 50%, 80%, calc(var(--card-opacity) * 0.75)) 10%,
@@ -83,7 +84,8 @@
       hsla(266, 0%, 60%, 0) 100%),
     radial-gradient(35% 52% at 55% 20%, #00ffaac4 0%, #073aff00 100%),
     radial-gradient(100% 100% at 50% 50%, #00c1ffff 1%, #073aff00 76%),
-    conic-gradient(from 124deg at 50% 50%, #c137ffff 0%, #07c6ffff 40%, #07c6ffff 60%, #c137ffff 100%);
+    conic-gradient(from 124deg at 50% 50%, #c137ffff 0%, #07c6ffff 40%, #07c6ffff 60%, #c137ffff 100%)
+  );
   overflow: hidden;
 }
 
@@ -320,6 +322,7 @@
 }
 
 .pc-contact-btn {
+  background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 8px 16px;
@@ -332,9 +335,9 @@
 }
 
 .pc-contact-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.4);
   transform: translateY(-1px);
-  transition: all 0.2s ease;
 }
 
 .pc-content {
@@ -359,7 +362,6 @@
 
 .pc-details h3 {
   font-weight: 600;
-  margin: 0;
   font-size: min(5svh, 3em);
   margin: 0;
   background-image: linear-gradient(to bottom, #fff, #6f6fbe);
@@ -388,7 +390,6 @@
   0% {
     --bgrotate: 0deg;
   }
-
   100% {
     --bgrotate: 360deg;
   }
@@ -401,7 +402,6 @@
       0 0,
       center;
   }
-
   100% {
     background-position:
       0 var(--background-y),
@@ -411,7 +411,6 @@
 }
 
 @media (max-width: 768px) {
-
   .pc-details {
     top: 2em;
   }
@@ -455,7 +454,6 @@
 }
 
 @media (max-width: 480px) {
-
   .pc-details {
     top: 1.5em;
   }
@@ -502,7 +500,6 @@
 }
 
 @media (max-width: 320px) {
-
   .pc-details h3 {
     font-size: min(3svh, 1.5em);
   }
