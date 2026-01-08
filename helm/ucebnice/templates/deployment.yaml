@@ -47,8 +47,8 @@ spec:
               # Install prisma CLI at runtime (matches version in package.json)
               # Use --legacy-peer-deps to prevent version conflicts and --exact for precise version
               npm install --no-save --legacy-peer-deps --exact prisma@6.19.0
-              # Run migration
-              npx prisma migrate deploy
+              # Run migration using the locally installed prisma (not npx which might download latest)                                    
+              ./node_modules/.bin/prisma migrate deploy
           env:
             {{- if .Values.postgresql.enabled }}
             - name: POSTGRES_PASSWORD
