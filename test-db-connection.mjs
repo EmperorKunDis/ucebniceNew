@@ -1,21 +1,27 @@
-// Quick test script to verify SQLite database connection
+// Quick test script to verify database connection
+import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
+import pg from 'pg'
 
-const prisma = new PrismaClient()
+const { Pool } = pg
+const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+const adapter = new PrismaPg(pool)
+const prisma = new PrismaClient({ adapter })
 
 async function testConnection() {
-  console.log('🔍 Testing SQLite database connection...\n')
+  console.log('🔍 Testing database connection...\n')
 
   try {
-    // Test 1: Count lessons
-    const lessonCount = await prisma.lesson.count()
-    console.log(`✅ Lessons in database: ${lessonCount}`)
+    // Test 1: Count chapters
+    const chapterCount = await prisma.chapter.count()
+    console.log(`✅ Chapters in database: ${chapterCount}`)
 
-    // Test 2: Get first lesson
-    const firstLesson = await prisma.lesson.findFirst({
+    // Test 2: Get first chapter
+    const firstChapter = await prisma.chapter.findFirst({
       orderBy: { order: 'asc' },
     })
-    console.log(`✅ First lesson: ${firstLesson?.title}`)
+    console.log(`✅ First chapter: ${firstChapter?.title}`)
 
     // Test 3: Count users
     const userCount = await prisma.user.count()

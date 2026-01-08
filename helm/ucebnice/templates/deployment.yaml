@@ -45,9 +45,12 @@ spec:
               # Construct DATABASE_URL from PostgreSQL secret
               export DATABASE_URL="postgresql://{{ .Values.postgresql.auth.username }}:${ENCODED_PASSWORD}@{{ include "ucebnice.fullname" . }}-postgres.{{ .Release.Namespace }}.svc.cluster.local:5432/{{ .Values.postgresql.auth.database }}?sslmode=disable"
               {{- end }}
-              # Run Prisma migrations using npx (downloads and caches Prisma CLI)
-              echo "Running Prisma migrations with version 6.19.0..."
-              npx --yes prisma@6.19.0 migrate deploy
+              # Install Prisma 7 with required dependencies
+              echo "Installing Prisma 7 with adapter and driver..."
+              npm install --no-save --legacy-peer-deps --exact prisma@latest pg @prisma/adapter-pg
+              # Run Prisma migrations using the locally installed prisma
+              echo "Running Prisma 7 migrations..."
+              ./node_modules/.bin/prisma migrate deploy
               echo "Migrations completed successfully"
           env:
             {{- if .Values.postgresql.enabled }}

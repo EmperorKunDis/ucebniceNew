@@ -8,13 +8,15 @@ WORKDIR /app
 
 # Copy package files
 COPY package.json package-lock.json ./
-# Copy prisma schema for generation
+# Copy prisma schema and config for generation
 COPY prisma ./prisma/
+COPY prisma.config.ts ./
 
 # Install dependencies
 RUN npm ci
 
-# Generate Prisma Client
+# Generate Prisma Client (provide placeholder DATABASE_URL for build time)
+ENV DATABASE_URL="postgresql://placeholder:placeholder@placeholder:5432/placeholder"
 RUN npx prisma generate
 
 # Rebuild the source code only when needed
@@ -46,6 +48,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 # Note: Prisma CLI will be installed at runtime in init container for migrations
 
