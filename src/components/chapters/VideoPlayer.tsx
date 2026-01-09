@@ -10,7 +10,7 @@ interface VideoPlayerProps {
 
 function VideoPlayerComponent({ videoFile }: VideoPlayerProps) {
   // Cesta k video souboru
-  const videoPath = `/videa/${videoFile}`
+  const videoPath = `/api/video/${videoFile}`
 
   return (
     <Box className="relative rounded-lg overflow-hidden bg-gray-800">
