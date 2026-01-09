@@ -177,16 +177,32 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: nextjs-build
-          path: .
 
-      # Verify .next exists
+      # Verify .next exists and move to correct location
       - name: Verify build artifacts
         run: |
-          if [ ! -d ".next" ]; then
-            echo "ERROR: .next directory not found from build job"
+          echo "Contents of current directory:"
+          ls -la
+
+          echo -e "\nContents of nextjs-build directory:"
+          ls -la nextjs-build/ || echo "nextjs-build directory not found"
+
+          # Move artifacts from nextjs-build to current directory
+          if [ -d "nextjs-build/.next" ]; then
+            echo "Moving .next from nextjs-build/ to current directory"
+            mv nextjs-build/.next .
+            if [ -d "nextjs-build/public" ]; then
+              echo "Moving public from nextjs-build/ to current directory"
+              mv nextjs-build/public .
+            fi
+          elif [ -d ".next" ]; then
+            echo ".next already in current directory"
+          else
+            echo "ERROR: .next directory not found"
             exit 1
           fi
-          echo "✅ Build artifacts downloaded successfully"
+
+          echo -e "\n✅ Build artifacts verified:"
           ls -la .next/
 
       - name: Calculate next version (dry-run)
