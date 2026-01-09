@@ -199,6 +199,45 @@ postgres-status: ## Check PostgreSQL pod status
 	@echo "\n=== Production ==="
 	@kubectl -n $(NAMESPACE_PROD) get pods -l app.kubernetes.io/component=database || echo "Not deployed in production"
 
+# Video storage commands
+video-upload-staging: ## Upload videos to staging PVC
+	@if [ -z "$(VIDEO_PATH)" ]; then \
+		echo "Error: VIDEO_PATH not specified"; \
+		echo "Usage: make video-upload-staging VIDEO_PATH=./data/videa"; \
+		exit 1; \
+	fi
+	@echo "Uploading videos from $(VIDEO_PATH) to staging..."
+	@POD=$$(kubectl -n $(NAMESPACE_STAGING) get pod -l app.kubernetes.io/name=ucebnice -o jsonpath='{.items[0].metadata.name}'); \
+	kubectl -n $(NAMESPACE_STAGING) cp $(VIDEO_PATH)/. $$POD:/data/videa/
+	@echo "Upload complete"
+
+video-upload-production: ## Upload videos to production PVC
+	@if [ -z "$(VIDEO_PATH)" ]; then \
+		echo "Error: VIDEO_PATH not specified"; \
+		echo "Usage: make video-upload-production VIDEO_PATH=./data/videa"; \
+		exit 1; \
+	fi
+	@echo "⚠️  WARNING: Uploading videos to production!"
+	@read -p "Are you sure? (yes/no): " confirm && [ "$$confirm" = "yes" ] || (echo "Cancelled" && exit 1)
+	@echo "Uploading videos from $(VIDEO_PATH) to production..."
+	@POD=$$(kubectl -n $(NAMESPACE_PROD) get pod -l app.kubernetes.io/name=ucebnice -o jsonpath='{.items[0].metadata.name}'); \
+	kubectl -n $(NAMESPACE_PROD) cp $(VIDEO_PATH)/. $$POD:/data/videa/
+	@echo "Upload complete"
+
+video-list-staging: ## List videos in staging PVC
+	@POD=$$(kubectl -n $(NAMESPACE_STAGING) get pod -l app.kubernetes.io/name=ucebnice -o jsonpath='{.items[0].metadata.name}'); \
+	kubectl -n $(NAMESPACE_STAGING) exec $$POD -- ls -lh /data/videa/
+
+video-list-production: ## List videos in production PVC
+	@POD=$$(kubectl -n $(NAMESPACE_PROD) get pod -l app.kubernetes.io/name=ucebnice -o jsonpath='{.items[0].metadata.name}'); \
+	kubectl -n $(NAMESPACE_PROD) exec $$POD -- ls -lh /data/videa/
+
+data-storage-status: ## Check data PVC status
+	@echo "=== Staging ==="
+	@kubectl -n $(NAMESPACE_STAGING) get pvc -l app.kubernetes.io/component=data-storage || echo "Not enabled"
+	@echo "\n=== Production ==="
+	@kubectl -n $(NAMESPACE_PROD) get pvc -l app.kubernetes.io/component=data-storage || echo "Not enabled"
+
 # Cleanup commands
 clean: ## Remove local Docker images
 	docker rmi $(REGISTRY)/$(IMAGE_NAME):$(VERSION) || true

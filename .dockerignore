@@ -62,3 +62,6 @@ storybook-static
 colab_notebooks
 e2e
 scripts/migration
+
+# Data directory (stored in external PVC)
+data/

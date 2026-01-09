@@ -151,6 +151,33 @@ postgresql:
       cpu: 250m
       memory: 512Mi
 
+# Data storage configuration (for videos and other data files)
+dataStorage:
+  # Enable external data storage via PVC
+  enabled: false
+
+  # Storage class (must support ReadWriteMany for multiple replicas)
+  storageClass: "longhorn"
+
+  # Size of the PVC
+  size: 20Gi
+
+  # Access modes - ReadWriteMany allows multiple pods to mount simultaneously
+  accessModes:
+    - ReadWriteMany
+
+  # Mount path in the container (entire data directory for future expansion)
+  mountPath: /data
+
+  # Optional: subPath to mount specific subdirectory
+  subPath: ""
+
+  # Mount as read-only
+  readOnly: false
+
+  # Optional: annotations for storage provider-specific settings
+  annotations: {}
+
 # Redis configuration (optional - if deploying redis in cluster)
 redis:
   enabled: false

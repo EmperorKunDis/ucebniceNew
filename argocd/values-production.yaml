@@ -108,3 +108,12 @@ affinity: {}  # Disabled for single-node cluster
   #               values:
   #                 - ucebnice
   #         topologyKey: kubernetes.io/hostname
+
+# Data storage for production
+dataStorage:
+  enabled: true
+  storageClass: "longhorn"
+  size: 20Gi
+  readOnly: false
+  annotations:
+    longhorn.io/allow-recurring-backup: "true"

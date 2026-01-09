@@ -85,6 +85,15 @@ spec:
             {{- toYaml .Values.readinessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.dataStorage.enabled }}
+          volumeMounts:
+            - name: data-storage
+              mountPath: {{ .Values.dataStorage.mountPath }}
+              {{- if .Values.dataStorage.subPath }}
+              subPath: {{ .Values.dataStorage.subPath }}
+              {{- end }}
+              readOnly: {{ .Values.dataStorage.readOnly | default false }}
+          {{- end }}
           command:
             - sh
             - -c
@@ -114,6 +123,12 @@ spec:
                 name: {{ include "ucebnice.fullname" . }}-config
             - secretRef:
                 name: {{ include "ucebnice.fullname" . }}-secret
+      {{- if .Values.dataStorage.enabled }}
+      volumes:
+        - name: data-storage
+          persistentVolumeClaim:
+            claimName: {{ include "ucebnice.fullname" . }}-data-storage
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

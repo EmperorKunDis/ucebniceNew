@@ -1,0 +1,24 @@
+{{- if .Values.dataStorage.enabled -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "ucebnice.fullname" . }}-data-storage
+  labels:
+    {{- include "ucebnice.labels" . | nindent 4 }}
+    app.kubernetes.io/component: data-storage
+  {{- with .Values.dataStorage.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    {{- range .Values.dataStorage.accessModes }}
+    - {{ . }}
+    {{- end }}
+  {{- if .Values.dataStorage.storageClass }}
+  storageClassName: {{ .Values.dataStorage.storageClass }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.dataStorage.size }}
+{{- end }}

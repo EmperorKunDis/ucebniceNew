@@ -43,3 +43,10 @@ config:
 prisma:
   runMigrations: true
   runSeed: true
+
+# Data storage for staging
+dataStorage:
+  enabled: true
+  storageClass: "longhorn"
+  size: 10Gi
+  readOnly: false
