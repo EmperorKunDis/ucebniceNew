@@ -143,8 +143,8 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: |
-            .next
-            public
+            ./.next/
+            ./public/
           key: nextjs-build-${{ github.sha }}
 
       # Upload .next as artifact for Docker job
@@ -153,8 +153,8 @@ jobs:
         with:
           name: nextjs-build
           path: |
-            .next
-            public
+            ./.next/
+            ./public/
           retention-days: 1
 
   docker:
@@ -177,32 +177,18 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: nextjs-build
+          path: .
 
-      # Verify .next exists and move to correct location
+      # Verify .next exists
       - name: Verify build artifacts
         run: |
-          echo "Contents of current directory:"
-          ls -la
-
-          echo -e "\nContents of nextjs-build directory:"
-          ls -la nextjs-build/ || echo "nextjs-build directory not found"
-
-          # Move artifacts from nextjs-build to current directory
-          if [ -d "nextjs-build/.next" ]; then
-            echo "Moving .next from nextjs-build/ to current directory"
-            mv nextjs-build/.next .
-            if [ -d "nextjs-build/public" ]; then
-              echo "Moving public from nextjs-build/ to current directory"
-              mv nextjs-build/public .
-            fi
-          elif [ -d ".next" ]; then
-            echo ".next already in current directory"
-          else
-            echo "ERROR: .next directory not found"
+          if [ ! -d ".next" ]; then
+            echo "Contents of current directory:"
+            ls -la
+            echo "ERROR: .next directory not found from build job"
             exit 1
           fi
-
-          echo -e "\n✅ Build artifacts verified:"
+          echo "✅ Build artifacts downloaded successfully"
           ls -la .next/
 
       - name: Calculate next version (dry-run)
