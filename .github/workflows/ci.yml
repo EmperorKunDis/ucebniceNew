@@ -20,9 +20,10 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --prefer-offline || npm ci
 
       - name: Run ESLint
         run: npm run lint
@@ -111,11 +112,23 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --prefer-offline || npm ci
+
+      # Cache Prisma client
+      - name: Cache Prisma Client
+        id: prisma-cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules/.prisma
+          key: prisma-client-${{ hashFiles('prisma/schema.prisma') }}
+          restore-keys: |
+            prisma-client-
 
       - name: Generate prisma client
+        if: steps.prisma-cache.outputs.cache-hit != 'true'
         run: npx prisma generate
         env:
           DATABASE_URL: "postgresql://placeholder:placeholder@placeholder:5432/placeholder"
@@ -124,6 +137,25 @@ jobs:
         run: npm run build
         env:
           SKIP_ENV_VALIDATION: true
+
+      # Cache the .next build output for Docker job
+      - name: Cache Next.js build output
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            .next
+            public
+          key: nextjs-build-${{ github.sha }}
+
+      # Upload .next as artifact for Docker job
+      - name: Upload Next.js build
+        uses: actions/upload-artifact@v4
+        with:
+          name: nextjs-build
+          path: |
+            .next
+            public
+          retention-days: 1
 
   docker:
     name: Build and Push Docker Image
@@ -139,6 +171,23 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Fetch all history for proper tagging
+
+      # Download the .next build from build job
+      - name: Download Next.js build
+        uses: actions/download-artifact@v4
+        with:
+          name: nextjs-build
+          path: .
+
+      # Verify .next exists
+      - name: Verify build artifacts
+        run: |
+          if [ ! -d ".next" ]; then
+            echo "ERROR: .next directory not found from build job"
+            exit 1
+          fi
+          echo "✅ Build artifacts downloaded successfully"
+          ls -la .next/
 
       - name: Calculate next version (dry-run)
         id: calc-version
@@ -207,10 +256,18 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ steps.docker-tags.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # Enhanced caching strategy
+          cache-from: |
+            type=gha
+            type=registry,ref=harbor.praut.cz/ucebnice/ucebnice-app:buildcache
+          cache-to: |
+            type=gha,mode=max
+            type=registry,ref=harbor.praut.cz/ucebnice/ucebnice-app:buildcache,mode=max
           build-args: |
             NEXT_PUBLIC_APP_VERSION=${{ github.sha }}
+          # Inline cache for better layer reuse
+          provenance: false
+          sbom: false
 
       - name: Verify image exists in Harbor (Production)
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')

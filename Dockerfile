@@ -6,18 +6,21 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copy package files
+# Copy package files first (these change less frequently)
 COPY package.json package-lock.json ./
-# Copy prisma schema and config for generation
+
+# Install dependencies (this layer caches well)
+RUN npm ci
+
+# Copy Prisma files AFTER npm ci (only invalidates cache when schema changes)
 COPY prisma ./prisma/
 COPY prisma.config.ts ./
 
-# Install dependencies
-RUN npm ci
-
 # Generate Prisma Client (provide placeholder DATABASE_URL for build time)
 ENV DATABASE_URL="postgresql://placeholder:placeholder@placeholder:5432/placeholder"
-RUN npx prisma generate
+RUN if [ ! -d "node_modules/.prisma" ]; then \
+      npx prisma generate; \
+    fi
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -29,8 +32,13 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
-# Build the application
-RUN npm run build
+# Only build if .next doesn't exist (when not provided by CI)
+RUN if [ ! -d ".next" ]; then \
+      echo "Building Next.js application..."; \
+      npm run build; \
+    else \
+      echo "Using pre-built .next from CI"; \
+    fi
 
 # Production image, copy all the files and run next
 FROM base AS runner
