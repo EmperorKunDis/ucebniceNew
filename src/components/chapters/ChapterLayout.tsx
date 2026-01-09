@@ -32,7 +32,6 @@ import {
   Upload,
   Star,
 } from 'lucide-react'
-import { getChapterQuestions } from '@/data/questions'
 
 interface ChapterLayoutProps {
   chapter: Chapter
@@ -66,7 +65,23 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
   const [moduleTestNumber, setModuleTestNumber] = useState<number | null>(null)
   const [isChapterLocked, setIsChapterLocked] = useState(false)
 
-  const questions = getChapterQuestions(chapter.id)
+  const [questions, setQuestions] = useState<any[]>([])
+
+  // Fetch questions
+  useEffect(() => {
+    async function loadQuestions() {
+      try {
+        const response = await fetch(`/api/questions?chapterId=${chapter.id}`)
+        if (response.ok) {
+          const data = await response.json()
+          setQuestions(data.questions || [])
+        }
+      } catch (error) {
+        console.error('Failed to load questions:', error)
+      }
+    }
+    loadQuestions()
+  }, [chapter.id])
 
   // Check if this chapter triggers a module test (10, 20, 30, 40)
   const isModuleEndChapter = ['10', '20', '30', '40'].includes(chapter.id)
@@ -240,7 +255,7 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
   }
 
   const handleTestAbandon = () => {
-    toast.info('Test ukončen')
+    toast('Test ukončen', { icon: 'ℹ️' })
     setShowModuleTest(false)
     setModuleTestNumber(null)
   }

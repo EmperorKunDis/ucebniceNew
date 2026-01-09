@@ -30,6 +30,6 @@ export const config = {
     '/dashboard/:path*',
     '/certificate/:path*',
     // Nepoužívat middleware pro tyto cesty:
-    '/((?!api|_next/static|_next/image|favicon.ico|images|auth|chapters|arena|onboarding|$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|images|prednasky|texty|videa|auth|chapters|arena|onboarding|$).*)',
   ],
 }

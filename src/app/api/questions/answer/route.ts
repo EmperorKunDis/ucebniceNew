@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { checkAnswer, getChapterQuestions } from '@/data/questions'
 import { checkAndAwardAchievements } from '@/lib/achievement-checker'
 import { validateAPIRequest, answerQuestionSchema } from '@/lib/validation-schemas'
 
@@ -51,8 +50,18 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Check answer
-    const result = checkAnswer(chapterId, questionId, answerIndex)
+    // Get question from DB to verify answer
+    const question = await prisma.question.findUnique({
+      where: { id: questionId },
+    })
+
+    if (!question) {
+      return NextResponse.json({ error: 'Question not found' }, { status: 404 })
+    }
+
+    const correct = question.correctAnswer === answerIndex
+    const xpReward = correct ? question.xpReward : 0
+    const explanation = question.explanation || (correct ? 'Správně!' : 'Zkus to znovu.')
 
     // Save answer to database
     await prisma.questionAnswer.create({
@@ -61,32 +70,36 @@ export async function POST(request: NextRequest) {
         chapterId,
         questionId,
         answer: answerIndex.toString(),
-        correct: result.correct,
-        xpEarned: result.xpReward,
+        correct,
+        xpEarned: xpReward,
       },
     })
 
     // Award XP if correct
-    if (result.correct && result.xpReward > 0) {
+    if (correct && xpReward > 0) {
       await prisma.user.update({
         where: { id: user.id },
         data: {
-          xp: { increment: result.xpReward },
+          xp: { increment: xpReward },
         },
       })
     }
 
     // Check if all questions answered correctly
-    const allQuestions = getChapterQuestions(chapterId)
-    const userAnswers = await prisma.questionAnswer.findMany({
+    // 1. Get total questions count for this chapter
+    const totalQuestions = await prisma.question.count({
+      where: { chapterId: question.chapterId },
+    })
+
+    const userCorrectAnswers = await prisma.questionAnswer.count({
       where: {
         userId: user.id,
-        chapterId,
+        chapterId, // "01"
+        correct: true,
       },
     })
 
-    const allCorrect =
-      userAnswers.length === allQuestions.length && userAnswers.every(answer => answer.correct)
+    const allCorrect = userCorrectAnswers === totalQuestions
 
     // Update chapter completion - set answeredQuestions flag if all questions answered correctly
     if (allCorrect) {
@@ -114,9 +127,9 @@ export async function POST(request: NextRequest) {
     const newAchievements = await checkAndAwardAchievements(user.id)
 
     return NextResponse.json({
-      correct: result.correct,
-      explanation: result.explanation,
-      xpEarned: result.xpReward,
+      correct,
+      explanation,
+      xpEarned: xpReward,
       allQuestionsCompleted: allCorrect,
       newAchievements,
     })
