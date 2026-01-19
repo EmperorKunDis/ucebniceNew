@@ -16,10 +16,15 @@ import {
   Info,
   Target,
   Loader2,
+  Trophy,
+  Zap,
+  Star,
 } from 'lucide-react'
 
-import { Lightning } from '@/components/ui/lightning'
+import { UnifiedPageLayout } from '@/components/layout/unified-page-layout'
 import { GlassSurface } from '@/components/ui/glass-surface'
+import { Button } from '@/components/ui/button'
+import { Stack, Grid, Box } from '@/components/layout'
 
 // Types for API responses
 interface Prize {
@@ -151,6 +156,14 @@ export default function HackathonDetailPage() {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
+    })
+  }
+
+  const formatDateTime = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('cs-CZ', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
     })
@@ -218,20 +231,25 @@ export default function HackathonDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
-      </div>
+      <UnifiedPageLayout maxWidth="7xl">
+        <Stack direction="col" align="center" justify="center" className="min-h-[60vh]">
+          <Loader2 className="w-12 h-12 text-purple-400 animate-spin" />
+          <p className="text-gray-400 mt-4">Načítání hackathonu...</p>
+        </Stack>
+      </UnifiedPageLayout>
     )
   }
 
   if (error || !hackathon) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <p className="text-red-400 mb-4">{error || 'Hackathon nenalezen'}</p>
-        <Link href="/arena" className="text-purple-400 hover:text-purple-300">
-          Zpět na Arénu
-        </Link>
-      </div>
+      <UnifiedPageLayout maxWidth="7xl">
+        <Stack direction="col" align="center" justify="center" className="min-h-[60vh]">
+          <p className="text-red-400 mb-4 text-xl">{error || 'Hackathon nenalezen'}</p>
+          <Button asChild>
+            <Link href="/arena">Zpět na Arénu</Link>
+          </Button>
+        </Stack>
+      </UnifiedPageLayout>
     )
   }
 
@@ -244,226 +262,267 @@ export default function HackathonDetailPage() {
 
   // Check if user is already in a team
   const userTeam = session?.user?.id
-    ? hackathon.teams.find(team =>
-        team.members.some(m => m.user.id === session.user.id)
-      )
+    ? hackathon.teams.find(team => team.members.some(m => m.user.id === session.user.id))
     : null
 
+  const statusBadge = {
+    upcoming: { label: 'Nadcházející', class: 'bg-blue-500/20 text-blue-300' },
+    active: { label: 'Probíhá', class: 'bg-green-500/20 text-green-300' },
+    completed: { label: 'Ukončeno', class: 'bg-gray-500/20 text-gray-300' },
+  }
+
   return (
-    <div className="min-h-screen relative">
-      <Lightning />
+    <UnifiedPageLayout maxWidth="7xl">
+      {/* Back navigation */}
+      <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+        <Button variant="ghost" asChild className="mb-6">
+          <Link href="/arena">
+            <ChevronLeft className="w-5 h-5 mr-2" />
+            Zpět na Arénu
+          </Link>
+        </Button>
+      </motion.div>
 
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-[100] p-4">
-        <div className="max-w-7xl mx-auto">
-          <GlassSurface
-            className="p-6"
-            borderRadius={16}
-            blur={20}
-            backgroundOpacity={0.02}
-            opacity={0.95}
-          >
-            <div className="flex items-center justify-between">
-              <Link
-                href="/"
-                className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent"
-              >
-                Učebnice AI
-              </Link>
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <GlassSurface className="p-8 mb-8">
+          <Stack direction="col" gap={4}>
+            <Stack direction="row" justify="between" align="start" wrap className="gap-4">
+              <Box className="flex-1">
+                <Stack direction="row" gap={3} align="center" className="mb-2">
+                  <Trophy className="w-8 h-8 text-purple-400" />
+                  <Box
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${statusBadge[hackathon.status].class}`}
+                  >
+                    {statusBadge[hackathon.status].label}
+                  </Box>
+                </Stack>
+                <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
+                  {hackathon.title}
+                </h1>
+                <p className="text-xl text-purple-300">{hackathon.theme}</p>
+              </Box>
 
-              <div className="flex items-center gap-6">
-                <Link href="/arena" className="text-gray-300 hover:text-white transition-colors">
-                  Apex Aréna
-                </Link>
-                <Link
-                  href="/dashboard"
-                  className="text-gray-300 hover:text-white transition-colors"
-                >
-                  Dashboard
-                </Link>
-                <Link href="/profile" className="text-gray-300 hover:text-white transition-colors">
-                  Profil
-                </Link>
-              </div>
-            </div>
+              {hackathon.status === 'upcoming' && !userTeam && (
+                <Button onClick={() => setShowRegisterModal(true)} size="lg">
+                  <UserPlus className="w-5 h-5 mr-2" />
+                  Registrovat se
+                </Button>
+              )}
+            </Stack>
+
+            {/* Quick stats */}
+            <Grid columns={2} md={4} gap={4} className="mt-4">
+              <Box className="p-4 bg-white/5 rounded-lg text-center">
+                <Calendar className="w-6 h-6 mx-auto mb-2 text-purple-400" />
+                <p className="text-2xl font-bold text-white">
+                  {daysUntilStart > 0 ? daysUntilStart : 0}
+                </p>
+                <p className="text-sm text-gray-400">Dní do začátku</p>
+              </Box>
+
+              <Box className="p-4 bg-white/5 rounded-lg text-center">
+                <Clock className="w-6 h-6 mx-auto mb-2 text-orange-400" />
+                <p className="text-2xl font-bold text-white">
+                  {daysUntilDeadline > 0 ? daysUntilDeadline : 0}
+                </p>
+                <p className="text-sm text-gray-400">Dní do registrace</p>
+              </Box>
+
+              <Box className="p-4 bg-white/5 rounded-lg text-center">
+                <Users className="w-6 h-6 mx-auto mb-2 text-green-400" />
+                <p className="text-2xl font-bold text-white">{hackathon.teams.length}</p>
+                <p className="text-sm text-gray-400">Týmů přihlášeno</p>
+              </Box>
+
+              <Box className="p-4 bg-white/5 rounded-lg text-center">
+                <Award className="w-6 h-6 mx-auto mb-2 text-yellow-400" />
+                <p className="text-2xl font-bold text-white">{hackathon.prizes.length}</p>
+                <p className="text-sm text-gray-400">Ceny k výhře</p>
+              </Box>
+            </Grid>
+          </Stack>
+        </GlassSurface>
+      </motion.div>
+
+      {/* User's team info */}
+      {userTeam && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="mb-8"
+        >
+          <GlassSurface className="p-6 border border-green-500/30">
+            <Stack direction="row" justify="between" align="center">
+              <Stack direction="row" gap={3} align="center">
+                <Zap className="w-6 h-6 text-green-400" />
+                <Box>
+                  <p className="text-sm text-gray-400">Tvůj tým</p>
+                  <p className="text-xl font-bold text-white">{userTeam.name}</p>
+                </Box>
+              </Stack>
+              <Box className="text-right">
+                <p className="text-sm text-gray-400">
+                  {userTeam.memberCount}/{hackathon.maxTeamSize} členů
+                </p>
+              </Box>
+            </Stack>
           </GlassSurface>
-        </div>
-      </nav>
+        </motion.div>
+      )}
 
-      {/* Hero section with banner */}
-      <section className="relative z-10 pt-28">
-        <div className="relative h-64 bg-gradient-to-br from-purple-600 to-pink-600 overflow-hidden">
-          <div className="absolute inset-0 bg-black/50" />
-          <div className="relative z-10 h-full flex items-center">
-            <div className="max-w-7xl mx-auto px-4 w-full">
-              <button
-                onClick={() => router.push('/arena')}
-                className="text-white/80 hover:text-white flex items-center gap-2 mb-4 transition-colors"
-              >
-                <ChevronLeft className="w-5 h-5" />
-                Zpět na Arénu
-              </button>
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">{hackathon.title}</h1>
-              <p className="text-xl text-white/80">{hackathon.theme}</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Tabs */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="mb-8"
+      >
+        <GlassSurface className="inline-flex p-1">
+          <Button
+            variant={selectedTab === 'overview' ? 'primary' : 'ghost'}
+            onClick={() => setSelectedTab('overview')}
+            className="rounded-lg"
+          >
+            Přehled
+          </Button>
+          <Button
+            variant={selectedTab === 'teams' ? 'primary' : 'ghost'}
+            onClick={() => setSelectedTab('teams')}
+            className="rounded-lg"
+          >
+            Týmy ({hackathon.teams.length})
+          </Button>
+          <Button
+            variant={selectedTab === 'rules' ? 'primary' : 'ghost'}
+            onClick={() => setSelectedTab('rules')}
+            className="rounded-lg"
+          >
+            Pravidla
+          </Button>
+        </GlassSurface>
+      </motion.div>
 
-      {/* Main content */}
-      <main className="relative z-10 px-4 -mt-16">
-        <div className="max-w-7xl mx-auto">
-          {/* Quick stats */}
-          <div className="grid md:grid-cols-4 gap-4 mb-8">
-            <GlassSurface className="p-4 text-center">
-              <Calendar className="w-8 h-8 mx-auto mb-2 text-purple-400" />
-              <p className="text-2xl font-bold text-white">
-                {daysUntilStart > 0 ? daysUntilStart : 0}
-              </p>
-              <p className="text-sm text-gray-400">Dní do začátku</p>
-            </GlassSurface>
-
-            <GlassSurface className="p-4 text-center">
-              <Clock className="w-8 h-8 mx-auto mb-2 text-orange-400" />
-              <p className="text-2xl font-bold text-white">
-                {daysUntilDeadline > 0 ? daysUntilDeadline : 0}
-              </p>
-              <p className="text-sm text-gray-400">Dní do registrace</p>
-            </GlassSurface>
-
-            <GlassSurface className="p-4 text-center">
-              <Users className="w-8 h-8 mx-auto mb-2 text-green-400" />
-              <p className="text-2xl font-bold text-white">{hackathon.teams.length}</p>
-              <p className="text-sm text-gray-400">Týmů přihlášeno</p>
-            </GlassSurface>
-
-            <GlassSurface className="p-4 text-center">
-              <Award className="w-8 h-8 mx-auto mb-2 text-yellow-400" />
-              <p className="text-2xl font-bold text-white">{hackathon.prizes.length}</p>
-              <p className="text-sm text-gray-400">Ceny k výhru</p>
-            </GlassSurface>
-          </div>
-
-          {/* Tabs */}
-          <div className="flex gap-2 mb-8 relative z-20">
-            <button
-              onClick={() => setSelectedTab('overview')}
-              className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                selectedTab === 'overview'
-                  ? 'bg-purple-500 text-white'
-                  : 'bg-white/10 text-gray-400 hover:text-white'
-              }`}
-            >
-              Přehled
-            </button>
-            <button
-              onClick={() => setSelectedTab('teams')}
-              className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                selectedTab === 'teams'
-                  ? 'bg-purple-500 text-white'
-                  : 'bg-white/10 text-gray-400 hover:text-white'
-              }`}
-            >
-              Týmy ({hackathon.teams.length})
-            </button>
-            <button
-              onClick={() => setSelectedTab('rules')}
-              className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                selectedTab === 'rules'
-                  ? 'bg-purple-500 text-white'
-                  : 'bg-white/10 text-gray-400 hover:text-white'
-              }`}
-            >
-              Pravidla
-            </button>
-          </div>
-
-          {/* Tab content */}
-          <div className="grid lg:grid-cols-3 gap-8 mb-12">
-            {/* Main content area */}
-            <div className="lg:col-span-2 space-y-6">
-              {selectedTab === 'overview' && (
-                <>
+      {/* Tab content */}
+      <Grid columns={1} lg={3} gap={8}>
+        {/* Main content area */}
+        <Box className="lg:col-span-2">
+          <Stack direction="col" gap={6}>
+            {selectedTab === 'overview' && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.25 }}
+                >
                   <GlassSurface className="p-6">
                     <h2 className="text-2xl font-bold text-white mb-4">O hackathonu</h2>
-                    <p className="text-gray-300 leading-relaxed mb-6">{hackathon.description}</p>
-                    <p className="text-gray-300 leading-relaxed">
-                      Připoj se k nám na třídennní maratonu inovací, kde budete mít možnost ukázat
-                      své dovednosti, naučit se nové technologie a soutěžit o skvělé ceny. Ať už
-                      jste začátečník nebo zkušený vývojář, najdete zde inspiraci a výzvy na své
-                      úrovni.
-                    </p>
+                    <p className="text-gray-300 leading-relaxed">{hackathon.description}</p>
                   </GlassSurface>
+                </motion.div>
 
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
                   <GlassSurface className="p-6">
                     <h2 className="text-2xl font-bold text-white mb-4">Ceny</h2>
-                    <div className="space-y-4">
+                    <Stack direction="col" gap={4}>
                       {hackathon.prizes.map((prize, i) => (
                         <motion.div
                           key={prize.place}
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: i * 0.1 }}
-                          className="flex items-start gap-4 p-4 bg-white/5 rounded-lg"
+                          transition={{ delay: 0.3 + i * 0.1 }}
                         >
-                          <div
-                            className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${
-                              prize.place === 1
-                                ? 'bg-yellow-500 text-black'
-                                : prize.place === 2
-                                  ? 'bg-gray-400 text-black'
-                                  : 'bg-orange-600 text-white'
-                            }`}
+                          <Stack
+                            direction="row"
+                            gap={4}
+                            align="start"
+                            className="p-4 bg-white/5 rounded-lg"
                           >
-                            {prize.place}.
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-white mb-1">{prize.title}</h3>
-                            <p className="text-sm text-gray-400 mb-2">{prize.description}</p>
-                            <p className="text-lg font-bold text-purple-300">{prize.value}</p>
-                          </div>
+                            <Box
+                              className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0 ${
+                                prize.place === 1
+                                  ? 'bg-yellow-500 text-black'
+                                  : prize.place === 2
+                                    ? 'bg-gray-400 text-black'
+                                    : 'bg-orange-600 text-white'
+                              }`}
+                            >
+                              {prize.place}.
+                            </Box>
+                            <Box className="flex-1">
+                              <h3 className="font-semibold text-white mb-1">{prize.title}</h3>
+                              {prize.description && (
+                                <p className="text-sm text-gray-400 mb-2">{prize.description}</p>
+                              )}
+                              {prize.value && (
+                                <p className="text-lg font-bold text-purple-300">{prize.value}</p>
+                              )}
+                            </Box>
+                          </Stack>
                         </motion.div>
                       ))}
-                    </div>
+                    </Stack>
                   </GlassSurface>
+                </motion.div>
 
-                  {hackathon.judges.length > 0 && (
+                {hackathon.judges.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.35 }}
+                  >
                     <GlassSurface className="p-6">
                       <h2 className="text-2xl font-bold text-white mb-4">Porota</h2>
-                      <div className="space-y-4">
+                      <Stack direction="col" gap={4}>
                         {hackathon.judges.map((judge, i) => (
                           <motion.div
                             key={judge.id || i}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: i * 0.1 }}
-                            className="flex items-start gap-4"
+                            transition={{ delay: 0.35 + i * 0.1 }}
                           >
-                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xl">
-                              {judge.name
-                                .split(' ')
-                                .map(n => n[0])
-                                .join('')}
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-white">{judge.name}</h3>
-                              <p className="text-sm text-purple-300">
-                                {judge.title} @ {judge.company}
-                              </p>
-                              <p className="text-sm text-gray-400 mt-1">{judge.bio}</p>
-                            </div>
+                            <Stack direction="row" gap={4} align="start">
+                              <Box className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
+                                {judge.name
+                                  .split(' ')
+                                  .map(n => n[0])
+                                  .join('')}
+                              </Box>
+                              <Box className="flex-1">
+                                <h3 className="font-semibold text-white">{judge.name}</h3>
+                                <p className="text-sm text-purple-300">
+                                  {judge.title} @ {judge.company}
+                                </p>
+                                <p className="text-sm text-gray-400 mt-1">{judge.bio}</p>
+                              </Box>
+                            </Stack>
                           </motion.div>
                         ))}
-                      </div>
+                      </Stack>
                     </GlassSurface>
-                  )}
-                </>
-              )}
+                  </motion.div>
+                )}
+              </>
+            )}
 
-              {selectedTab === 'teams' && (
+            {selectedTab === 'teams' && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+              >
                 <GlassSurface className="p-6">
                   <h2 className="text-2xl font-bold text-white mb-6">Přihlášené týmy</h2>
-                  <div className="space-y-4">
+                  <Stack direction="col" gap={4}>
                     {hackathon.teams.map((team, i) => (
                       <motion.div
                         key={team.id}
@@ -472,15 +531,15 @@ export default function HackathonDetailPage() {
                         transition={{ delay: i * 0.1 }}
                         className="p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all"
                       >
-                        <div className="flex items-start justify-between mb-3">
+                        <Stack direction="row" justify="between" align="start" className="mb-3">
                           <h3 className="text-lg font-semibold text-white">{team.name}</h3>
                           <span className="text-sm text-gray-400">
                             {team.memberCount}/{hackathon.maxTeamSize} členů
                           </span>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
+                        </Stack>
+                        <Stack direction="row" wrap gap={2}>
                           {team.members.map(member => (
-                            <div
+                            <Box
                               key={member.id}
                               className="flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full"
                             >
@@ -488,168 +547,192 @@ export default function HackathonDetailPage() {
                                 {member.user.name || member.user.username || 'Anonym'}
                               </span>
                               {member.role === 'leader' && (
-                                <span className="text-xs text-yellow-400">Leader</span>
+                                <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
                               )}
-                            </div>
+                            </Box>
                           ))}
-                        </div>
+                        </Stack>
                         {team.memberCount < hackathon.maxTeamSize &&
                           hackathon.status === 'upcoming' &&
                           !userTeam && (
-                            <button
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => handleJoinTeam(team.id)}
-                              className="mt-3 text-sm text-purple-300 hover:text-purple-200"
+                              className="mt-3"
                             >
-                              + Připojit se k týmu
-                            </button>
+                              <UserPlus className="w-4 h-4 mr-2" />
+                              Připojit se k týmu
+                            </Button>
                           )}
                       </motion.div>
                     ))}
 
                     {hackathon.teams.length === 0 && (
-                      <p className="text-center text-gray-400 py-8">
-                        Zatím nejsou přihlášené žádné týmy. Buď první!
-                      </p>
+                      <Box className="text-center py-8">
+                        <Users className="w-12 h-12 mx-auto text-gray-600 mb-4" />
+                        <p className="text-gray-400">Zatím nejsou přihlášené žádné týmy.</p>
+                        <p className="text-purple-300 mt-2">Buď první!</p>
+                      </Box>
                     )}
-                  </div>
+                  </Stack>
                 </GlassSurface>
-              )}
+              </motion.div>
+            )}
 
-              {selectedTab === 'rules' && (
+            {selectedTab === 'rules' && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+              >
                 <GlassSurface className="p-6">
                   <h2 className="text-2xl font-bold text-white mb-6">Pravidla a pokyny</h2>
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
+                  <Stack direction="col" gap={6}>
+                    <Box>
+                      <Stack direction="row" gap={2} align="center" className="mb-3">
                         <Users className="w-5 h-5 text-purple-400" />
-                        Složení týmu
-                      </h3>
-                      <ul className="space-y-2 text-gray-300">
+                        <h3 className="text-lg font-semibold text-white">Složení týmu</h3>
+                      </Stack>
+                      <ul className="space-y-2 text-gray-300 ml-7">
                         <li>• Maximální počet členů v týmu: {hackathon.maxTeamSize}</li>
                         <li>• Minimální počet členů: 1 (solo účast možná)</li>
-                        <li>• Všichni člennové musí být registrovaní uživatelé</li>
+                        <li>• Všichni členové musí být registrovaní uživatelé</li>
                         <li>• Jeden člověk může být součástí pouze jednoho týmu</li>
                       </ul>
-                    </div>
+                    </Box>
 
-                    <div>
-                      <h3 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
+                    <Box>
+                      <Stack direction="row" gap={2} align="center" className="mb-3">
                         <Target className="w-5 h-5 text-purple-400" />
-                        Požadavky na projekt
-                      </h3>
-                      <ul className="space-y-2 text-gray-300">
+                        <h3 className="text-lg font-semibold text-white">Požadavky na projekt</h3>
+                      </Stack>
+                      <ul className="space-y-2 text-gray-300 ml-7">
                         <li>• Projekt musí být vytvořen během hackathonu</li>
                         <li>• Použití open-source knihoven je povoleno</li>
                         <li>• Zdrojový kód musí být nahrán na GitHub</li>
-                        <li>• Projekt musí obsahovat README s popisem a instrukcemí</li>
+                        <li>• Projekt musí obsahovat README s popisem a instrukcemi</li>
                         <li>• Funkční demo nebo video prezentace je povinné</li>
                       </ul>
-                    </div>
+                    </Box>
 
-                    <div>
-                      <h3 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
+                    <Box>
+                      <Stack direction="row" gap={2} align="center" className="mb-3">
                         <Award className="w-5 h-5 text-purple-400" />
-                        Hodnocení
-                      </h3>
-                      <ul className="space-y-2 text-gray-300">
+                        <h3 className="text-lg font-semibold text-white">Hodnocení</h3>
+                      </Stack>
+                      <ul className="space-y-2 text-gray-300 ml-7">
                         <li>• Inovativnost a originalita (30%)</li>
                         <li>• Technická implementace (30%)</li>
                         <li>• Praktické využití a dopad (20%)</li>
                         <li>• Kvalita prezentace (20%)</li>
                       </ul>
-                    </div>
-                  </div>
+                    </Box>
+                  </Stack>
                 </GlassSurface>
-              )}
-            </div>
+              </motion.div>
+            )}
+          </Stack>
+        </Box>
 
-            {/* Sidebar */}
-            <div className="space-y-6">
-              {/* Registration CTA */}
-              {hackathon.status === 'upcoming' && !userTeam && (
-                <GlassSurface className="p-6 text-center">
+        {/* Sidebar */}
+        <Box>
+          <Stack direction="col" gap={6}>
+            {/* Registration CTA */}
+            {hackathon.status === 'upcoming' && !userTeam && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <GlassSurface className="p-6 text-center border border-purple-500/30">
+                  <Zap className="w-10 h-10 mx-auto text-purple-400 mb-3" />
                   <h3 className="text-xl font-bold text-white mb-2">Připoj se k výzvě!</h3>
                   <p className="text-gray-400 mb-4">
                     Registrace končí za {daysUntilDeadline > 0 ? daysUntilDeadline : 0} dní
                   </p>
-                  <button
-                    onClick={() => setShowRegisterModal(true)}
-                    className="w-full py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-all flex items-center justify-center gap-2"
-                  >
-                    <UserPlus className="w-5 h-5" />
+                  <Button onClick={() => setShowRegisterModal(true)} className="w-full">
+                    <UserPlus className="w-5 h-5 mr-2" />
                     Registrovat se
-                  </button>
+                  </Button>
                 </GlassSurface>
-              )}
+              </motion.div>
+            )}
 
-              {/* User's team info */}
-              {userTeam && (
-                <GlassSurface className="p-6">
-                  <h3 className="text-lg font-bold text-white mb-4">Tvůj tým</h3>
-                  <p className="text-purple-300 font-semibold mb-2">{userTeam.name}</p>
-                  <p className="text-sm text-gray-400">
-                    {userTeam.memberCount}/{hackathon.maxTeamSize} členů
-                  </p>
-                </GlassSurface>
-              )}
-
-              {/* Event details */}
+            {/* Event details */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 }}
+            >
               <GlassSurface className="p-6">
                 <h3 className="text-lg font-bold text-white mb-4">Detaily akce</h3>
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <Calendar className="w-5 h-5 text-purple-400 mt-0.5" />
-                    <div>
+                <Stack direction="col" gap={4}>
+                  <Stack direction="row" gap={3} align="start">
+                    <Calendar className="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" />
+                    <Box>
                       <p className="text-sm text-gray-400">Začátek</p>
-                      <p className="text-white">{formatDate(hackathon.startDate)}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Calendar className="w-5 h-5 text-purple-400 mt-0.5" />
-                    <div>
+                      <p className="text-white">{formatDateTime(hackathon.startDate)}</p>
+                    </Box>
+                  </Stack>
+                  <Stack direction="row" gap={3} align="start">
+                    <Calendar className="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" />
+                    <Box>
                       <p className="text-sm text-gray-400">Konec</p>
-                      <p className="text-white">{formatDate(hackathon.endDate)}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Info className="w-5 h-5 text-purple-400 mt-0.5" />
-                    <div>
+                      <p className="text-white">{formatDateTime(hackathon.endDate)}</p>
+                    </Box>
+                  </Stack>
+                  <Stack direction="row" gap={3} align="start">
+                    <Info className="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" />
+                    <Box>
                       <p className="text-sm text-gray-400">Formát</p>
                       <p className="text-white">Online (remote)</p>
-                    </div>
-                  </div>
-                </div>
+                    </Box>
+                  </Stack>
+                </Stack>
               </GlassSurface>
+            </motion.div>
 
-              {/* Sponsors */}
-              {hackathon.sponsors.length > 0 && (
+            {/* Sponsors */}
+            {hackathon.sponsors.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
                 <GlassSurface className="p-6">
                   <h3 className="text-lg font-bold text-white mb-4">Sponzoři</h3>
-                  <div className="grid grid-cols-2 gap-3">
+                  <Grid columns={2} gap={3}>
                     {hackathon.sponsors.map((sponsor, i) => (
-                      <div
+                      <Box
                         key={i}
                         className="p-3 bg-white/5 rounded-lg text-center text-sm text-gray-300 hover:bg-white/10 transition-all"
                       >
                         {sponsor}
-                      </div>
+                      </Box>
                     ))}
-                  </div>
+                  </Grid>
                 </GlassSurface>
-              )}
+              </motion.div>
+            )}
 
-              {/* Share */}
+            {/* Share */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45 }}
+            >
               <GlassSurface className="p-6">
                 <h3 className="text-lg font-bold text-white mb-4">Sdílet</h3>
-                <button className="w-full py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-all flex items-center justify-center gap-2">
-                  <Share2 className="w-4 h-4" />
+                <Button variant="secondary" className="w-full">
+                  <Share2 className="w-4 h-4 mr-2" />
                   Sdílet hackathon
-                </button>
+                </Button>
               </GlassSurface>
-            </div>
-          </div>
-        </div>
-      </main>
+            </motion.div>
+          </Stack>
+        </Box>
+      </Grid>
 
       {/* Registration Modal */}
       {showRegisterModal && (
@@ -657,35 +740,32 @@ export default function HackathonDetailPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
           onClick={() => setShowRegisterModal(false)}
         >
           <motion.div
-            initial={{ scale: 0.9 }}
-            animate={{ scale: 1 }}
-            exit={{ scale: 0.9 }}
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
             onClick={e => e.stopPropagation()}
+            className="w-full max-w-md"
           >
-            <GlassSurface className="p-8 max-w-md">
-              <h2 className="text-2xl font-bold text-white mb-4">Registrace na hackathon</h2>
+            <GlassSurface className="p-8">
+              <h2 className="text-2xl font-bold text-white mb-6">Registrace na hackathon</h2>
 
               {!session?.user ? (
-                <div className="text-center">
-                  <p className="text-gray-300 mb-4">Pro registraci se musíš přihlásit.</p>
-                  <Link
-                    href="/auth/login"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-all"
-                  >
-                    Přihlásit se
-                  </Link>
-                </div>
+                <Stack direction="col" align="center" gap={4}>
+                  <p className="text-gray-300 text-center">Pro registraci se musíš přihlásit.</p>
+                  <Button asChild>
+                    <Link href="/auth/login">Přihlásit se</Link>
+                  </Button>
+                </Stack>
               ) : level >= 5 ? (
-                <div className="space-y-4">
+                <Stack direction="col" gap={4}>
                   {joinError && (
-                    <div className="p-3 bg-red-500/20 text-red-300 rounded-lg text-sm">
+                    <Box className="p-3 bg-red-500/20 text-red-300 rounded-lg text-sm">
                       {joinError}
-                    </div>
+                    </Box>
                   )}
 
                   {!creatingTeam ? (
@@ -719,58 +799,57 @@ export default function HackathonDetailPage() {
                         value={teamName}
                         onChange={e => setTeamName(e.target.value)}
                         placeholder="Název týmu"
-                        className="w-full p-3 bg-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="w-full p-3 bg-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 border border-white/10"
                       />
-                      <div className="flex gap-2">
-                        <button
+                      <Stack direction="row" gap={2}>
+                        <Button
+                          variant="secondary"
                           onClick={() => setCreatingTeam(false)}
-                          className="flex-1 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-all"
+                          className="flex-1"
                         >
                           Zpět
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           onClick={handleCreateTeam}
                           disabled={!teamName.trim()}
-                          className="flex-1 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-all disabled:opacity-50"
+                          className="flex-1"
                         >
                           Vytvořit
-                        </button>
-                      </div>
+                        </Button>
+                      </Stack>
                     </>
                   )}
-                </div>
+                </Stack>
               ) : (
-                <div className="text-center">
-                  <p className="text-gray-400 mb-4">
-                    Pro registraci musíš mít úroveň alespoň 5. Aktuální úroveň: {level}
-                  </p>
-                  <p className="text-gray-300 mb-4">
-                    Potřebuješ ještě {5 - level} úrovně pro registraci.
-                  </p>
-                  <Link
-                    href="/chapters"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-all"
-                  >
-                    Pokračovat v učení
-                  </Link>
-                </div>
+                <Stack direction="col" align="center" gap={4}>
+                  <Box className="text-center">
+                    <p className="text-gray-400 mb-2">Pro registraci musíš mít úroveň alespoň 5.</p>
+                    <p className="text-white">
+                      Aktuální úroveň: <span className="text-purple-400 font-bold">{level}</span>
+                    </p>
+                  </Box>
+                  <Button asChild>
+                    <Link href="/chapters">Pokračovat v učení</Link>
+                  </Button>
+                </Stack>
               )}
 
-              <button
+              <Button
+                variant="ghost"
                 onClick={() => {
                   setShowRegisterModal(false)
                   setCreatingTeam(false)
                   setTeamName('')
                   setJoinError(null)
                 }}
-                className="mt-6 w-full py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-all"
+                className="mt-6 w-full"
               >
                 Zavřít
-              </button>
+              </Button>
             </GlassSurface>
           </motion.div>
         </motion.div>
       )}
-    </div>
+    </UnifiedPageLayout>
   )
 }
