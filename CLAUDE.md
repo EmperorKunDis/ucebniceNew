@@ -9,6 +9,7 @@ Interactive AI-powered programming education platform built with Next.js 14, Pos
 ## Common Development Commands
 
 ### Development
+
 ```bash
 npm run dev              # Start development server on http://localhost:3000
 npm run build            # Create production build
@@ -16,23 +17,29 @@ npm start                # Run production server
 ```
 
 ### Code Quality
+
 ```bash
 npm run lint             # Run ESLint checks
 npm run lint:fix         # Auto-fix ESLint issues
 npm run format           # Format code with Prettier
+npm run format:check     # Check code formatting
 npm run type-check       # Check TypeScript types
 ```
 
 ### Testing
+
 ```bash
 npm test                 # Run Jest unit tests
 npm run test:watch       # Jest watch mode
 npm run test:coverage    # Generate coverage report
 npm run test:e2e         # Run Playwright E2E tests
+npm run test:e2e:ui      # Run E2E tests with UI
 npm run test:e2e:debug   # Debug E2E tests
+npm run test:e2e:report  # View E2E test report
 ```
 
 ### Database Operations
+
 ```bash
 npx prisma generate      # Generate Prisma client
 npx prisma migrate dev   # Run migrations in development
@@ -43,6 +50,7 @@ npm run db:seed          # Seed database with initial data
 ```
 
 ### Kubernetes Deployment (via Makefile)
+
 ```bash
 make build               # Build Docker image
 make push                # Push to Harbor registry
@@ -55,6 +63,7 @@ make logs-production     # View production logs
 ## Architecture & Key Concepts
 
 ### Tech Stack
+
 - **Frontend**: Next.js 14 (App Router), React 18, Tailwind CSS, Radix UI
 - **Backend**: Next.js API Routes, NextAuth.js for authentication
 - **Database**: PostgreSQL with Prisma ORM
@@ -69,13 +78,15 @@ make logs-production     # View production logs
 **User System**: User authentication with NextAuth, supporting email/password and OAuth. Users have XP, levels, streaks, and achievement tracking.
 
 **Chapter System**: Educational content organized into chapters with:
+
 - Video lessons (stored in `data/videa/`)
 - Markdown content (in `public/prednasky/`)
 - Questions with multiple choice answers
 - Project submissions
 - XP rewards and difficulty ratings
 
-**Gamification**: 
+**Gamification**:
+
 - XP and level progression
 - Achievement/badge system with different rarities
 - Streak tracking for daily engagement
@@ -85,6 +96,7 @@ make logs-production     # View production logs
 ### API Architecture
 
 All API routes follow RESTful patterns under `/app/api/`:
+
 - Authentication endpoints use NextAuth.js
 - Admin endpoints require `isAdmin` flag
 - Rate limiting via Upstash Redis on sensitive endpoints
@@ -94,6 +106,7 @@ All API routes follow RESTful patterns under `/app/api/`:
 ### Key Environment Variables
 
 Required for development:
+
 - `DATABASE_URL`: PostgreSQL connection string
 - `NEXTAUTH_SECRET`: Session encryption key
 - `NEXTAUTH_URL`: Application URL
@@ -101,6 +114,7 @@ Required for development:
 - `UPSTASH_REDIS_REST_TOKEN`: Redis auth token
 
 Optional:
+
 - `SENTRY_DSN`: Error tracking
 - `SENTRY_AUTH_TOKEN`: Sentry deployment tracking
 
@@ -113,8 +127,9 @@ Optional:
 ### TypeScript Configuration
 
 Strict mode enabled with additional safety checks:
+
 - `noUnusedLocals` and `noUnusedParameters`
-- `noImplicitReturns` 
+- `noImplicitReturns`
 - `noUncheckedIndexedAccess` for safer array/object access
 - Path alias `@/*` maps to `src/*`
 
@@ -125,3 +140,22 @@ Strict mode enabled with additional safety checks:
 - Image optimization with Next.js Image
 - Database indexes on frequently queried fields
 - Bundle analysis available via `npm run analyze`
+
+### Development Workflow Patterns
+
+**Component Development**:
+
+- UI components in `src/components/ui/` use custom design system with glass morphism effects
+- Chapter components in `src/components/chapters/` handle educational content rendering
+- Auth components follow NextAuth.js patterns with custom UI
+
+**API Route Patterns**:
+
+- All routes use standardized error handling via `api-middleware.ts`
+- Admin routes require `isAdmin` flag validation
+- Rate limiting applied to sensitive endpoints (auth, submissions)
+
+**Storybook Integration**:
+
+- Components documented with Storybook (`npm run storybook`)
+- Stories available for UI components and design system elements

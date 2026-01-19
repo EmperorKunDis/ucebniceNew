@@ -132,7 +132,13 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
           setSubmittedProject(data.submittedProject || false)
           setCompleted(data.completed)
           if (data.completed) {
-            setCompletionData({ alreadyCompleted: true })
+            // Když je kapitola dokončená po refreshu, nastavíme completion data
+            // ale nezakazujeme další aktivity (otázky, projekty)
+            setCompletionData({
+              alreadyCompleted: true,
+              // Umožníme dělat otázky a projekty i po dokončení kapitoly
+              allowContinue: true,
+            })
           }
 
           // Load question answers
@@ -374,7 +380,7 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
             </Section>
           )}
 
-          {/* Project Submission */}
+          {/* Project Submission - vždy dostupné pokud je uživatel přihlášený */}
           {session && (
             <Section
               title="Odevzdej svůj projekt"
@@ -403,9 +409,13 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
               {!completed && !completionData ? (
                 <div className="text-center">
                   <h3 className="text-xl font-semibold text-white mb-2">
-                    Dokončil jsi tuto kapitolu?
+                    {completedChapter ? 'Kapitola je dokončená!' : 'Dokončil jsi tuto kapitolu?'}
                   </h3>
-                  <p className="text-gray-400 mb-4">Získej XP a pokroč ve své cestě učení!</p>
+                  <p className="text-gray-400 mb-4">
+                    {completedChapter
+                      ? 'Můžeš pokračovat v získávání dalších hvězdiček!'
+                      : 'Získej XP a pokroč ve své cestě učení!'}
+                  </p>
 
                   {/* Star Progress */}
                   {(completedChapter || answeredQuestions || submittedProject) && (
@@ -439,24 +449,52 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
                     </div>
                   )}
 
-                  <Button
-                    onClick={handleCompleteChapter}
-                    disabled={completing}
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                    size="lg"
-                  >
-                    {completing ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                        Ukládám...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="w-5 h-5 mr-2" />
-                        Dokončit kapitolu
-                      </>
-                    )}
-                  </Button>
+                  {!completedChapter && (
+                    <Button
+                      onClick={handleCompleteChapter}
+                      disabled={completing}
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                      size="lg"
+                    >
+                      {completing ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                          Ukládám...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="w-5 h-5 mr-2" />
+                          Dokončit kapitolu
+                        </>
+                      )}
+                    </Button>
+                  )}
+
+                  {completedChapter && (
+                    <div className="flex gap-2 justify-center">
+                      <Button onClick={() => router.push('/chapters')} variant="secondary">
+                        Zpět na kapitoly
+                      </Button>
+                      {!answeredQuestions && questions.length > 0 && (
+                        <Button
+                          onClick={() => toggleSection('questions')}
+                          className="bg-gradient-to-r from-blue-500 to-cyan-500"
+                        >
+                          <HelpCircle className="w-5 h-5 mr-2" />
+                          Zodpovědět otázky
+                        </Button>
+                      )}
+                      {!submittedProject && (
+                        <Button
+                          onClick={() => toggleSection('project')}
+                          className="bg-gradient-to-r from-green-500 to-emerald-500"
+                        >
+                          <Upload className="w-5 h-5 mr-2" />
+                          Odevzdat projekt
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="text-center">
@@ -537,19 +575,35 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
                     </div>
                   )}
 
-                  <Button
-                    onClick={() => router.push('/chapters')}
-                    variant="secondary"
-                    className="mr-2"
-                  >
-                    Zpět na kapitoly
-                  </Button>
-                  <Button
-                    onClick={() => router.push('/profile')}
-                    className="bg-gradient-to-r from-purple-500 to-pink-500"
-                  >
-                    Profil
-                  </Button>
+                  <div className="flex gap-2 justify-center flex-wrap">
+                    <Button onClick={() => router.push('/chapters')} variant="secondary">
+                      Zpět na kapitoly
+                    </Button>
+                    <Button
+                      onClick={() => router.push('/profile')}
+                      className="bg-gradient-to-r from-purple-500 to-pink-500"
+                    >
+                      Profil
+                    </Button>
+                    {!answeredQuestions && questions.length > 0 && (
+                      <Button
+                        onClick={() => toggleSection('questions')}
+                        className="bg-gradient-to-r from-blue-500 to-cyan-500"
+                      >
+                        <HelpCircle className="w-5 h-5 mr-2" />
+                        Zodpovědět otázky
+                      </Button>
+                    )}
+                    {!submittedProject && (
+                      <Button
+                        onClick={() => toggleSection('project')}
+                        className="bg-gradient-to-r from-green-500 to-emerald-500"
+                      >
+                        <Upload className="w-5 h-5 mr-2" />
+                        Odevzdat projekt
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )}
             </GreySurface>
