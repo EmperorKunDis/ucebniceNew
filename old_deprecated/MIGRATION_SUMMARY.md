@@ -34,6 +34,7 @@
 - ✅ Vytvořen `DATABASE_SETUP.md` s kompletním návodem
 - ✅ Vytvořen testovací skript `test-db-connection.mjs`
 - ✅ Aktualizován `.gitignore` pro ignorování SQLite souborů
+  d
 
 ### 5. **Gitignore**
 

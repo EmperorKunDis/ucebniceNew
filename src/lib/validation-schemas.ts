@@ -332,3 +332,117 @@ export function validateQueryParams<T>(
     return { success: false, errors: formatZodErrors(result.error) }
   }
 }
+
+// ========================================
+// ARENA VALIDATION SCHEMAS
+// ========================================
+
+// Prize schema for hackathon
+export const prizeSchema = z.object({
+  place: z.number().int().min(1),
+  title: z.string().min(1, 'Název ceny je povinný'),
+  description: z.string().min(1, 'Popis ceny je povinný'),
+  value: z.string().min(1, 'Hodnota ceny je povinná'),
+})
+
+// Judge schema for hackathon
+export const judgeSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, 'Jméno porotce je povinné'),
+  title: z.string().min(1, 'Titul porotce je povinný'),
+  company: z.string().min(1, 'Společnost je povinná'),
+  bio: z.string().min(1, 'Bio je povinné'),
+  avatar: z.string().url().optional().nullable(),
+})
+
+/**
+ * POST /api/admin/hackathons - Create hackathon
+ */
+export const createHackathonSchema = z.object({
+  title: z.string().min(3, 'Název musí mít alespoň 3 znaky').max(200, 'Název je příliš dlouhý'),
+  description: z.string().min(10, 'Popis musí mít alespoň 10 znaků'),
+  theme: z.string().min(3, 'Téma musí mít alespoň 3 znaky'),
+  startDate: z.string().datetime({ message: 'Neplatné datum začátku' }),
+  endDate: z.string().datetime({ message: 'Neplatné datum konce' }),
+  registrationDeadline: z.string().datetime({ message: 'Neplatný deadline registrace' }),
+  maxTeamSize: z.number().int().min(1).max(10).default(4),
+  status: z.enum(['upcoming', 'active', 'completed']).default('upcoming'),
+  prizes: z.array(prizeSchema).default([]),
+  judges: z.array(judgeSchema).default([]),
+  sponsors: z.array(z.string()).default([]),
+  bannerImage: z.string().url().optional().nullable(),
+})
+
+/**
+ * PUT /api/admin/hackathons/[id] - Update hackathon
+ */
+export const updateHackathonSchema = createHackathonSchema.partial()
+
+/**
+ * POST /api/teams - Create team
+ */
+export const createTeamSchema = z.object({
+  name: z.string().min(2, 'Název týmu musí mít alespoň 2 znaky').max(50, 'Název týmu je příliš dlouhý'),
+  hackathonId: z.string().uuid('Neplatné ID hackathonu'),
+})
+
+/**
+ * PUT /api/teams/[id] - Update team
+ */
+export const updateTeamSchema = z.object({
+  name: z.string().min(2).max(50).optional(),
+})
+
+/**
+ * POST /api/teams/[id]/join - Join team
+ */
+export const joinTeamSchema = z.object({
+  skills: z.array(z.string()).default([]),
+})
+
+/**
+ * POST /api/teams/[id]/project - Submit project
+ */
+export const submitHackathonProjectSchema = z.object({
+  title: z.string().min(3, 'Název projektu musí mít alespoň 3 znaky').max(200),
+  description: z.string().min(10, 'Popis projektu musí mít alespoň 10 znaků'),
+  githubUrl: z.string().url('Neplatná GitHub URL'),
+  demoUrl: z.string().url('Neplatná demo URL').optional().nullable(),
+  videoUrl: z.string().url('Neplatná video URL').optional().nullable(),
+  screenshots: z.array(z.string().url()).default([]),
+  technologies: z.array(z.string()).default([]),
+})
+
+/**
+ * PUT /api/user/graduate-profile - Update graduate profile
+ */
+export const updateGraduateProfileSchema = z.object({
+  bio: z.string().max(1000, 'Bio může mít maximálně 1000 znaků').optional().nullable(),
+  skills: z.array(z.string()).default([]),
+  portfolio: z
+    .array(
+      z.object({
+        id: z.string().optional(),
+        title: z.string().min(1),
+        description: z.string(),
+        url: z.string().url(),
+        type: z.enum(['project', 'article', 'presentation', 'certificate']),
+        technologies: z.array(z.string()).default([]),
+      })
+    )
+    .default([]),
+  linkedIn: z.string().url().optional().nullable(),
+  github: z.string().url().optional().nullable(),
+  website: z.string().url().optional().nullable(),
+  lookingForWork: z.boolean().default(false),
+  preferredRoles: z.array(z.string()).default([]),
+})
+
+// Type exports for Arena schemas
+export type CreateHackathonData = z.infer<typeof createHackathonSchema>
+export type UpdateHackathonData = z.infer<typeof updateHackathonSchema>
+export type CreateTeamData = z.infer<typeof createTeamSchema>
+export type UpdateTeamData = z.infer<typeof updateTeamSchema>
+export type JoinTeamData = z.infer<typeof joinTeamSchema>
+export type SubmitHackathonProjectData = z.infer<typeof submitHackathonProjectSchema>
+export type UpdateGraduateProfileData = z.infer<typeof updateGraduateProfileSchema>
