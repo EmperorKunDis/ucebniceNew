@@ -82,9 +82,7 @@ export function HackathonForm({ initialData, hackathonId, isEditing = false }: H
   const handlePrizeChange = (index: number, field: keyof Prize, value: string | number) => {
     setFormData(prev => ({
       ...prev,
-      prizes: prev.prizes.map((prize, i) =>
-        i === index ? { ...prize, [field]: value } : prize
-      ),
+      prizes: prev.prizes.map((prize, i) => (i === index ? { ...prize, [field]: value } : prize)),
     }))
   }
 
@@ -108,9 +106,7 @@ export function HackathonForm({ initialData, hackathonId, isEditing = false }: H
   const handleJudgeChange = (index: number, field: keyof Judge, value: string) => {
     setFormData(prev => ({
       ...prev,
-      judges: prev.judges.map((judge, i) =>
-        i === index ? { ...judge, [field]: value } : judge
-      ),
+      judges: prev.judges.map((judge, i) => (i === index ? { ...judge, [field]: value } : judge)),
     }))
   }
 
@@ -151,9 +147,7 @@ export function HackathonForm({ initialData, hackathonId, isEditing = false }: H
     setError(null)
 
     try {
-      const url = isEditing
-        ? `/api/admin/hackathons/${hackathonId}`
-        : '/api/admin/hackathons'
+      const url = isEditing ? `/api/admin/hackathons/${hackathonId}` : '/api/admin/hackathons'
       const method = isEditing ? 'PUT' : 'POST'
 
       // Format dates to ISO
@@ -209,7 +203,7 @@ export function HackathonForm({ initialData, hackathonId, isEditing = false }: H
               required
               value={formData.title}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
             />
           </div>
 
@@ -224,7 +218,7 @@ export function HackathonForm({ initialData, hackathonId, isEditing = false }: H
               required
               value={formData.theme}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
             />
           </div>
 
@@ -239,7 +233,7 @@ export function HackathonForm({ initialData, hackathonId, isEditing = false }: H
               rows={4}
               value={formData.description}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
             />
           </div>
 
@@ -254,7 +248,7 @@ export function HackathonForm({ initialData, hackathonId, isEditing = false }: H
               value={formData.bannerImage}
               onChange={handleChange}
               placeholder="https://example.com/banner.jpg"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
             />
           </div>
         </div>
@@ -275,7 +269,7 @@ export function HackathonForm({ initialData, hackathonId, isEditing = false }: H
               required
               value={formData.startDate}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
             />
           </div>
 
@@ -290,7 +284,7 @@ export function HackathonForm({ initialData, hackathonId, isEditing = false }: H
               required
               value={formData.endDate}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
             />
           </div>
 
@@ -308,7 +302,7 @@ export function HackathonForm({ initialData, hackathonId, isEditing = false }: H
               required
               value={formData.registrationDeadline}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
             />
           </div>
 
@@ -324,7 +318,7 @@ export function HackathonForm({ initialData, hackathonId, isEditing = false }: H
               max={10}
               value={formData.maxTeamSize}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
             />
           </div>
 
@@ -337,7 +331,7 @@ export function HackathonForm({ initialData, hackathonId, isEditing = false }: H
               name="status"
               value={formData.status}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
             >
               <option value="upcoming">Nadcházející</option>
               <option value="active">Probíhá</option>
@@ -381,7 +375,7 @@ export function HackathonForm({ initialData, hackathonId, isEditing = false }: H
                     type="text"
                     value={prize.title}
                     onChange={e => handlePrizeChange(index, 'title', e.target.value)}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
                   />
                 </div>
                 <div>
@@ -390,7 +384,7 @@ export function HackathonForm({ initialData, hackathonId, isEditing = false }: H
                     type="text"
                     value={prize.description}
                     onChange={e => handlePrizeChange(index, 'description', e.target.value)}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
                   />
                 </div>
                 <div>
@@ -400,7 +394,7 @@ export function HackathonForm({ initialData, hackathonId, isEditing = false }: H
                     value={prize.value}
                     onChange={e => handlePrizeChange(index, 'value', e.target.value)}
                     placeholder="např. 50 000 Kč"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
                   />
                 </div>
               </div>
@@ -444,7 +438,7 @@ export function HackathonForm({ initialData, hackathonId, isEditing = false }: H
                       required
                       value={judge.name}
                       onChange={e => handleJudgeChange(index, 'name', e.target.value)}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
                     />
                   </div>
                   <div>
@@ -454,19 +448,17 @@ export function HackathonForm({ initialData, hackathonId, isEditing = false }: H
                       required
                       value={judge.title}
                       onChange={e => handleJudgeChange(index, 'title', e.target.value)}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Společnost *
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700">Společnost *</label>
                     <input
                       type="text"
                       required
                       value={judge.company}
                       onChange={e => handleJudgeChange(index, 'company', e.target.value)}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
                     />
                   </div>
                   <div>
@@ -476,7 +468,7 @@ export function HackathonForm({ initialData, hackathonId, isEditing = false }: H
                       required
                       value={judge.bio}
                       onChange={e => handleJudgeChange(index, 'bio', e.target.value)}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
                     />
                   </div>
                 </div>
@@ -496,7 +488,7 @@ export function HackathonForm({ initialData, hackathonId, isEditing = false }: H
             onChange={e => setNewSponsor(e.target.value)}
             placeholder="Název sponzora"
             onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addSponsor())}
-            className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-gray-900"
           />
           <button
             type="button"

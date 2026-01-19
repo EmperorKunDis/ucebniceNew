@@ -341,8 +341,8 @@ export function validateQueryParams<T>(
 export const prizeSchema = z.object({
   place: z.number().int().min(1),
   title: z.string().min(1, 'Název ceny je povinný'),
-  description: z.string().min(1, 'Popis ceny je povinný'),
-  value: z.string().min(1, 'Hodnota ceny je povinná'),
+  description: z.string().default(''),
+  value: z.string().default(''),
 })
 
 // Judge schema for hackathon
@@ -382,7 +382,10 @@ export const updateHackathonSchema = createHackathonSchema.partial()
  * POST /api/teams - Create team
  */
 export const createTeamSchema = z.object({
-  name: z.string().min(2, 'Název týmu musí mít alespoň 2 znaky').max(50, 'Název týmu je příliš dlouhý'),
+  name: z
+    .string()
+    .min(2, 'Název týmu musí mít alespoň 2 znaky')
+    .max(50, 'Název týmu je příliš dlouhý'),
   hackathonId: z.string().uuid('Neplatné ID hackathonu'),
 })
 
