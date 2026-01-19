@@ -27,7 +27,10 @@
       "Bash(npm start)",
       "Bash(cloudflared tunnel:*)",
       "Read(//Users/martinsvanda/ucebniceNew/**)",
-      "Bash(npx prisma:*)"
+      "Bash(npx prisma:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run lint:*)"
     ],
     "deny": [],
     "ask": []

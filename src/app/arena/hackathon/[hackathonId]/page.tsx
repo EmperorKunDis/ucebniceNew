@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
@@ -15,119 +15,117 @@ import {
   Share2,
   Info,
   Target,
+  Loader2,
 } from 'lucide-react'
 
 import { Lightning } from '@/components/ui/lightning'
 import { GlassSurface } from '@/components/ui/glass-surface'
-import { Hackathon, Team } from '@/types/arena'
 
-// Mock data - in real app would fetch from API
-const mockHackathon: Hackathon = {
-  id: 'hack-1',
-  title: 'AI Innovation Challenge 2024',
-  description:
-    'Vytvořte revolucní AI řešení, která změní svět. Zaměřte se na praktické aplikace v reálném světě.',
-  theme: 'Umělá inteligence pro lepší budoucnost',
-  startDate: new Date('2024-02-15'),
-  endDate: new Date('2024-02-17'),
-  status: 'upcoming',
-  prizes: [
-    {
-      place: 1,
-      title: 'Hlavní cena',
-      description: 'Mentoring + stáž ve společnosti TechCorp',
-      value: '50 000 Kč',
-    },
-    {
-      place: 2,
-      title: 'Druhé místo',
-      description: 'Online kurzy a certifikace',
-      value: '30 000 Kč',
-    },
-    {
-      place: 3,
-      title: 'Třetí místo',
-      description: 'Knihy a vývojové vybavení',
-      value: '15 000 Kč',
-    },
-  ],
-  judges: [
-    {
-      id: 'judge-1',
-      name: 'Dr. Eva Nováková',
-      title: 'Head of AI Research',
-      company: 'TechCorp',
-      bio: '15 let zkušeností v AI výzkumu. Specializuje se na NLP a počítačové vidění.',
-      avatar: '/judge1.jpg',
-    },
-    {
-      id: 'judge-2',
-      name: 'Ing. Tomáš Dvořák',
-      title: 'CTO',
-      company: 'StartupHub',
-      bio: 'Zakladatel několika úspěšných startupů v oblasti AI a ML.',
-      avatar: '/judge2.jpg',
-    },
-    {
-      id: 'judge-3',
-      name: 'Mgr. Kateřina Svobodová',
-      title: 'Product Manager',
-      company: 'AI Labs',
-      bio: 'Expert na produktový management a UX design v AI aplikacích.',
-      avatar: '/judge3.jpg',
-    },
-  ],
-  sponsors: ['TechCorp', 'AI Labs', 'Future Fund', 'CloudProvider', 'DataScience Inc.'],
-  maxTeamSize: 4,
-  registrationDeadline: new Date('2024-02-10'),
-  bannerImage: '/hackathon-ai.jpg',
+// Types for API responses
+interface Prize {
+  place: number
+  title: string
+  description: string
+  value: string
 }
 
-// Mock teams
-const mockTeams: Team[] = [
-  {
-    id: 'team-1',
-    name: 'Neural Ninjas',
-    members: [
-      {
-        userId: 'user-1',
-        username: 'CodeMaster',
-        role: 'leader',
-        skills: ['Python', 'TensorFlow'],
-      },
-      { userId: 'user-2', username: 'DataWiz', role: 'member', skills: ['Data Science', 'SQL'] },
-      { userId: 'user-3', username: 'MLGuru', role: 'member', skills: ['ML', 'PyTorch'] },
-    ],
-    hackathonId: 'hack-1',
-    createdAt: new Date('2024-01-15'),
-  },
-  {
-    id: 'team-2',
-    name: 'AI Avengers',
-    members: [
-      { userId: 'user-4', username: 'PythonPro', role: 'leader', skills: ['Python', 'FastAPI'] },
-      {
-        userId: 'user-5',
-        username: 'ReactRanger',
-        role: 'member',
-        skills: ['React', 'TypeScript'],
-      },
-    ],
-    hackathonId: 'hack-1',
-    createdAt: new Date('2024-01-20'),
-  },
-]
+interface Judge {
+  id?: string
+  name: string
+  title: string
+  company: string
+  bio: string
+  avatar?: string
+}
+
+interface TeamMember {
+  id: string
+  role: string
+  skills: string[]
+  user: {
+    id: string
+    name: string | null
+    username: string | null
+    image: string | null
+  }
+}
+
+interface Team {
+  id: string
+  name: string
+  memberCount: number
+  members: TeamMember[]
+  hasProject: boolean
+  project: {
+    id: string
+    title: string
+    description: string
+    technologies: string[]
+    placement: number | null
+  } | null
+}
+
+interface HackathonData {
+  id: string
+  title: string
+  description: string
+  theme: string
+  startDate: string
+  endDate: string
+  status: 'upcoming' | 'active' | 'completed'
+  maxTeamSize: number
+  registrationDeadline: string
+  bannerImage: string | null
+  prizes: Prize[]
+  judges: Judge[]
+  sponsors: string[]
+  teams: Team[]
+  winners: {
+    id: string
+    title: string
+    description: string
+    technologies: string[]
+    placement: number
+    teamName: string
+    teamId: string
+  }[]
+}
 
 export default function HackathonDetailPage() {
   const router = useRouter()
+  const params = useParams()
+  const hackathonId = params.hackathonId as string
   const { data: session } = useSession()
+
+  const [hackathon, setHackathon] = useState<HackathonData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [level, setLevel] = useState(1)
   const [showRegisterModal, setShowRegisterModal] = useState(false)
   const [selectedTab, setSelectedTab] = useState<'overview' | 'teams' | 'rules'>('overview')
+  const [creatingTeam, setCreatingTeam] = useState(false)
+  const [teamName, setTeamName] = useState('')
+  const [joinError, setJoinError] = useState<string | null>(null)
 
-  // const hackathonId = params?.hackathonId as string
-  const hackathon = mockHackathon // In real app: fetch based on hackathonId
-  const teams = mockTeams
+  // Fetch hackathon data
+  useEffect(() => {
+    const fetchHackathon = async () => {
+      try {
+        const res = await fetch(`/api/hackathons/${hackathonId}`)
+        if (!res.ok) {
+          throw new Error('Hackathon nenalezen')
+        }
+        const data = await res.json()
+        setHackathon(data.hackathon)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Nastala chyba')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchHackathon()
+  }, [hackathonId])
 
   // Load user level from server
   useEffect(() => {
@@ -148,16 +146,108 @@ export default function HackathonDetailPage() {
     loadUserLevel()
   }, [session])
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('cs-CZ', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  }
+
+  const handleCreateTeam = async () => {
+    if (!teamName.trim()) return
+    setJoinError(null)
+
+    try {
+      const res = await fetch('/api/teams', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: teamName,
+          hackathonId,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Nepodařilo se vytvořit tým')
+      }
+
+      // Refresh hackathon data
+      const hackRes = await fetch(`/api/hackathons/${hackathonId}`)
+      const hackData = await hackRes.json()
+      setHackathon(hackData.hackathon)
+
+      setShowRegisterModal(false)
+      setTeamName('')
+      setCreatingTeam(false)
+    } catch (err) {
+      setJoinError(err instanceof Error ? err.message : 'Nastala chyba')
+    }
+  }
+
+  const handleJoinTeam = async (teamId: string) => {
+    setJoinError(null)
+
+    try {
+      const res = await fetch(`/api/teams/${teamId}/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ skills: [] }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Nepodařilo se připojit k týmu')
+      }
+
+      // Refresh hackathon data
+      const hackRes = await fetch(`/api/hackathons/${hackathonId}`)
+      const hackData = await hackRes.json()
+      setHackathon(hackData.hackathon)
+
+      setShowRegisterModal(false)
+    } catch (err) {
+      setJoinError(err instanceof Error ? err.message : 'Nastala chyba')
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+      </div>
+    )
+  }
+
+  if (error || !hackathon) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <p className="text-red-400 mb-4">{error || 'Hackathon nenalezen'}</p>
+        <Link href="/arena" className="text-purple-400 hover:text-purple-300">
+          Zpět na Arénu
+        </Link>
+      </div>
+    )
+  }
+
   const daysUntilStart = Math.ceil(
-    (hackathon.startDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+    (new Date(hackathon.startDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
   )
   const daysUntilDeadline = Math.ceil(
-    (hackathon.registrationDeadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+    (new Date(hackathon.registrationDeadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
   )
 
-  if (!hackathon) {
-    return <div>Hackathon nenalezen</div>
-  }
+  // Check if user is already in a team
+  const userTeam = session?.user?.id
+    ? hackathon.teams.find(team =>
+        team.members.some(m => m.user.id === session.user.id)
+      )
+    : null
 
   return (
     <div className="min-h-screen relative">
@@ -227,19 +317,23 @@ export default function HackathonDetailPage() {
           <div className="grid md:grid-cols-4 gap-4 mb-8">
             <GlassSurface className="p-4 text-center">
               <Calendar className="w-8 h-8 mx-auto mb-2 text-purple-400" />
-              <p className="text-2xl font-bold text-white">{daysUntilStart}</p>
+              <p className="text-2xl font-bold text-white">
+                {daysUntilStart > 0 ? daysUntilStart : 0}
+              </p>
               <p className="text-sm text-gray-400">Dní do začátku</p>
             </GlassSurface>
 
             <GlassSurface className="p-4 text-center">
               <Clock className="w-8 h-8 mx-auto mb-2 text-orange-400" />
-              <p className="text-2xl font-bold text-white">{daysUntilDeadline}</p>
+              <p className="text-2xl font-bold text-white">
+                {daysUntilDeadline > 0 ? daysUntilDeadline : 0}
+              </p>
               <p className="text-sm text-gray-400">Dní do registrace</p>
             </GlassSurface>
 
             <GlassSurface className="p-4 text-center">
               <Users className="w-8 h-8 mx-auto mb-2 text-green-400" />
-              <p className="text-2xl font-bold text-white">{teams.length}</p>
+              <p className="text-2xl font-bold text-white">{hackathon.teams.length}</p>
               <p className="text-sm text-gray-400">Týmů přihlášeno</p>
             </GlassSurface>
 
@@ -270,7 +364,7 @@ export default function HackathonDetailPage() {
                   : 'bg-white/10 text-gray-400 hover:text-white'
               }`}
             >
-              Týmy ({teams.length})
+              Týmy ({hackathon.teams.length})
             </button>
             <button
               onClick={() => setSelectedTab('rules')}
@@ -333,34 +427,36 @@ export default function HackathonDetailPage() {
                     </div>
                   </GlassSurface>
 
-                  <GlassSurface className="p-6">
-                    <h2 className="text-2xl font-bold text-white mb-4">Porota</h2>
-                    <div className="space-y-4">
-                      {hackathon.judges.map((judge, i) => (
-                        <motion.div
-                          key={judge.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: i * 0.1 }}
-                          className="flex items-start gap-4"
-                        >
-                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xl">
-                            {judge.name
-                              .split(' ')
-                              .map(n => n[0])
-                              .join('')}
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-white">{judge.name}</h3>
-                            <p className="text-sm text-purple-300">
-                              {judge.title} @ {judge.company}
-                            </p>
-                            <p className="text-sm text-gray-400 mt-1">{judge.bio}</p>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </GlassSurface>
+                  {hackathon.judges.length > 0 && (
+                    <GlassSurface className="p-6">
+                      <h2 className="text-2xl font-bold text-white mb-4">Porota</h2>
+                      <div className="space-y-4">
+                        {hackathon.judges.map((judge, i) => (
+                          <motion.div
+                            key={judge.id || i}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: i * 0.1 }}
+                            className="flex items-start gap-4"
+                          >
+                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xl">
+                              {judge.name
+                                .split(' ')
+                                .map(n => n[0])
+                                .join('')}
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-white">{judge.name}</h3>
+                              <p className="text-sm text-purple-300">
+                                {judge.title} @ {judge.company}
+                              </p>
+                              <p className="text-sm text-gray-400 mt-1">{judge.bio}</p>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </GlassSurface>
+                  )}
                 </>
               )}
 
@@ -368,7 +464,7 @@ export default function HackathonDetailPage() {
                 <GlassSurface className="p-6">
                   <h2 className="text-2xl font-bold text-white mb-6">Přihlášené týmy</h2>
                   <div className="space-y-4">
-                    {teams.map((team, i) => (
+                    {hackathon.teams.map((team, i) => (
                       <motion.div
                         key={team.id}
                         initial={{ opacity: 0, y: 20 }}
@@ -379,29 +475,38 @@ export default function HackathonDetailPage() {
                         <div className="flex items-start justify-between mb-3">
                           <h3 className="text-lg font-semibold text-white">{team.name}</h3>
                           <span className="text-sm text-gray-400">
-                            {team.members.length}/{hackathon.maxTeamSize} členů
+                            {team.memberCount}/{hackathon.maxTeamSize} členů
                           </span>
                         </div>
                         <div className="flex flex-wrap gap-2">
                           {team.members.map(member => (
                             <div
-                              key={member.userId}
+                              key={member.id}
                               className="flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full"
                             >
-                              <span className="text-sm text-white">{member.username}</span>
+                              <span className="text-sm text-white">
+                                {member.user.name || member.user.username || 'Anonym'}
+                              </span>
                               {member.role === 'leader' && (
                                 <span className="text-xs text-yellow-400">Leader</span>
                               )}
                             </div>
                           ))}
                         </div>
-                        {team.members.length < hackathon.maxTeamSize && (
-                          <p className="text-sm text-purple-300 mt-2">Hledá další členy</p>
-                        )}
+                        {team.memberCount < hackathon.maxTeamSize &&
+                          hackathon.status === 'upcoming' &&
+                          !userTeam && (
+                            <button
+                              onClick={() => handleJoinTeam(team.id)}
+                              className="mt-3 text-sm text-purple-300 hover:text-purple-200"
+                            >
+                              + Připojit se k týmu
+                            </button>
+                          )}
                       </motion.div>
                     ))}
 
-                    {teams.length === 0 && (
+                    {hackathon.teams.length === 0 && (
                       <p className="text-center text-gray-400 py-8">
                         Zatím nejsou přihlášené žádné týmy. Buď první!
                       </p>
@@ -461,10 +566,12 @@ export default function HackathonDetailPage() {
             {/* Sidebar */}
             <div className="space-y-6">
               {/* Registration CTA */}
-              {hackathon.status === 'upcoming' && (
+              {hackathon.status === 'upcoming' && !userTeam && (
                 <GlassSurface className="p-6 text-center">
                   <h3 className="text-xl font-bold text-white mb-2">Připoj se k výzvě!</h3>
-                  <p className="text-gray-400 mb-4">Registrace končí za {daysUntilDeadline} dní</p>
+                  <p className="text-gray-400 mb-4">
+                    Registrace končí za {daysUntilDeadline > 0 ? daysUntilDeadline : 0} dní
+                  </p>
                   <button
                     onClick={() => setShowRegisterModal(true)}
                     className="w-full py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-all flex items-center justify-center gap-2"
@@ -472,6 +579,17 @@ export default function HackathonDetailPage() {
                     <UserPlus className="w-5 h-5" />
                     Registrovat se
                   </button>
+                </GlassSurface>
+              )}
+
+              {/* User's team info */}
+              {userTeam && (
+                <GlassSurface className="p-6">
+                  <h3 className="text-lg font-bold text-white mb-4">Tvůj tým</h3>
+                  <p className="text-purple-300 font-semibold mb-2">{userTeam.name}</p>
+                  <p className="text-sm text-gray-400">
+                    {userTeam.memberCount}/{hackathon.maxTeamSize} členů
+                  </p>
                 </GlassSurface>
               )}
 
@@ -483,30 +601,14 @@ export default function HackathonDetailPage() {
                     <Calendar className="w-5 h-5 text-purple-400 mt-0.5" />
                     <div>
                       <p className="text-sm text-gray-400">Začátek</p>
-                      <p className="text-white">
-                        {hackathon.startDate.toLocaleDateString('cs-CZ', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </p>
+                      <p className="text-white">{formatDate(hackathon.startDate)}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <Calendar className="w-5 h-5 text-purple-400 mt-0.5" />
                     <div>
                       <p className="text-sm text-gray-400">Konec</p>
-                      <p className="text-white">
-                        {hackathon.endDate.toLocaleDateString('cs-CZ', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </p>
+                      <p className="text-white">{formatDate(hackathon.endDate)}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -520,19 +622,21 @@ export default function HackathonDetailPage() {
               </GlassSurface>
 
               {/* Sponsors */}
-              <GlassSurface className="p-6">
-                <h3 className="text-lg font-bold text-white mb-4">Sponzoři</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {hackathon.sponsors.map((sponsor, i) => (
-                    <div
-                      key={i}
-                      className="p-3 bg-white/5 rounded-lg text-center text-sm text-gray-300 hover:bg-white/10 transition-all"
-                    >
-                      {sponsor}
-                    </div>
-                  ))}
-                </div>
-              </GlassSurface>
+              {hackathon.sponsors.length > 0 && (
+                <GlassSurface className="p-6">
+                  <h3 className="text-lg font-bold text-white mb-4">Sponzoři</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {hackathon.sponsors.map((sponsor, i) => (
+                      <div
+                        key={i}
+                        className="p-3 bg-white/5 rounded-lg text-center text-sm text-gray-300 hover:bg-white/10 transition-all"
+                      >
+                        {sponsor}
+                      </div>
+                    ))}
+                  </div>
+                </GlassSurface>
+              )}
 
               {/* Share */}
               <GlassSurface className="p-6">
@@ -565,30 +669,81 @@ export default function HackathonDetailPage() {
           >
             <GlassSurface className="p-8 max-w-md">
               <h2 className="text-2xl font-bold text-white mb-4">Registrace na hackathon</h2>
-              <p className="text-gray-400 mb-6">
-                Pro registraci musíš mít úroveň alespoň 5. Aktuální úroveň: {level}
-              </p>
 
-              {level >= 5 ? (
+              {!session?.user ? (
+                <div className="text-center">
+                  <p className="text-gray-300 mb-4">Pro registraci se musíš přihlásit.</p>
+                  <Link
+                    href="/auth/login"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-all"
+                  >
+                    Přihlásit se
+                  </Link>
+                </div>
+              ) : level >= 5 ? (
                 <div className="space-y-4">
-                  <p className="text-gray-300">Vyber možnost:</p>
-                  <button className="w-full p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all text-left">
-                    <h3 className="font-semibold text-white mb-1">Vytvořit nový tým</h3>
-                    <p className="text-sm text-gray-400">Založ nový tým a pozvi další členy</p>
-                  </button>
-                  <button className="w-full p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all text-left">
-                    <h3 className="font-semibold text-white mb-1">Připojit se k týmu</h3>
-                    <p className="text-sm text-gray-400">
-                      Najdi existující tým a požádej o přijetí
-                    </p>
-                  </button>
-                  <button className="w-full p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all text-left">
-                    <h3 className="font-semibold text-white mb-1">Solo účast</h3>
-                    <p className="text-sm text-gray-400">Pracuj sám na svém projektu</p>
-                  </button>
+                  {joinError && (
+                    <div className="p-3 bg-red-500/20 text-red-300 rounded-lg text-sm">
+                      {joinError}
+                    </div>
+                  )}
+
+                  {!creatingTeam ? (
+                    <>
+                      <p className="text-gray-300">Vyber možnost:</p>
+                      <button
+                        onClick={() => setCreatingTeam(true)}
+                        className="w-full p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all text-left"
+                      >
+                        <h3 className="font-semibold text-white mb-1">Vytvořit nový tým</h3>
+                        <p className="text-sm text-gray-400">Založ nový tým a pozvi další členy</p>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowRegisterModal(false)
+                          setSelectedTab('teams')
+                        }}
+                        className="w-full p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all text-left"
+                      >
+                        <h3 className="font-semibold text-white mb-1">Připojit se k týmu</h3>
+                        <p className="text-sm text-gray-400">
+                          Prohlédni si existující týmy a připoj se
+                        </p>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-gray-300">Vytvořit nový tým:</p>
+                      <input
+                        type="text"
+                        value={teamName}
+                        onChange={e => setTeamName(e.target.value)}
+                        placeholder="Název týmu"
+                        className="w-full p-3 bg-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setCreatingTeam(false)}
+                          className="flex-1 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-all"
+                        >
+                          Zpět
+                        </button>
+                        <button
+                          onClick={handleCreateTeam}
+                          disabled={!teamName.trim()}
+                          className="flex-1 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-all disabled:opacity-50"
+                        >
+                          Vytvořit
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               ) : (
                 <div className="text-center">
+                  <p className="text-gray-400 mb-4">
+                    Pro registraci musíš mít úroveň alespoň 5. Aktuální úroveň: {level}
+                  </p>
                   <p className="text-gray-300 mb-4">
                     Potřebuješ ještě {5 - level} úrovně pro registraci.
                   </p>
@@ -602,7 +757,12 @@ export default function HackathonDetailPage() {
               )}
 
               <button
-                onClick={() => setShowRegisterModal(false)}
+                onClick={() => {
+                  setShowRegisterModal(false)
+                  setCreatingTeam(false)
+                  setTeamName('')
+                  setJoinError(null)
+                }}
                 className="mt-6 w-full py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-all"
               >
                 Zavřít
