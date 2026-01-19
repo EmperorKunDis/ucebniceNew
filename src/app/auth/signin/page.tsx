@@ -67,21 +67,19 @@ export default function SignInPage() {
   }
 
   const handleOAuthSignIn = async (provider: 'google' | 'github') => {
-    try {
-      setIsLoading(true)
-      setError(null)
-      const result = await signIn(provider, { callbackUrl: '/chapters', redirect: false })
+    setIsLoading(true)
+    setError(null)
 
-      if (result?.error) {
-        setError('Přihlášení se nezdařilo. Zkuste to prosím znovu.')
-        setIsLoading(false)
-      }
-      // If successful, NextAuth will handle the redirect
-    } catch (error) {
-      console.error('OAuth error:', error)
-      setError('Něco se pokazilo při přihlášení. Zkuste to znovu.')
-      setIsLoading(false)
-    }
+    // OAuth providers require redirect to work - NextAuth handles the full OAuth flow
+    // This will redirect to the OAuth provider's authorization page, then back to callback
+    signIn(provider, {
+      callbackUrl: '/chapters',
+      // redirect defaults to true for OAuth - redirects to provider's auth page
+    })
+
+    // Note: With redirect:true (default), execution continues but page will navigate
+    // We keep loading state true until redirect happens or error occurs
+    // If provider is not configured, NextAuth will redirect to error page with query params
   }
 
   return (

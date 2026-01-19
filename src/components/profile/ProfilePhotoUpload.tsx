@@ -49,8 +49,11 @@ export function ProfilePhotoUpload({
         })
 
         if (!response.ok) {
-          const error = await response.json()
-          throw new Error(error.error || 'Upload failed')
+          const errorData = await response.json().catch(() => ({ error: 'Upload failed' }))
+          const errorMessage =
+            errorData.error || `Upload failed: ${response.status} ${response.statusText}`
+          console.error('Upload error:', errorMessage, errorData)
+          throw new Error(errorMessage)
         }
 
         const data = await response.json()
@@ -70,7 +73,11 @@ export function ProfilePhotoUpload({
       }
     } catch (error) {
       console.error('Upload failed:', error)
-      alert('Nepodařilo se nahrát obrázek. Zkuste to prosím znovu.')
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Nepodařilo se nahrát obrázek. Zkuste to prosím znovu.'
+      alert(errorMessage)
     } finally {
       setIsUploading(false)
     }
