@@ -2,6 +2,28 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## AI Navigation System
+
+This codebase uses a hierarchical `_AI.md` documentation system for AI agents:
+
+1. **Always read `_AI_INDEX.md` first** - Master navigation and quick reference
+2. **Navigate to target folder** - Read `_AI.md` files along the path
+3. **On the path**: Focus on PURPOSE, EXPORTS, GOTCHAS sections
+4. **At target**: Read full `_AI.md` file and CRITICAL files
+5. **Before changes**: Check RELATED folders
+
+### Documentation Files
+- `_AI_INDEX.md` - Master index with architecture overview
+- `src/_AI.md` - Source folder overview
+- `src/lib/_AI.md` - Core utilities and business logic
+- `src/app/_AI.md` - Pages and API routes
+- `src/app/api/_AI.md` - Backend API patterns
+- `src/components/_AI.md` - React components
+- `src/store/_AI.md` - State management
+- `src/data/_AI.md` - Static data
+- `src/types/_AI.md` - TypeScript definitions
+- `prisma/_AI.md` - Database schema
+
 ## Project Overview
 
 Interactive AI-powered programming education platform built with Next.js 14, PostgreSQL, and modern web technologies. Features gamification, video lessons, 3D visualizations, and comprehensive tracking of student progress.
