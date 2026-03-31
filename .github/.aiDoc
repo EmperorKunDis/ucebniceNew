@@ -1,0 +1,16 @@
+---
+@META
+dir: .github
+updated: 2026-03-18
+files: 1
+stack: GitHub Actions
+
+@EXPORTS
+workflows/ci.yml: CI — continuous integration pipeline (lint, type-check, test, build)
+
+@PROCESSES
+CI: push/PR → install deps → lint → type-check → test → build → (optional deploy)
+
+@DEPENDENCIES
+external: GitHub Actions runners, Node.js
+---

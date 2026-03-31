@@ -1,0 +1,20 @@
+---
+@META
+dir: src/app/api/progress
+updated: 2026-03-18
+files: 0
+stack: Next.js 14 Route Handlers, Prisma
+
+@EXPORTS
+complete-chapter/route.ts: POST — mark chapter as completed, award XP, check achievements
+
+@FUNCTIONS
+POST(request) → NextResponse
+  purpose: complete chapter for authenticated user, create/update ChapterCompletion, increment XP, trigger achievement check
+  side-effects: db (ChapterCompletion upsert, User xp increment), cache (invalidate user stats)
+  called-by: chapter detail page complete button
+
+@DEPENDENCIES
+internal: @/lib/prisma, @/lib/auth, @/lib/achievement-checker, @/lib/validation-schemas, @/lib/cache
+external: next/server, next-auth
+---

@@ -1,0 +1,22 @@
+---
+@META
+dir: src/app/certificate
+updated: 2026-03-18
+files: 2
+stack: Next.js 14, React 18, TypeScript
+
+@EXPORTS
+layout.tsx: CertificateLayout — certificate section layout
+page.tsx: CertificatePage — generates & displays completion certificate (dynamic import of CertificateGenerator)
+
+@PROCESSES
+GenerateCertificate: check all 40 chapters completed → render CertificateGenerator → download PDF
+
+@DEPENDENCIES
+internal: @/components/certificate/certificate-generator (dynamic import)
+external: react
+
+@WARNINGS
+- CertificateGenerator dynamically imported (html2canvas + jspdf are heavy)
+- Protected route — requires authentication via middleware
+---

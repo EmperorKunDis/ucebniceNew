@@ -1,0 +1,18 @@
+---
+@META
+dir: .storybook
+updated: 2026-03-18
+files: 2
+stack: Storybook 9, Next.js
+
+@EXPORTS
+main.ts: config — Storybook configuration (stories glob, addons, framework)
+preview.ts: config — Storybook preview decorators & global parameters
+
+@PROCESSES
+Dev: `npm run storybook` → Storybook dev server on :6006
+Build: `npm run build-storybook` → static Storybook build
+
+@DEPENDENCIES
+external: @storybook/nextjs, @storybook/addon-a11y, @storybook/addon-docs, @storybook/addon-onboarding, @storybook/addon-vitest, @chromatic-com/storybook
+---

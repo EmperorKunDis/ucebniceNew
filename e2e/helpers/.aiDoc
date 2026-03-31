@@ -1,0 +1,25 @@
+---
+@META
+dir: e2e/helpers
+updated: 2026-03-18
+files: 1
+stack: TypeScript, Prisma
+
+@EXPORTS
+test-db.ts: TestDB — test database utilities (create test users, cleanup after tests)
+
+@FUNCTIONS
+createTestUser(data) → User
+  purpose: create user in test DB for E2E tests
+  side-effects: db
+  called-by: E2E test setup
+
+cleanupTestData() → void
+  purpose: remove all test data from DB after test run
+  side-effects: db
+  called-by: E2E test teardown
+
+@DEPENDENCIES
+internal: Prisma client
+external: @prisma/client
+---

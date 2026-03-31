@@ -1,0 +1,26 @@
+---
+@META
+dir: e2e
+updated: 2026-03-18
+files: 5
+stack: Playwright, TypeScript
+
+@EXPORTS
+auth.spec.ts: AuthTests — E2E tests for sign in/up flows
+chapter-completion.spec.ts: ChapterCompletionTests — E2E tests for chapter completion & star system
+achievements.spec.ts: AchievementTests — E2E tests for achievement unlocking
+mobile-responsive.spec.ts: MobileTests — E2E tests for responsive layout on mobile viewports
+helpers/test-db.ts: TestDB — test database setup/cleanup helpers
+
+@PROCESSES
+TestRun: `npm run test:e2e` → Playwright runs all .spec.ts → separate test DB → cleanup after
+
+@DEPENDENCIES
+internal: helpers/test-db.ts
+external: @playwright/test
+
+@STANDARDS
+- Tests use separate test database (automatic cleanup)
+- helpers/test-db.ts provides user creation, cleanup utilities
+- Configured in playwright.config.ts at root level
+---

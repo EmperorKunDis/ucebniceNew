@@ -1,0 +1,42 @@
+---
+@META
+dir: src/app/api
+updated: 2026-03-18
+files: 0
+stack: Next.js 14 Route Handlers, TypeScript, Prisma, Zod, NextAuth
+
+@PROCESSES
+Auth: /api/auth/[...nextauth] (NextAuth handlers) | /api/auth/register (POST — create user with bcrypt)
+Progress: /api/progress/complete-chapter (POST — mark chapter done, award XP, check achievements)
+Chapters: /api/chapters/progress (GET — single chapter progress) | /api/chapters/all-progress (GET — all chapters progress)
+Questions: /api/questions (GET — chapter questions from DB) | /api/questions/answer (POST — submit answer, award XP)
+Projects: /api/projects/submit (POST — submit project URL, award XP, update star)
+Tests: /api/tests/submit (POST — submit module test, calculate score/stars, award XP)
+User: /api/user/stats (GET — user XP/level/achievements) | /api/user/profile-image (POST — upload avatar) | /api/user/graduate-profile (GET/PUT)
+Leaderboard: /api/leaderboard (GET — ranked users by XP, supports period filter)
+Onboarding: /api/onboarding/complete (POST — mark onboarding done, award badge)
+Health: /api/health (GET — DB connection check)
+Video: /api/video/[filename] (GET — stream video file from data/videa/)
+Swagger: /api/swagger (GET — OpenAPI spec JSON)
+Admin: /api/admin/* — CRUD for chapters, users, achievements, analytics, hackathons (require isAdmin)
+Arena: /api/hackathons (GET/POST) | /api/hackathons/[id] (GET/PUT/DELETE) | /api/teams (GET/POST) | /api/teams/[id] (GET/PUT/DELETE) | /api/teams/[id]/join (POST) | /api/teams/[id]/project (POST)
+Graduates: /api/graduates (GET — list) | /api/graduates/[id] (GET — detail)
+
+@STANDARDS
+- All routes use NextResponse.json() for responses
+- Auth required: getServerSession(authOptions) → check session.user.id
+- Admin routes: requireAdmin() middleware → 401/403 on failure
+- Validation: validateAPIRequest(request, zodSchema) → 400 on failure
+- Rate limiting: applyRateLimit(request, limiter) on sensitive endpoints
+- Consistent error format: { error: string, details?: object }
+- HTTP status codes: 200 OK, 201 Created, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 429 Too Many Requests, 500 Internal Server Error
+
+@DEPENDENCIES
+internal: @/lib/prisma, @/lib/auth, @/lib/admin-auth, @/lib/validation-schemas, @/lib/api-middleware, @/lib/rate-limit, @/lib/gamification, @/lib/achievement-checker, @/lib/cache, @/data/chapters, @/data/questions, @/data/module-tests
+external: next/server, next-auth, bcryptjs, zod
+
+@WARNINGS
+- Video streaming reads files from data/videa/ on disk — NOT from DB or CDN
+- Rate limiting silently passes when Redis not configured (dev mode)
+- /api/auth/register hashes password with bcrypt before DB insert
+---

@@ -1,0 +1,19 @@
+---
+@META
+dir: scripts/migration
+updated: 2026-03-18
+files: 3
+stack: TypeScript, tsx
+
+@EXPORTS
+import-postgres-data.ts: importData — import data from exported SQLite JSON into PostgreSQL
+verify-migration.ts: verifyMigration — verify data integrity after migration
+archive/export-sqlite-data.ts: exportData — export all data from old SQLite DB to JSON (archived)
+
+@PROCESSES
+Migration: export-sqlite-data.ts → JSON files → import-postgres-data.ts → PostgreSQL → verify-migration.ts
+
+@WARNINGS
+- One-time migration scripts — SQLite→PostgreSQL migration already completed
+- archive/ contains deprecated export script
+---

@@ -441,6 +441,38 @@ export const updateGraduateProfileSchema = z.object({
   preferredRoles: z.array(z.string()).default([]),
 })
 
+/**
+ * POST /api/hackathons/register - Public hackathon registration
+ */
+export const hackathonRegistrationSchema = z.object({
+  hackathonId: z.string().uuid('Neplatné ID hackathonu'),
+  fullName: z.string().min(2, 'Jméno musí mít alespoň 2 znaky').max(100, 'Jméno je příliš dlouhé'),
+  email: emailSchema,
+  phone: z.string().max(20, 'Telefon je příliš dlouhý').optional().default(''),
+  school: z.string().max(150, 'Název školy je příliš dlouhý').optional().default(''),
+  yearOfStudy: z.enum(['1', '2', '3', '4', '5+', 'graduated', 'other']).optional(),
+  experience: z.enum(['beginner', 'intermediate', 'advanced'], {
+    error: 'Vyberte úroveň zkušeností',
+  }),
+  technologies: z.array(z.string().max(30)).max(15).optional().default([]),
+  github: z.string().max(200).optional().default(''),
+  linkedIn: z.string().max(200).optional().default(''),
+  preferredRole: z.enum(['frontend', 'backend', 'design', 'pm', 'fullstack']).optional(),
+  motivation: z.string().max(500, 'Motivace může mít maximálně 500 znaků').optional().default(''),
+  teamPreference: z.enum(['solo', 'have-team', 'looking-for-team']).optional().default('solo'),
+  teamName: z.string().max(50, 'Název týmu je příliš dlouhý').optional().default(''),
+  tshirtSize: z.enum(['S', 'M', 'L', 'XL', 'XXL']).optional(),
+  dietaryRestrictions: z.string().max(200).optional().default(''),
+  specialNeeds: z.string().max(300).optional().default(''),
+  howDidYouHear: z.enum(['social', 'school', 'friend', 'other']).optional(),
+  previousHackathons: z.enum(['0', '1-2', '3+']).optional(),
+  gdprConsent: z.boolean().refine(val => val === true, {
+    message: 'Souhlas s GDPR je povinný',
+  }),
+})
+
+export type HackathonRegistrationData = z.infer<typeof hackathonRegistrationSchema>
+
 // Type exports for Arena schemas
 export type CreateHackathonData = z.infer<typeof createHackathonSchema>
 export type UpdateHackathonData = z.infer<typeof updateHackathonSchema>

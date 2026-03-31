@@ -328,6 +328,7 @@ model Hackathon {
   updatedAt            DateTime @updatedAt
   teams                Team[]
   projects             HackathonProject[]
+  registrations        HackathonRegistration[]
 
   @@index([status])
   @@index([startDate])
@@ -405,4 +406,35 @@ model GraduateProfile {
 
   @@index([lookingForWork])
   @@index([graduatedAt])
+}
+
+// HackathonRegistration - open registration form submissions
+model HackathonRegistration {
+  id                  String   @id @default(uuid())
+  hackathonId         String
+  fullName            String
+  email               String
+  phone               String?
+  school              String?
+  yearOfStudy         String?  // 1, 2, 3, 4, 5+, graduated, other
+  experience          String   // beginner, intermediate, advanced
+  technologies        Json     @default("[]") // ["React", "Python", ...]
+  github              String?
+  linkedIn            String?
+  preferredRole       String?  // frontend, backend, design, pm, fullstack
+  motivation          String?
+  teamPreference      String?  // solo, have-team, looking-for-team
+  teamName            String?
+  tshirtSize          String?  // S, M, L, XL, XXL
+  dietaryRestrictions String?
+  specialNeeds        String?
+  howDidYouHear       String?  // social, school, friend, other
+  previousHackathons  String?  // 0, 1-2, 3+
+  gdprConsent         Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  hackathon           Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+
+  @@unique([hackathonId, email])
+  @@index([hackathonId])
+  @@index([email])
 }

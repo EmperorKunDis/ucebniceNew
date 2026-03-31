@@ -1,0 +1,18 @@
+---
+@META
+dir: src/app/leaderboard
+updated: 2026-03-18
+files: 2
+stack: Next.js 14, React 18, TypeScript
+
+@EXPORTS
+layout.tsx: LeaderboardLayout — leaderboard section layout
+page.tsx: LeaderboardPage — ranked user list with XP, level, streak; period filter (daily/weekly/monthly/all-time)
+
+@PROCESSES
+ViewLeaderboard: GET /api/leaderboard?period=X → render ranked user cards with position, avatar, XP, level
+
+@DEPENDENCIES
+internal: @/lib/constants (LEADERBOARD), @/components/ui
+external: react
+---

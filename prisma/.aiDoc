@@ -1,0 +1,47 @@
+---
+@META
+dir: prisma
+updated: 2026-03-18
+files: 4
+stack: Prisma 7, PostgreSQL, TypeScript
+
+@EXPORTS
+schema.prisma: PrismaSchema — 18 models: User, Account, Session, VerificationToken, Chapter, CompletedChapter, ChapterProgress, Achievement, UserAchievement, CognitiveGlitchAttempt, ChapterCompletion, QuestionAnswer, ProjectSubmission, ModuleTestAttempt, Question, Hackathon, Team, TeamMember, HackathonProject, GraduateProfile
+seed.ts: seed — seed script for chapters, achievements, and initial data
+seed-questions.ts: seedQuestions — seed questions into DB from static data
+
+@INTERFACES
+User: { id, email, emailVerified, name, image, password, username, xp, level, currentStreak, longestStreak, isAdmin, createdAt, updatedAt + relations }
+Chapter: { id, chapterId:unique, title, description, xpReward, difficulty, order + questions[], completedBy[], progress[] }
+ChapterCompletion: { userId, chapterId, completedChapter:bool, answeredQuestions:bool, submittedProject:bool } — 3-star system
+QuestionAnswer: { userId, chapterId, questionId, answer, correct, xpEarned } — @@unique([userId,chapterId,questionId])
+ModuleTestAttempt: { userId, moduleNumber, score, totalQuestions, timeElapsed, attemptNumber, completed, xpEarned, moduleStars }
+Question: { chapterId, questionNumber, questionText, options:Json, correctAnswer:int, explanation?, xpReward }
+Hackathon: { title, description, theme, startDate, endDate, status, maxTeamSize, prizes:Json, judges:Json, sponsors:Json }
+Team: { name, hackathonId + members[], project? }
+HackathonProject: { teamId:unique, hackathonId, title, description, githubUrl, technologies:Json, score?, placement?, feedback:Json? }
+GraduateProfile: { userId:unique, bio?, certificateId:unique, skills:Json, portfolio:Json, linkedIn?, github?, lookingForWork }
+
+@PROCESSES
+Migrate: `npx prisma migrate dev` → create/apply migrations
+Generate: `npx prisma generate` → regenerate client
+Seed: `npm run db:seed` → tsx prisma/seed.ts
+Studio: `npx prisma studio` → web GUI on :5555
+
+@DEPENDENCIES
+internal: none
+external: @prisma/client, tsx
+
+@STANDARDS
+- PostgreSQL only (no SQLite)
+- UUID primary keys everywhere
+- Composite unique constraints for user+entity pairs
+- Performance indexes on all frequently queried fields
+- Json fields for flexible data (prizes, judges, options, skills, portfolio)
+- Prisma 7 with pg adapter — configured in prisma.config.ts at root
+
+@WARNINGS
+- 4 migration files — schema evolved from init → rename leson→chapter → add questions → add arena
+- Prisma 7 adapter requires pg Pool — see src/lib/prisma.ts
+- seed.ts depends on static data from src/data/chapters.ts
+---

@@ -1,0 +1,18 @@
+---
+@META
+dir: src/app/achievements
+updated: 2026-03-18
+files: 2
+stack: Next.js 14, React 18, TypeScript
+
+@EXPORTS
+layout.tsx: AchievementsLayout — achievements section layout
+page.tsx: AchievementsPage — display all badges (locked & unlocked) with rarity indicators
+
+@PROCESSES
+ViewAchievements: fetch user achievements from /api/user/stats → compare with all BADGES → render grid with locked/unlocked states
+
+@DEPENDENCIES
+internal: @/lib/gamification (BADGES), @/components/ui
+external: react
+---

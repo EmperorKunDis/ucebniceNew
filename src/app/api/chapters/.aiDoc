@@ -1,0 +1,26 @@
+---
+@META
+dir: src/app/api/chapters
+updated: 2026-03-18
+files: 0
+stack: Next.js 14 Route Handlers, Prisma
+
+@EXPORTS
+progress/route.ts: GET — get user's progress for a specific chapter (stars, completion state)
+all-progress/route.ts: GET — get user's progress for all chapters in one request
+
+@FUNCTIONS
+GET_progress(request) → NextResponse
+  purpose: return ChapterCompletion record for userId+chapterId
+  side-effects: none
+  called-by: chapter detail page
+
+GET_allProgress(request) → NextResponse
+  purpose: return all ChapterCompletion records for user (used in chapter list)
+  side-effects: none
+  called-by: chapters list page
+
+@DEPENDENCIES
+internal: @/lib/prisma, @/lib/auth, @/lib/cache
+external: next/server, next-auth
+---

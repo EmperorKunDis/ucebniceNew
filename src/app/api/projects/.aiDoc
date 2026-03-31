@@ -1,0 +1,20 @@
+---
+@META
+dir: src/app/api/projects
+updated: 2026-03-18
+files: 0
+stack: Next.js 14 Route Handlers, Prisma
+
+@EXPORTS
+submit/route.ts: POST — submit project URL for a chapter, award XP, update star 3
+
+@FUNCTIONS
+POST_submit(request) → NextResponse
+  purpose: create ProjectSubmission record, update ChapterCompletion.submittedProject, award XP, check achievements
+  side-effects: db (ProjectSubmission create, ChapterCompletion update, User xp increment)
+  called-by: ProjectSubmission component
+
+@DEPENDENCIES
+internal: @/lib/prisma, @/lib/auth, @/lib/achievement-checker, @/lib/validation-schemas
+external: next/server, next-auth
+---
