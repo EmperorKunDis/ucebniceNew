@@ -182,7 +182,9 @@ export async function POST(request: NextRequest) {
         })
       : null
 
-    if (existingChapterCompletion || existingChapterCompletionOld) {
+    // BUG FIX: Only return "already completed" if Star 1 (completedChapter) is actually true
+    // A ChapterCompletion record may exist just for answered questions or project submission
+    if (existingChapterCompletion?.completedChapter || existingChapterCompletionOld) {
       return NextResponse.json({
         message: 'Chapter already completed',
         alreadyCompleted: true,
@@ -306,12 +308,16 @@ export async function POST(request: NextRequest) {
         achievementXP += badge.xpReward
       }
 
-      // Update user
+      // Gem rewards
+      const GEMS_FOR_CHAPTER_COMPLETION = 10
+
+      // Update user (including gems)
       const updatedUser = await tx.user.update({
         where: { id: session.user.id },
         data: {
           xp: newXP + achievementXP,
           level: calculateLevel(newXP + achievementXP),
+          gems: { increment: GEMS_FOR_CHAPTER_COMPLETION },
           currentStreak: newStreak,
           longestStreak: Math.max(user.longestStreak, newStreak),
           updatedAt: new Date(),
@@ -325,7 +331,13 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      return { completion, chapterCompletion, updatedUser, newBadges: newBadgeIds }
+      return {
+        completion,
+        chapterCompletion,
+        updatedUser,
+        newBadges: newBadgeIds,
+        gemsEarned: GEMS_FOR_CHAPTER_COMPLETION,
+      }
     })
 
     // Check for additional achievements using the centralized checker
@@ -344,7 +356,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       xpEarned: XP_PER_CHAPTER,
+      gemsEarned: result.gemsEarned,
       totalXP: result.updatedUser.xp,
+      totalGems: result.updatedUser.gems,
       level: result.updatedUser.level,
       leveledUp,
       newBadges: allNewBadges.map(key => BADGES[key]),

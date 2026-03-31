@@ -1,29 +1,31 @@
 # src/components/ui/ - AI Context
 
 ## 🎯 PURPOSE
+
 Design system primitives and reusable UI components. Glass morphism aesthetic with animations. These are the building blocks for all other components.
 
 ## 📦 EXPORTS
 
-| Component | Description |
-|-----------|-------------|
-| `Button` | Primary action button with variants |
-| `GlassSurface` | Glass morphism container |
-| `FluidGlass` | Animated glass with Three.js |
-| `Grid` | CSS Grid wrapper |
-| `Stack` | Flexbox stack (vertical/horizontal) |
-| `Box` | Generic container with styling |
-| `StatCard` | Statistics display card |
-| `ProfileCard` | User profile display |
-| `SectionHeader` | Section title with styling |
-| `DecryptedText` | Text reveal animation |
-| `FuzzyText` | Glitch text effect |
-| `FallingText` | Text animation |
-| `LaserFlow` | Animated border effect |
-| `Lightning` | Lightning background effect |
-| `ElectricBorder` | Animated border |
+| Component        | Description                         |
+| ---------------- | ----------------------------------- |
+| `Button`         | Primary action button with variants |
+| `GlassSurface`   | Glass morphism container            |
+| `FluidGlass`     | Animated glass with Three.js        |
+| `Grid`           | CSS Grid wrapper                    |
+| `Stack`          | Flexbox stack (vertical/horizontal) |
+| `Box`            | Generic container with styling      |
+| `StatCard`       | Statistics display card             |
+| `ProfileCard`    | User profile display                |
+| `SectionHeader`  | Section title with styling          |
+| `DecryptedText`  | Text reveal animation               |
+| `FuzzyText`      | Glitch text effect                  |
+| `FallingText`    | Text animation                      |
+| `LaserFlow`      | Animated border effect              |
+| `Lightning`      | Lightning background effect         |
+| `ElectricBorder` | Animated border                     |
 
 ## 🔗 DEPENDENCIES
+
 - `@/lib/utils` - `cn()` function
 - `framer-motion` - Animations
 - `lucide-react` - Icons
@@ -33,6 +35,7 @@ Design system primitives and reusable UI components. Glass morphism aesthetic wi
 ## 🏗️ PATTERNS
 
 ### Component Anatomy
+
 ```typescript
 'use client'
 
@@ -64,17 +67,14 @@ Button.displayName = 'Button'
 ```
 
 ### Glass Morphism Pattern
+
 ```typescript
 // Standard glass effect
-const glassClasses = cn(
-  'bg-black/30',
-  'backdrop-blur-md',
-  'border border-white/10',
-  'rounded-lg'
-)
+const glassClasses = cn('bg-black/30', 'backdrop-blur-md', 'border border-white/10', 'rounded-lg')
 ```
 
 ### Animation Pattern
+
 ```typescript
 import { motion } from 'framer-motion'
 
@@ -95,8 +95,18 @@ const fadeIn = {
 4. **displayName**: Add for better React DevTools debugging
 5. **Tailwind purging**: Use full class names, not string interpolation
 6. **Motion bundle**: Framer Motion adds ~25KB to bundle
+7. **GlassSurface hydration**: ✅ FIXED (2026-02-08) - SVG filter detection deferred to client
+
+## 🆕 GLASS-SURFACE FIX (2026-02-08)
+
+GlassSurface now uses `useState` for SVG filter detection to avoid hydration mismatch:
+
+- Server always renders `glass-surface--fallback`
+- Client detects support via `useEffect` and may switch to `glass-surface--svg`
+- SVG filter elements only render when `useSVGFilter` is true
 
 ## 📁 STRUCTURE
+
 ```
 ui/
 ├── button.tsx           # Button component
@@ -122,11 +132,13 @@ ui/
 ```
 
 ## 🔄 RELATED
+
 - `src/lib/utils.ts` - `cn()` utility
 - `tailwind.config.js` - Theme configuration
 - `.storybook/` - Storybook configuration
 
 ---
+
 <!-- META: For AI agents -->
 <!-- TRAVERSE: no -->
 <!-- DEPTH: all -->

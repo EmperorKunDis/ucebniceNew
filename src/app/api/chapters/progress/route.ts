@@ -66,7 +66,9 @@ export async function GET(request: NextRequest) {
       completedChapter: chapterCompletion?.completedChapter || false,
       answeredQuestions: chapterCompletion?.answeredQuestions || false,
       submittedProject: chapterCompletion?.submittedProject || false,
-      completed: !!chapterCompletion,
+      // BUG FIX: completed should only be true if chapter was actually completed (Star 1)
+      // NOT just if a ChapterCompletion record exists
+      completed: chapterCompletion?.completedChapter || false,
       questionAnswers: questionAnswers.map(qa => ({
         questionId: qa.questionId,
         correct: qa.correct,

@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma'
  * GET /api/admin/achievements
  * Get all achievements with unlock stats
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   const adminCheck = await requireAdmin()
   if (adminCheck) return adminCheck
 

@@ -1,8 +1,7 @@
 'use client'
 
-import { useState, useEffect, memo } from 'react'
+import { useState, memo } from 'react'
 import { motion } from 'framer-motion'
-import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { Chapter } from '@/data/chapters'
@@ -19,9 +18,9 @@ import { PageLayout } from '@/components/layout/page-layout'
 import { GreySurface } from '@/components/ui/grey-surface'
 import { Button } from '@/components/ui/button'
 import { getModuleTest } from '@/data/module-tests'
+import { useChapterProgress, useChapterQuestions } from './hooks'
 import {
   Book,
-  FileText,
   ChevronDown,
   PlayCircle,
   CheckCircle,
@@ -31,230 +30,70 @@ import {
   HelpCircle,
   Upload,
   Star,
+  Lock,
 } from 'lucide-react'
 
 interface ChapterLayoutProps {
   chapter: Chapter
 }
 
-// Memoize child components to prevent unnecessary re-renders
+// Memoize heavy child components
 const MemoizedVideoPlayer = memo(VideoPlayer)
 const MemoizedChapterContent = memo(ChapterContent)
 const MemoizedQuestionCard = memo(QuestionCard)
 const MemoizedProjectSubmission = memo(ProjectSubmission)
 
+// Module test chapters
+const MODULE_END_CHAPTERS = ['10', '20', '30', '40'] as const
+const getModuleNumber = (chapterId: string): number | null => {
+  const map: Record<string, number> = { '10': 1, '20': 2, '30': 3, '40': 4 }
+  return map[chapterId] || null
+}
+
 export function ChapterLayout({ chapter }: ChapterLayoutProps) {
-  const { data: session } = useSession()
   const router = useRouter()
+
+  // Custom hooks for data
+  const progress = useChapterProgress(chapter.id)
+  const { questions } = useChapterQuestions(chapter.id)
+
+  // UI state
   const [expandedSections, setExpandedSections] = useState({
-    video: true, // Video bude default rozbalené
+    video: true,
     text: false,
-    lecture: true, // Přednáška také default rozbalená pro lepší UX
+    lecture: true,
     questions: false,
     project: false,
   })
-  const [completing, setCompleting] = useState(false)
-  const [completed, setCompleted] = useState(false)
-  const [completionData, setCompletionData] = useState<any>(null)
-  const [completedChapter, setCompletedChapter] = useState(false)
-  const [answeredQuestions, setAnsweredQuestions] = useState(false)
-  const [submittedProject, setSubmittedProject] = useState(false)
-  const [questionAnswers, setQuestionAnswers] = useState<Map<string, boolean>>(new Map())
-  const [loading, setLoading] = useState(true)
   const [showModuleTest, setShowModuleTest] = useState(false)
   const [moduleTestNumber, setModuleTestNumber] = useState<number | null>(null)
-  const [isChapterLocked, setIsChapterLocked] = useState(false)
 
-  const [questions, setQuestions] = useState<any[]>([])
-
-  // Fetch questions
-  useEffect(() => {
-    async function loadQuestions() {
-      try {
-        const response = await fetch(`/api/questions?chapterId=${chapter.id}`)
-        if (response.ok) {
-          const data = await response.json()
-          setQuestions(data.questions || [])
-        }
-      } catch (error) {
-        console.error('Failed to load questions:', error)
-      }
-    }
-    loadQuestions()
-  }, [chapter.id])
-
-  // Check if this chapter triggers a module test (10, 20, 30, 40)
-  const isModuleEndChapter = ['10', '20', '30', '40'].includes(chapter.id)
-  const getModuleNumber = (chapterId: string) => {
-    if (chapterId === '10') return 1
-    if (chapterId === '20') return 2
-    if (chapterId === '30') return 3
-    if (chapterId === '40') return 4
-    return null
-  }
-
-  // Load chapter progress on mount
-  useEffect(() => {
-    async function loadProgress() {
-      if (!session) {
-        setLoading(false)
-        return
-      }
-
-      try {
-        // Check if chapter is locked
-        const chapterNumber = parseInt(chapter.id)
-        if (chapterNumber > 1) {
-          // Load all progress to check if previous chapter is completed
-          const allProgressResponse = await fetch('/api/chapters/all-progress')
-          if (allProgressResponse.ok) {
-            const allProgressData = await allProgressResponse.json()
-            const progressMap = allProgressData.progress || {}
-
-            // Check if previous chapter is completed
-            const previousChapterId = String(chapterNumber - 1).padStart(2, '0')
-            const isPreviousCompleted = progressMap[previousChapterId]?.completed || false
-
-            if (!isPreviousCompleted) {
-              setIsChapterLocked(true)
-              setLoading(false)
-              return
-            }
-          }
-        }
-
-        const response = await fetch(`/api/chapters/progress?chapterId=${chapter.id}`)
-        const data = await response.json()
-
-        if (response.ok) {
-          setCompletedChapter(data.completedChapter || false)
-          setAnsweredQuestions(data.answeredQuestions || false)
-          setSubmittedProject(data.submittedProject || false)
-          setCompleted(data.completed)
-          if (data.completed) {
-            // Když je kapitola dokončená po refreshu, nastavíme completion data
-            // ale nezakazujeme další aktivity (otázky, projekty)
-            setCompletionData({
-              alreadyCompleted: true,
-              // Umožníme dělat otázky a projekty i po dokončení kapitoly
-              allowContinue: true,
-            })
-          }
-
-          // Load question answers
-          const answersMap = new Map<string, boolean>()
-          data.questionAnswers?.forEach((qa: any) => {
-            answersMap.set(qa.questionId, qa.correct)
-          })
-          setQuestionAnswers(answersMap)
-        }
-      } catch (error) {
-        console.error('Error loading chapter progress:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadProgress()
-  }, [chapter.id, session])
+  const isModuleEndChapter = MODULE_END_CHAPTERS.includes(
+    chapter.id as (typeof MODULE_END_CHAPTERS)[number]
+  )
 
   const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section],
-    }))
-  }
-
-  const handleAnswerQuestion = async (questionId: string, answerIndex: number) => {
-    if (!session) {
-      router.push('/auth/signin')
-      return { correct: false, explanation: 'Musíš být přihlášen', xpEarned: 0 }
-    }
-
-    try {
-      const response = await fetch('/api/questions/answer', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          chapterId: chapter.id,
-          questionId,
-          answerIndex,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        setQuestionAnswers(prev => new Map(prev).set(questionId, data.correct))
-
-        if (data.allQuestionsCompleted) {
-          setAnsweredQuestions(true)
-          toast.success('Všechny otázky správně! Získal jsi druhou hvězdičku! 🌟')
-        }
-
-        return data
-      }
-
-      return { correct: false, explanation: data.error, xpEarned: 0 }
-    } catch (error) {
-      console.error('Error answering question:', error)
-      return { correct: false, explanation: 'Chyba při odesílání odpovědi', xpEarned: 0 }
-    }
+    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }))
   }
 
   const handleCompleteChapter = async () => {
-    if (!session) {
+    if (!progress.isAuthenticated) {
       router.push('/auth/signin')
       return
     }
 
-    setCompleting(true)
-    try {
-      const response = await fetch('/api/progress/complete-chapter', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          chapterId: chapter.id,
-        }),
-      })
+    const data = await progress.completeChapter()
 
-      const data = await response.json()
-
-      if (response.ok) {
-        setCompleted(true)
-        setCompletionData(data)
-        setCompletedChapter(data.completedChapter || true)
-        setAnsweredQuestions(data.answeredQuestions || false)
-        setSubmittedProject(data.submittedProject || false)
-        toast.success('Kapitola dokončena! 🎉')
-
-        // Show module test if this is chapter 10, 20, 30, or 40
-        if (isModuleEndChapter) {
-          const modNum = getModuleNumber(chapter.id)
-          if (modNum && getModuleTest(modNum)) {
-            setModuleTestNumber(modNum)
-            setTimeout(() => {
-              setShowModuleTest(true)
-            }, 1500)
-          }
-        }
-      } else {
-        console.error('Error completing chapter:', data.error)
-        toast.error(data.error || 'Nepodařilo se dokončit kapitolu')
+    if (data && isModuleEndChapter) {
+      const modNum = getModuleNumber(chapter.id)
+      if (modNum && getModuleTest(modNum)) {
+        setModuleTestNumber(modNum)
+        setTimeout(() => setShowModuleTest(true), 1500)
       }
-    } catch (error) {
-      console.error('Error:', error)
-      toast.error('Něco se pokazilo. Zkuste to znovu.')
-    } finally {
-      setCompleting(false)
     }
   }
 
-  const handleTestComplete = (result: any) => {
+  const handleTestComplete = (result: { xpEarned: number; stars: number }) => {
     toast.success(`Test dokončen! +${result.xpEarned} XP, ${result.stars} hvězdiček! 🎉`)
     setShowModuleTest(false)
     setModuleTestNumber(null)
@@ -266,10 +105,8 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
     setModuleTestNumber(null)
   }
 
-  const moduleTest = moduleTestNumber ? getModuleTest(moduleTestNumber) : null
-
-  // Show locked message if chapter is locked
-  if (isChapterLocked) {
+  // Locked chapter view
+  if (progress.isChapterLocked) {
     return (
       <PageLayout>
         <Box className="max-w-5xl mx-auto">
@@ -280,19 +117,7 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
               transition={{ type: 'spring', duration: 0.5 }}
             >
               <div className="inline-flex items-center justify-center w-20 h-20 bg-red-500/20 rounded-full mb-6">
-                <svg
-                  className="w-10 h-10 text-red-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                  />
-                </svg>
+                <Lock className="w-10 h-10 text-red-400" />
               </div>
             </motion.div>
 
@@ -314,9 +139,10 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
     )
   }
 
+  const moduleTest = moduleTestNumber ? getModuleTest(moduleTestNumber) : null
+
   return (
     <PageLayout>
-      {/* Module Test Modal */}
       {showModuleTest && moduleTest && (
         <ModuleTestModal
           moduleTest={moduleTest}
@@ -329,10 +155,9 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
         <ChapterHeader chapter={chapter} />
 
         <Stack direction="col" gap={6} className="mt-8">
-          {/* Rychlé odkazy na notebooky */}
           <NotebookLinks chapter={chapter} />
 
-          {/* Video přednáška */}
+          {/* Video Section */}
           {chapter.videoFile && (
             <Section
               title="Video přednáška"
@@ -344,7 +169,7 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
             </Section>
           )}
 
-          {/* Kompletní přednáška */}
+          {/* Lecture Section */}
           <Section
             title="Kompletní přednáška"
             icon={<Book className="w-5 h-5" />}
@@ -354,7 +179,7 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
             <MemoizedChapterContent content={chapter.lectureFile} type="lecture" />
           </Section>
 
-          {/* Studijní materiály - Questions */}
+          {/* Questions Section */}
           {questions.length > 0 && (
             <Section
               title={`Otázky k procvičení (${questions.length})`}
@@ -371,17 +196,17 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
                     key={question.id}
                     question={question}
                     questionNumber={index + 1}
-                    onAnswer={handleAnswerQuestion}
-                    alreadyAnswered={questionAnswers.has(question.id)}
-                    correctAnswer={questionAnswers.get(question.id)}
+                    onAnswer={progress.answerQuestion}
+                    alreadyAnswered={progress.questionAnswers.has(question.id)}
+                    correctAnswer={progress.questionAnswers.get(question.id)}
                   />
                 ))}
               </div>
             </Section>
           )}
 
-          {/* Project Submission - vždy dostupné pokud je uživatel přihlášený */}
-          {session && (
+          {/* Project Section */}
+          {progress.isAuthenticated && (
             <Section
               title="Odevzdej svůj projekt"
               icon={<Upload className="w-5 h-5" />}
@@ -394,229 +219,33 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
                 </p>
                 <MemoizedProjectSubmission
                   chapterId={chapter.id}
-                  onProjectSubmitted={() => {
-                    setSubmittedProject(true)
-                    toast.success('Získal jsi třetí hvězdičku! 🌟')
-                  }}
+                  onProjectSubmitted={progress.markProjectSubmitted}
                 />
               </div>
             </Section>
           )}
 
-          {/* Complete Chapter Button */}
-          {session && (
-            <GreySurface className="p-6">
-              {!completed && !completionData ? (
-                <div className="text-center">
-                  <h3 className="text-xl font-semibold text-white mb-2">
-                    {completedChapter ? 'Kapitola je dokončená!' : 'Dokončil jsi tuto kapitolu?'}
-                  </h3>
-                  <p className="text-gray-400 mb-4">
-                    {completedChapter
-                      ? 'Můžeš pokračovat v získávání dalších hvězdiček!'
-                      : 'Získej XP a pokroč ve své cestě učení!'}
-                  </p>
-
-                  {/* Star Progress */}
-                  {(completedChapter || answeredQuestions || submittedProject) && (
-                    <div className="mb-6 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-lg p-4">
-                      <p className="text-sm text-gray-300 mb-2">Tvůj pokrok:</p>
-                      <div className="flex items-center justify-center gap-2 mb-2">
-                        <Star
-                          className={`w-6 h-6 ${completedChapter ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
-                        />
-                        <Star
-                          className={`w-6 h-6 ${answeredQuestions ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
-                        />
-                        <Star
-                          className={`w-6 h-6 ${submittedProject ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
-                        />
-                      </div>
-                      <div className="text-xs text-gray-400 space-y-1">
-                        <p>
-                          ⭐ První hvězdička:{' '}
-                          {completedChapter ? '✓ Kapitola dokončena' : 'Dokončit kapitolu'}
-                        </p>
-                        <p>
-                          ⭐ Druhá hvězdička:{' '}
-                          {answeredQuestions ? '✓ Otázky zodpovězeny' : 'Zodpovědět všechny otázky'}
-                        </p>
-                        <p>
-                          ⭐ Třetí hvězdička:{' '}
-                          {submittedProject ? '✓ Projekt odevzdán' : 'Odevzdat projekt'}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {!completedChapter && (
-                    <Button
-                      onClick={handleCompleteChapter}
-                      disabled={completing}
-                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                      size="lg"
-                    >
-                      {completing ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                          Ukládám...
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className="w-5 h-5 mr-2" />
-                          Dokončit kapitolu
-                        </>
-                      )}
-                    </Button>
-                  )}
-
-                  {completedChapter && (
-                    <div className="flex gap-2 justify-center">
-                      <Button onClick={() => router.push('/chapters')} variant="secondary">
-                        Zpět na kapitoly
-                      </Button>
-                      {!answeredQuestions && questions.length > 0 && (
-                        <Button
-                          onClick={() => toggleSection('questions')}
-                          className="bg-gradient-to-r from-blue-500 to-cyan-500"
-                        >
-                          <HelpCircle className="w-5 h-5 mr-2" />
-                          Zodpovědět otázky
-                        </Button>
-                      )}
-                      {!submittedProject && (
-                        <Button
-                          onClick={() => toggleSection('project')}
-                          className="bg-gradient-to-r from-green-500 to-emerald-500"
-                        >
-                          <Upload className="w-5 h-5 mr-2" />
-                          Odevzdat projekt
-                        </Button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-green-500/20 rounded-full mb-4">
-                    <CheckCircle className="w-8 h-8 text-green-400" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-white mb-2">Gratulujeme! 🎉</h3>
-                  <p className="text-gray-400 mb-4">
-                    {completionData?.alreadyCompleted
-                      ? 'Tuto kapitolu už máš dokončenou!'
-                      : 'Úspěšně jsi dokončil tuto kapitolu!'}
-                  </p>
-
-                  {/* Star Display */}
-                  {(completedChapter || answeredQuestions || submittedProject) && (
-                    <div className="mb-6 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-lg p-4">
-                      <p className="text-sm text-gray-300 mb-2">Tvoje hvězdičky:</p>
-                      <div className="flex items-center justify-center gap-2 mb-2">
-                        <Star
-                          className={`w-8 h-8 ${completedChapter ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
-                        />
-                        <Star
-                          className={`w-8 h-8 ${answeredQuestions ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
-                        />
-                        <Star
-                          className={`w-8 h-8 ${submittedProject ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
-                        />
-                      </div>
-                      <div className="text-xs text-gray-400 space-y-1">
-                        <p>
-                          ⭐ {completedChapter ? '✓ Kapitola dokončena' : '☐ Dokončit kapitolu'}
-                        </p>
-                        <p>
-                          ⭐{' '}
-                          {answeredQuestions
-                            ? '✓ Otázky zodpovězeny'
-                            : '☐ Zodpovědět všechny otázky'}
-                        </p>
-                        <p>⭐ {submittedProject ? '✓ Projekt odevzdán' : '☐ Odevzdat projekt'}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {completionData && !completionData.alreadyCompleted && (
-                    <div className="flex gap-4 justify-center items-center flex-wrap mb-6">
-                      <div className="flex items-center gap-2 px-4 py-2 bg-yellow-500/20 rounded-lg border border-yellow-500/30">
-                        <Zap className="w-5 h-5 text-yellow-400" />
-                        <span className="text-yellow-300 font-medium">
-                          +{completionData.xpEarned} XP
-                        </span>
-                      </div>
-
-                      {completionData.leveledUp && (
-                        <div className="flex items-center gap-2 px-4 py-2 bg-purple-500/20 rounded-lg border border-purple-500/30">
-                          <Trophy className="w-5 h-5 text-purple-400" />
-                          <span className="text-purple-300 font-medium">
-                            Level {completionData.level}
-                          </span>
-                        </div>
-                      )}
-
-                      {completionData.newBadges && completionData.newBadges.length > 0 && (
-                        <div className="w-full mt-4">
-                          <p className="text-sm text-gray-400 mb-2">Nové odznaky:</p>
-                          <div className="flex gap-2 justify-center flex-wrap">
-                            {completionData.newBadges.map((badge: any, index: number) => (
-                              <div
-                                key={index}
-                                className="flex items-center gap-2 px-3 py-2 bg-white/10 rounded-lg"
-                              >
-                                <span className="text-2xl">{badge.icon}</span>
-                                <span className="text-white text-sm">{badge.name}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="flex gap-2 justify-center flex-wrap">
-                    <Button onClick={() => router.push('/chapters')} variant="secondary">
-                      Zpět na kapitoly
-                    </Button>
-                    <Button
-                      onClick={() => router.push('/profile')}
-                      className="bg-gradient-to-r from-purple-500 to-pink-500"
-                    >
-                      Profil
-                    </Button>
-                    {!answeredQuestions && questions.length > 0 && (
-                      <Button
-                        onClick={() => toggleSection('questions')}
-                        className="bg-gradient-to-r from-blue-500 to-cyan-500"
-                      >
-                        <HelpCircle className="w-5 h-5 mr-2" />
-                        Zodpovědět otázky
-                      </Button>
-                    )}
-                    {!submittedProject && (
-                      <Button
-                        onClick={() => toggleSection('project')}
-                        className="bg-gradient-to-r from-green-500 to-emerald-500"
-                      >
-                        <Upload className="w-5 h-5 mr-2" />
-                        Odevzdat projekt
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              )}
-            </GreySurface>
+          {/* Completion Section */}
+          {progress.isAuthenticated && (
+            <CompletionSection
+              progress={progress}
+              questions={questions}
+              onComplete={handleCompleteChapter}
+              onToggleQuestions={() => toggleSection('questions')}
+              onToggleProject={() => toggleSection('project')}
+              onNavigateChapters={() => router.push('/chapters')}
+              onNavigateProfile={() => router.push('/profile')}
+            />
           )}
 
-          {/* Navigace mezi kapitolami */}
-          <ChapterNavigation currentChapterId={chapter.id} isCompleted={completed} />
+          <ChapterNavigation currentChapterId={chapter.id} isCompleted={progress.completed} />
         </Stack>
       </Box>
     </PageLayout>
   )
 }
 
+// Section Component
 interface SectionProps {
   title: string
   icon: React.ReactNode
@@ -656,5 +285,271 @@ function Section({ title, icon, expanded, onToggle, children }: SectionProps) {
         )}
       </GreySurface>
     </motion.div>
+  )
+}
+
+// Star Progress Display
+interface StarProgressProps {
+  completedChapter: boolean
+  answeredQuestions: boolean
+  submittedProject: boolean
+}
+
+function StarProgress({
+  completedChapter,
+  answeredQuestions,
+  submittedProject,
+}: StarProgressProps) {
+  return (
+    <div className="mb-6 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-lg p-4">
+      <p className="text-sm text-gray-300 mb-2">Tvůj pokrok:</p>
+      <div className="flex items-center justify-center gap-2 mb-2">
+        <Star
+          className={`w-6 h-6 ${completedChapter ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
+        />
+        <Star
+          className={`w-6 h-6 ${answeredQuestions ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
+        />
+        <Star
+          className={`w-6 h-6 ${submittedProject ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
+        />
+      </div>
+      <div className="text-xs text-gray-400 space-y-1">
+        <p>⭐ První hvězdička: {completedChapter ? '✓ Kapitola dokončena' : 'Dokončit kapitolu'}</p>
+        <p>
+          ⭐ Druhá hvězdička:{' '}
+          {answeredQuestions ? '✓ Otázky zodpovězeny' : 'Zodpovědět všechny otázky'}
+        </p>
+        <p>⭐ Třetí hvězdička: {submittedProject ? '✓ Projekt odevzdán' : 'Odevzdat projekt'}</p>
+      </div>
+    </div>
+  )
+}
+
+// Completion Section
+interface CompletionSectionProps {
+  progress: ReturnType<typeof useChapterProgress>
+  questions: unknown[]
+  onComplete: () => void
+  onToggleQuestions: () => void
+  onToggleProject: () => void
+  onNavigateChapters: () => void
+  onNavigateProfile: () => void
+}
+
+function CompletionSection({
+  progress,
+  questions,
+  onComplete,
+  onToggleQuestions,
+  onToggleProject,
+  onNavigateChapters,
+  onNavigateProfile,
+}: CompletionSectionProps) {
+  const {
+    completedChapter,
+    answeredQuestions,
+    submittedProject,
+    completed,
+    completing,
+    completionData,
+  } = progress
+  const hasAnyProgress = completedChapter || answeredQuestions || submittedProject
+  const isFullyComplete = completed || completionData
+
+  return (
+    <GreySurface className="p-6">
+      {!isFullyComplete ? (
+        <div className="text-center">
+          <h3 className="text-xl font-semibold text-white mb-2">
+            {completedChapter ? 'Kapitola je dokončená!' : 'Dokončil jsi tuto kapitolu?'}
+          </h3>
+          <p className="text-gray-400 mb-4">
+            {completedChapter
+              ? 'Můžeš pokračovat v získávání dalších hvězdiček!'
+              : 'Získej XP a pokroč ve své cestě učení!'}
+          </p>
+
+          {hasAnyProgress && (
+            <StarProgress
+              completedChapter={completedChapter}
+              answeredQuestions={answeredQuestions}
+              submittedProject={submittedProject}
+            />
+          )}
+
+          {!completedChapter ? (
+            <Button
+              onClick={onComplete}
+              disabled={completing}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+              size="lg"
+            >
+              {completing ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                  Ukládám...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-5 h-5 mr-2" />
+                  Dokončit kapitolu
+                </>
+              )}
+            </Button>
+          ) : (
+            <ActionButtons
+              answeredQuestions={answeredQuestions}
+              submittedProject={submittedProject}
+              questionsCount={questions.length}
+              onNavigateChapters={onNavigateChapters}
+              onToggleQuestions={onToggleQuestions}
+              onToggleProject={onToggleProject}
+            />
+          )}
+        </div>
+      ) : (
+        <CompletedView
+          progress={progress}
+          questions={questions}
+          onNavigateChapters={onNavigateChapters}
+          onNavigateProfile={onNavigateProfile}
+          onToggleQuestions={onToggleQuestions}
+          onToggleProject={onToggleProject}
+        />
+      )}
+    </GreySurface>
+  )
+}
+
+// Action Buttons
+interface ActionButtonsProps {
+  answeredQuestions: boolean
+  submittedProject: boolean
+  questionsCount: number
+  onNavigateChapters: () => void
+  onToggleQuestions: () => void
+  onToggleProject: () => void
+}
+
+function ActionButtons({
+  answeredQuestions,
+  submittedProject,
+  questionsCount,
+  onNavigateChapters,
+  onToggleQuestions,
+  onToggleProject,
+}: ActionButtonsProps) {
+  return (
+    <div className="flex gap-2 justify-center flex-wrap">
+      <Button onClick={onNavigateChapters} variant="secondary">
+        Zpět na kapitoly
+      </Button>
+      {!answeredQuestions && questionsCount > 0 && (
+        <Button onClick={onToggleQuestions} className="bg-gradient-to-r from-blue-500 to-cyan-500">
+          <HelpCircle className="w-5 h-5 mr-2" />
+          Zodpovědět otázky
+        </Button>
+      )}
+      {!submittedProject && (
+        <Button
+          onClick={onToggleProject}
+          className="bg-gradient-to-r from-green-500 to-emerald-500"
+        >
+          <Upload className="w-5 h-5 mr-2" />
+          Odevzdat projekt
+        </Button>
+      )}
+    </div>
+  )
+}
+
+// Completed View
+interface CompletedViewProps {
+  progress: ReturnType<typeof useChapterProgress>
+  questions: unknown[]
+  onNavigateChapters: () => void
+  onNavigateProfile: () => void
+  onToggleQuestions: () => void
+  onToggleProject: () => void
+}
+
+function CompletedView({
+  progress,
+  questions,
+  onNavigateChapters,
+  onNavigateProfile,
+  onToggleQuestions,
+  onToggleProject,
+}: CompletedViewProps) {
+  const { completedChapter, answeredQuestions, submittedProject, completionData } = progress
+
+  return (
+    <div className="text-center">
+      <div className="inline-flex items-center justify-center w-16 h-16 bg-green-500/20 rounded-full mb-4">
+        <CheckCircle className="w-8 h-8 text-green-400" />
+      </div>
+      <h3 className="text-2xl font-bold text-white mb-2">Gratulujeme! 🎉</h3>
+      <p className="text-gray-400 mb-4">
+        {completionData?.alreadyCompleted
+          ? 'Tuto kapitolu už máš dokončenou!'
+          : 'Úspěšně jsi dokončil tuto kapitolu!'}
+      </p>
+
+      <StarProgress
+        completedChapter={completedChapter}
+        answeredQuestions={answeredQuestions}
+        submittedProject={submittedProject}
+      />
+
+      {completionData && !completionData.alreadyCompleted && (
+        <div className="flex gap-4 justify-center items-center flex-wrap mb-6">
+          <div className="flex items-center gap-2 px-4 py-2 bg-yellow-500/20 rounded-lg border border-yellow-500/30">
+            <Zap className="w-5 h-5 text-yellow-400" />
+            <span className="text-yellow-300 font-medium">+{completionData.xpEarned} XP</span>
+          </div>
+
+          {completionData.leveledUp && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-purple-500/20 rounded-lg border border-purple-500/30">
+              <Trophy className="w-5 h-5 text-purple-400" />
+              <span className="text-purple-300 font-medium">Level {completionData.level}</span>
+            </div>
+          )}
+
+          {completionData.newBadges && completionData.newBadges.length > 0 && (
+            <div className="w-full mt-4">
+              <p className="text-sm text-gray-400 mb-2">Nové odznaky:</p>
+              <div className="flex gap-2 justify-center flex-wrap">
+                {completionData.newBadges.map((badge, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-2 px-3 py-2 bg-white/10 rounded-lg"
+                  >
+                    <span className="text-2xl">{badge.icon}</span>
+                    <span className="text-white text-sm">{badge.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      <ActionButtons
+        answeredQuestions={answeredQuestions}
+        submittedProject={submittedProject}
+        questionsCount={questions.length}
+        onNavigateChapters={onNavigateChapters}
+        onToggleQuestions={onToggleQuestions}
+        onToggleProject={onToggleProject}
+      />
+
+      <Button
+        onClick={onNavigateProfile}
+        className="mt-2 bg-gradient-to-r from-purple-500 to-pink-500"
+      >
+        Profil
+      </Button>
+    </div>
   )
 }

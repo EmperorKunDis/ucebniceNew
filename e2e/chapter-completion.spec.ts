@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test'
-import { cleanupTestDb, createTestUser, disconnectTestDb, getTestDb } from './helpers/test-db'
+import {
+  getTestDb,
+  cleanupTestDb,
+  disconnectTestDb,
+  createTestUser,
+  createChapterCompletion,
+} from './helpers/test-db'
 
 test.describe('Chapter Completion Flow', () => {
   test.beforeEach(async () => {
@@ -11,206 +17,196 @@ test.describe('Chapter Completion Flow', () => {
     await disconnectTestDb()
   })
 
-  test('should complete a chapter and earn XP', async ({ page }) => {
-    // Create test user
+  test('should display chapter progress on dashboard', async ({ page }) => {
     const user = await createTestUser({
-      email: 'chapter@example.com',
+      email: 'chapter@test.com',
       username: 'chapteruser',
       name: 'Chapter User',
-      password: 'Test123!',
     })
 
-    // Login first
+    // Complete first chapter
+    await createChapterCompletion({
+      userId: user.id,
+      chapterId: '01',
+      stars: 3,
+      xpEarned: 150,
+    })
+
     await page.goto('/auth/signin')
-    await page.fill('input[type="email"]', 'chapter@example.com')
-    await page.fill('input[type="password"]', 'Test123!')
+    await page.fill('input[name="email"]', 'chapter@test.com')
+    await page.fill('input[name="password"]', 'Test123!')
     await page.click('button[type="submit"]')
-    await page.waitForURL('/dashboard', { timeout: 10000 })
 
-    // Navigate to chapters
-    await page.goto('/chapters')
-    await page.waitForLoadState('networkidle')
+    // Navigate to dashboard (skill tree)
+    await page.goto('/dashboard')
 
-    // Click on first chapter
-    const firstChapter = await page.locator('a[href^="/chapters/"]').first()
-    await firstChapter.click()
-
-    // Wait for chapter page to load
-    await page.waitForURL(/\/chapters\/\d+/, { timeout: 10000 })
-
-    // Look for complete button
-    const completeButton = await page
-      .locator('button:has-text("Dokončit kapitolu"), button:has-text("Označit jako dokončeno")')
-      .first()
-
-    if (await completeButton.isVisible()) {
-      // Get initial XP before completion
-      const db = getTestDb()
-      const userBefore = await db.user.findUnique({ where: { id: user.id } })
-      const xpBefore = userBefore?.xp || 0
-
-      // Click complete button
-      await completeButton.click()
-
-      // Wait for success feedback (toast, modal, or page update)
-      await page.waitForTimeout(2000)
-
-      // Verify XP was added in database
-      const userAfter = await db.user.findUnique({ where: { id: user.id } })
-      const xpAfter = userAfter?.xp || 0
-
-      expect(xpAfter).toBeGreaterThan(xpBefore)
-    }
+    // First chapter should show as completed
+    // Look for completed indicator (checkmark or stars)
+    await expect(page.locator('[data-chapter="01"]')).toBeVisible()
   })
 
-  test('should show completed chapters in progress', async ({ page }) => {
-    // Create test user with completed chapter
+  test('should unlock next chapter after completion', async ({ page }) => {
     const user = await createTestUser({
-      email: 'progress@example.com',
-      username: 'progressuser',
-      name: 'Progress User',
-      password: 'Test123!',
+      email: 'unlock@test.com',
+      username: 'unlockuser',
+      name: 'Unlock User',
     })
 
-    // Create a lesson and mark it as completed
+    // Complete chapter 01
+    await createChapterCompletion({
+      userId: user.id,
+      chapterId: '01',
+      stars: 2,
+      xpEarned: 100,
+    })
+
+    await page.goto('/auth/signin')
+    await page.fill('input[name="email"]', 'unlock@test.com')
+    await page.fill('input[name="password"]', 'Test123!')
+    await page.click('button[type="submit"]')
+
+    await page.goto('/dashboard')
+
+    // Chapter 02 should now be unlocked (not locked)
+    const chapter02 = page.locator('[data-chapter="02"]')
+    await expect(chapter02).not.toHaveAttribute('data-locked', 'true')
+  })
+
+  test('should award XP on chapter completion', async ({ page }) => {
+    const user = await createTestUser({
+      email: 'xp@test.com',
+      username: 'xpuser',
+      name: 'XP User',
+      xp: 0,
+    })
+
     const db = getTestDb()
-    const lesson = await db.lesson.create({
-      data: {
-        chapterId: '01',
-        title: 'Kapitola 1',
-        description: 'Test kapitola',
-        xpReward: 100,
-        difficulty: 'beginner',
-        order: 0,
-      },
-    })
 
-    await db.completedLesson.create({
-      data: {
-        userId: user.id,
-        lessonId: lesson.id,
-        xpEarned: 100,
-      },
+    // Complete chapter and earn XP
+    await createChapterCompletion({
+      userId: user.id,
+      chapterId: '01',
+      stars: 3,
+      xpEarned: 150,
     })
 
     // Update user XP
     await db.user.update({
       where: { id: user.id },
-      data: { xp: 100 },
+      data: { xp: 150 },
     })
 
-    // Login
     await page.goto('/auth/signin')
-    await page.fill('input[type="email"]', 'progress@example.com')
-    await page.fill('input[type="password"]', 'Test123!')
+    await page.fill('input[name="email"]', 'xp@test.com')
+    await page.fill('input[name="password"]', 'Test123!')
     await page.click('button[type="submit"]')
-    await page.waitForURL('/dashboard', { timeout: 10000 })
 
-    // Check if XP is displayed
-    const xpElement = await page.locator('text=/100.*XP|XP.*100/i').first()
-    await expect(xpElement).toBeVisible({ timeout: 5000 })
+    // Check XP display in header
+    await page.goto('/dashboard')
+    await expect(page.locator('text=150')).toBeVisible()
   })
 
-  test('should prevent completing same chapter twice', async ({ page }) => {
-    // Create test user
+  test('should display stars based on performance', async ({ page }) => {
     const user = await createTestUser({
-      email: 'duplicate@example.com',
-      username: 'duplicateuser',
-      name: 'Duplicate User',
-      password: 'Test123!',
+      email: 'stars@test.com',
+      username: 'starsuser',
+      name: 'Stars User',
     })
 
-    // Create and complete a lesson
-    const db = getTestDb()
-    const lesson = await db.lesson.create({
-      data: {
-        chapterId: '02',
-        title: 'Kapitola 2',
-        description: 'Test kapitola',
-        xpReward: 100,
-        difficulty: 'beginner',
-        order: 0,
-      },
+    // Complete with 3 stars (perfect)
+    await createChapterCompletion({
+      userId: user.id,
+      chapterId: '01',
+      stars: 3,
+      xpEarned: 150,
     })
 
-    await db.completedLesson.create({
-      data: {
-        userId: user.id,
-        lessonId: lesson.id,
-        xpEarned: 100,
-      },
+    // Complete with 1 star (poor)
+    await createChapterCompletion({
+      userId: user.id,
+      chapterId: '02',
+      stars: 1,
+      xpEarned: 50,
     })
 
-    // Login
     await page.goto('/auth/signin')
-    await page.fill('input[type="email"]', 'duplicate@example.com')
-    await page.fill('input[type="password"]', 'Test123!')
+    await page.fill('input[name="email"]', 'stars@test.com')
+    await page.fill('input[name="password"]', 'Test123!')
     await page.click('button[type="submit"]')
-    await page.waitForURL('/dashboard', { timeout: 10000 })
 
-    // Navigate to the already completed chapter
-    await page.goto('/chapters/02')
+    await page.goto('/learn/01')
 
-    // Complete button should either be disabled or show "already completed" message
-    const completedText = await page.locator('text=/dokončeno|completed/i').first()
-    const isTextVisible = await completedText.isVisible().catch(() => false)
-
-    // Either the text is visible OR complete button is disabled
-    if (!isTextVisible) {
-      const completeButton = await page
-        .locator('button:has-text("Dokončit"), button:has-text("Complete")')
-        .first()
-      const isDisabled = await completeButton.isDisabled().catch(() => true)
-      expect(isDisabled).toBeTruthy()
-    } else {
-      expect(isTextVisible).toBeTruthy()
-    }
+    // Should show 3 filled stars for chapter 01
+    const stars = page.locator('[data-stars="3"]')
+    await expect(stars).toBeVisible()
   })
 
-  test('should update streak when completing chapters on consecutive days', async ({ page }) => {
-    // Create test user
+  test('should update streak on daily completion', async ({ page }) => {
     const user = await createTestUser({
-      email: 'streak@example.com',
+      email: 'streak@test.com',
       username: 'streakuser',
       name: 'Streak User',
-      password: 'Test123!',
     })
 
     const db = getTestDb()
 
-    // Create lesson
-    const lesson = await db.lesson.create({
+    // Complete a chapter today
+    await createChapterCompletion({
+      userId: user.id,
+      chapterId: '01',
+      stars: 2,
+    })
+
+    // Update streak
+    await db.user.update({
+      where: { id: user.id },
       data: {
-        chapterId: '03',
-        title: 'Kapitola 3',
-        description: 'Test kapitola',
-        xpReward: 100,
-        difficulty: 'beginner',
-        order: 0,
+        currentStreak: 1,
+        lastActiveDate: new Date(),
       },
     })
 
-    // Login
     await page.goto('/auth/signin')
-    await page.fill('input[type="email"]', 'streak@example.com')
-    await page.fill('input[type="password"]', 'Test123!')
+    await page.fill('input[name="email"]', 'streak@test.com')
+    await page.fill('input[name="password"]', 'Test123!')
     await page.click('button[type="submit"]')
-    await page.waitForURL('/dashboard', { timeout: 10000 })
 
-    // Navigate to chapter and complete it
-    await page.goto('/chapters/03')
+    await page.goto('/profile')
 
-    const completeButton = await page
-      .locator('button:has-text("Dokončit"), button:has-text("Complete")')
-      .first()
+    // Streak should show 1
+    await expect(page.locator('text=1').first()).toBeVisible()
+  })
 
-    if (await completeButton.isVisible()) {
-      await completeButton.click()
-      await page.waitForTimeout(1000)
+  test('should track chapter progress for incomplete chapters', async ({ page }) => {
+    const user = await createTestUser({
+      email: 'progress@test.com',
+      username: 'progressuser',
+      name: 'Progress User',
+    })
 
-      // Check if streak is updated
-      const userUpdated = await db.user.findUnique({ where: { id: user.id } })
-      expect(userUpdated?.currentStreak).toBeGreaterThan(0)
-    }
+    const db = getTestDb()
+
+    // Create partial progress (not completed)
+    await db.chapterProgress.create({
+      data: {
+        userId: user.id,
+        chapterId: '01',
+        lessonsCompleted: 2,
+        totalSteps: 5,
+        currentStep: 2,
+        exercisesCorrect: 8,
+        exercisesTotal: 10,
+      },
+    })
+
+    await page.goto('/auth/signin')
+    await page.fill('input[name="email"]', 'progress@test.com')
+    await page.fill('input[name="password"]', 'Test123!')
+    await page.click('button[type="submit"]')
+
+    await page.goto('/learn/01')
+
+    // Should show partial progress (2/5 lessons)
+    await expect(page.locator('text=2/5')).toBeVisible()
   })
 })

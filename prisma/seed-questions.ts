@@ -33,20 +33,26 @@ function parseQuestionsFromMarkdown(filePath: string): ChapterQuestions[] {
   const chapterSections = content.split(/## Kapitola (\d+):/)
 
   for (let i = 1; i < chapterSections.length; i += 2) {
-    const chapterNumber = parseInt(chapterSections[i])
+    const chapterNumStr = chapterSections[i]
     const chapterContent = chapterSections[i + 1]
+    if (!chapterNumStr || !chapterContent) continue
+
+    const chapterNumber = parseInt(chapterNumStr)
 
     // Split by question headers (### Otázka X)
     const questionSections = chapterContent.split(/### Otázka (\d+)/)
     const questions: ParsedQuestion[] = []
 
     for (let j = 1; j < questionSections.length; j += 2) {
-      const questionNumber = parseInt(questionSections[j])
+      const questionNumStr = questionSections[j]
       const questionContent = questionSections[j + 1]
+      if (!questionNumStr || !questionContent) continue
+
+      const questionNumber = parseInt(questionNumStr)
 
       // Extract question text (between ** and **)
-      const questionTextMatch = questionContent.match(/\*\*(.+?)\*\*/s)
-      if (!questionTextMatch) continue
+      const questionTextMatch = questionContent.match(/\*\*([^*]+)\*\*/)
+      if (!questionTextMatch || !questionTextMatch[1]) continue
 
       const questionText = questionTextMatch[1].trim()
 
@@ -61,13 +67,12 @@ function parseQuestionsFromMarkdown(filePath: string): ChapterQuestions[] {
       if (!correctAnswerMatch) continue
 
       const correctAnswerLetter = correctAnswerMatch[1]
+      if (!correctAnswerLetter) continue
       const correctAnswer = correctAnswerLetter.charCodeAt(0) - 'a'.charCodeAt(0)
 
       // Extract explanation (optional)
-      const explanationMatch = questionContent.match(
-        /\*\*Vysvětlení:\*\* (.+?)(?:\n\n|---|\n##|$)/s
-      )
-      const explanation = explanationMatch ? explanationMatch[1].trim() : undefined
+      const explanationMatch = questionContent.match(/\*\*Vysvětlení:\*\* ([^\n]+)/)
+      const explanation = explanationMatch?.[1]?.trim()
 
       questions.push({
         questionNumber,

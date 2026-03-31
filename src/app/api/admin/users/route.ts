@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     // Get total count for pagination
     const total = await prisma.user.count({ where })
 
-    // Get users with relations
+    // Get users with relations - use chapterCompletions as primary source
     const users = await prisma.user.findMany({
       where,
       skip,
@@ -43,9 +43,10 @@ export async function GET(request: NextRequest) {
       include: {
         _count: {
           select: {
-            completedChapters: true,
             achievements: true,
-            chapterCompletions: true,
+            chapterCompletions: {
+              where: { completedChapter: true },
+            },
           },
         },
       },
@@ -66,9 +67,8 @@ export async function GET(request: NextRequest) {
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
         stats: {
-          completedChapters: user._count.completedChapters,
+          completedChapters: user._count.chapterCompletions,
           achievements: user._count.achievements,
-          chapterCompletions: user._count.chapterCompletions,
         },
       })),
       pagination: {

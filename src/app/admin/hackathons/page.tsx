@@ -57,7 +57,9 @@ export default function HackathonsManagement() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Opravdu chcete smazat tento hackathon? Všechny týmy a projekty budou také smazány.'))
+    if (
+      !confirm('Opravdu chcete smazat tento hackathon? Všechny týmy a projekty budou také smazány.')
+    )
       return
 
     try {
@@ -87,7 +89,7 @@ export default function HackathonsManagement() {
       active: { bg: 'bg-green-100', text: 'text-green-800', label: 'Probíhá' },
       completed: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Ukončeno' },
     }
-    const badge = badges[status] || badges.upcoming
+    const badge = badges[status] ?? badges.upcoming!
     return (
       <span
         className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${badge.bg} ${badge.text}`}
@@ -188,9 +190,7 @@ export default function HackathonsManagement() {
                 {hackathons.map(hackathon => (
                   <tr key={hackathon.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">
-                        {hackathon.title}
-                      </div>
+                      <div className="text-sm font-medium text-gray-900">{hackathon.title}</div>
                       <div className="text-sm text-gray-500">{hackathon.theme}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

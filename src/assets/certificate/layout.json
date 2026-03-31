@@ -1,0 +1,142 @@
+{
+  "image_size": {
+    "width": 1413,
+    "height": 2000
+  },
+
+  "existing_elements": [
+    "rámeček (border) - modrý/fialový art deco",
+    "rohové dekorace - zlaté ornamentální rohy",
+    "pečeť - zlatá kulatá PRAUT S.R.O.",
+    "podpis - černý rukopisný (vpravo od pečetě)"
+  ],
+
+  "writable_zones": {
+    "main_text_area": {
+      "description": "Hlavní volná oblast pro veškerý text certifikátu",
+      "x1": 100,
+      "y1": 140,
+      "x2": 1313,
+      "y2": 1470,
+      "width": 1213,
+      "height": 1330
+    },
+    "left_of_seal": {
+      "description": "Volný prostor vlevo od pečetě (datum, číslo certifikátu...)",
+      "x1": 80,
+      "y1": 1500,
+      "x2": 500,
+      "y2": 1880,
+      "width": 420,
+      "height": 380
+    }
+  },
+
+  "forbidden_zones": [
+    {
+      "name": "border_top",
+      "description": "Horní rámeček + dekorace",
+      "type": "rectangle",
+      "x1": 0,
+      "y1": 0,
+      "x2": 1413,
+      "y2": 95
+    },
+    {
+      "name": "border_bottom",
+      "description": "Spodní rámeček + dekorace",
+      "type": "rectangle",
+      "x1": 0,
+      "y1": 1900,
+      "x2": 1413,
+      "y2": 2000
+    },
+    {
+      "name": "border_left",
+      "description": "Levý rámeček (proměnlivá šířka 23-63px)",
+      "type": "rectangle",
+      "x1": 0,
+      "y1": 0,
+      "x2": 70,
+      "y2": 2000
+    },
+    {
+      "name": "border_right",
+      "description": "Pravý rámeček (proměnlivá šířka)",
+      "type": "rectangle",
+      "x1": 1340,
+      "y1": 0,
+      "x2": 1413,
+      "y2": 2000
+    },
+    {
+      "name": "corner_top_left",
+      "description": "Levá horní rohová dekorace",
+      "type": "rectangle",
+      "x1": 0,
+      "y1": 0,
+      "x2": 200,
+      "y2": 200
+    },
+    {
+      "name": "corner_top_right",
+      "description": "Pravá horní rohová dekorace",
+      "type": "rectangle",
+      "x1": 1213,
+      "y1": 0,
+      "x2": 1413,
+      "y2": 200
+    },
+    {
+      "name": "corner_bottom_left",
+      "description": "Levá dolní rohová dekorace",
+      "type": "rectangle",
+      "x1": 0,
+      "y1": 1800,
+      "x2": 200,
+      "y2": 2000
+    },
+    {
+      "name": "corner_bottom_right",
+      "description": "Pravá dolní rohová dekorace",
+      "type": "rectangle",
+      "x1": 1213,
+      "y1": 1800,
+      "x2": 1413,
+      "y2": 2000
+    },
+    {
+      "name": "seal",
+      "description": "Zlatá pečeť PRAUT S.R.O.",
+      "type": "circle",
+      "center_x": 710,
+      "center_y": 1700,
+      "radius": 220,
+      "bounding_box": { "x1": 490, "y1": 1480, "x2": 930, "y2": 1920 }
+    },
+    {
+      "name": "signature",
+      "description": "Rukopisný podpis vpravo od pečetě",
+      "type": "rectangle",
+      "x1": 920,
+      "y1": 1520,
+      "x2": 1340,
+      "y2": 1810,
+      "actual_content_bbox": {
+        "x1": 936,
+        "y1": 1539,
+        "x2": 1339,
+        "y2": 1799,
+        "note": "Přesný bounding box pixelů podpisu (403×260 px, 5937 pixelů)"
+      }
+    }
+  ],
+
+  "helper": {
+    "is_pixel_free": {
+      "description": "Programová kontrola zda je pixel volný pro zápis",
+      "white_background_version": "pixel je volný pokud R >= 240 AND G >= 240 AND B >= 240",
+      "black_background_version": "pixel je volný pokud R <= 12 AND G <= 12 AND B <= 12"
+    }
+  }
+}

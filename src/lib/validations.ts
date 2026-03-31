@@ -85,10 +85,11 @@ export async function validateRequestBody<T>(
     const result = schema.safeParse(body)
 
     if (!result.success) {
-      const errors = result.error.errors
-        .map(err => `${err.path.join('.')}: ${err.message}`)
-        .join(', ')
-      return { success: false, error: errors }
+      const errorMessages: string[] = []
+      for (const err of result.error.issues) {
+        errorMessages.push(`${err.path.join('.')}: ${err.message}`)
+      }
+      return { success: false, error: errorMessages.join(', ') }
     }
 
     return { success: true, data: result.data }

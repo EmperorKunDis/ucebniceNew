@@ -2,15 +2,141 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
-  output = "../node_modules/.prisma/client"
+  provider        = "prisma-client-js"
+  output          = "../node_modules/.prisma/client"
+  previewFeatures = ["fullTextSearchPostgres"]
 }
 
 datasource db {
   provider = "postgresql"
 }
 
-// NextAuth models
+// ═══════════════════════════════════════════════════════════
+// ENUMS
+// ═══════════════════════════════════════════════════════════
+
+enum Role {
+  USER
+  JUDGE
+  TEAM_LEADER
+  ADMIN
+}
+
+enum StreakFreezeSource {
+  SHOP_PURCHASE
+  ACHIEVEMENT_REWARD
+  ADMIN_GRANT
+}
+
+enum ShopItemCategory {
+  POWER_UP
+  COSMETIC
+  STREAK
+  HEART
+  XP_BOOST
+}
+
+enum ExerciseType {
+  MULTIPLE_CHOICE
+  FILL_IN_BLANK
+  DRAG_AND_DROP
+  CODE_OUTPUT
+  DEBUG_CHALLENGE
+  MATCH_PAIRS
+  TRUE_FALSE
+  TYPE_ANSWER
+}
+
+enum ExerciseDifficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum ReviewRating {
+  AGAIN
+  HARD
+  GOOD
+  EASY
+}
+
+enum LeagueTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+  DIAMOND
+  OBSIDIAN
+}
+
+enum QuestType {
+  DAILY
+  WEEKLY
+  SPECIAL
+}
+
+enum QuestCategory {
+  LESSONS_COMPLETED
+  XP_EARNED
+  STREAK_MAINTAINED
+  EXERCISES_PERFECT
+  REVIEW_SESSIONS
+  FRIENDS_ENCOURAGED
+  CHAPTERS_COMPLETED
+  ACHIEVEMENTS_UNLOCKED
+  TIME_SPENT
+  HEARTS_PRESERVED
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
+}
+
+enum NotificationType {
+  FRIEND_REQUEST
+  FRIEND_ACCEPTED
+  ENCOURAGEMENT
+  ACHIEVEMENT_UNLOCKED
+  LEAGUE_PROMOTION
+  LEAGUE_DEMOTION
+  STREAK_ENDANGERED
+  STREAK_LOST
+  STREAK_MILESTONE
+  QUEST_COMPLETED
+  LEVEL_UP
+  HEART_REFILL
+  SHOP_PURCHASE
+  SYSTEM
+}
+
+enum AnalyticsEventType {
+  PAGE_VIEW
+  LESSON_START
+  LESSON_COMPLETE
+  EXERCISE_ANSWER
+  EXERCISE_HINT_USED
+  REVIEW_SESSION_START
+  REVIEW_SESSION_COMPLETE
+  SHOP_VIEW
+  SHOP_PURCHASE
+  FRIEND_REQUEST_SENT
+  AI_TUTOR_MESSAGE
+  ACHIEVEMENT_VIEW
+  LEAGUE_VIEW
+  STREAK_CHECK
+  HEART_LOST
+  HEART_REFILL
+  SESSION_START
+  SESSION_END
+  ERROR
+}
+
+// ═══════════════════════════════════════════════════════════
+// AUTH MODELS (NextAuth)
+// ═══════════════════════════════════════════════════════════
+
 model Account {
   id                String  @id @default(uuid())
   userId            String
@@ -49,41 +175,90 @@ model User {
   image         String?
   password      String?
   username      String?   @unique
+  bio           String?
+  role          Role      @default(USER)
 
-  // Game-like attributes
-  xp            Int @default(0)
-  level         Int @default(1)
-  currentStreak Int @default(0)
-  longestStreak Int @default(0)
+  // Gamification core
+  xp            Int       @default(0)
+  level         Int       @default(1)
+  gems          Int       @default(100)
+  currentStreak Int       @default(0)
+  longestStreak Int       @default(0)
+  lastActiveDate DateTime?
 
-  // Admin access
+  // Hearts system
+  hearts               Int       @default(5)
+  maxHearts            Int       @default(5)
+  lastHeartRegenAt     DateTime?
+  unlimitedHeartsUntil DateTime?
+
+  // Daily XP tracking
+  dailyXP        Int       @default(0)
+  dailyXPGoal    Int       @default(50)
+  lastDailyReset DateTime?
+
+  // Onboarding
+  onboardingCompleted Boolean @default(false)
+
+  // Admin access (legacy, use role instead)
   isAdmin Boolean @default(false)
 
   // Metadata
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
-  accounts           Account[]
-  sessions           Session[]
+  // Auth relations
+  accounts Account[]
+  sessions Session[]
+
+  // Learning relations
   completedChapters  CompletedChapter[]
-  achievements       UserAchievement[]
-  chapterProgress    ChapterProgress[]
-  cognitiveGlitches  CognitiveGlitchAttempt[]
   chapterCompletions ChapterCompletion[]
+  chapterProgress    ChapterProgress[]
   questionAnswers    QuestionAnswer[]
   projectSubmissions ProjectSubmission[]
   moduleTestAttempts ModuleTestAttempt[]
+  cognitiveGlitches  CognitiveGlitchAttempt[]
+
+  // Gamification relations
+  achievements      UserAchievement[]
+  streakHistory     StreakHistory[]
+  purchases         UserPurchase[]
+  reviewCards       ReviewCard[]
+  leagueMemberships LeagueMembership[]
+  quests            UserQuest[]
+
+  // Social relations
+  sentFriendRequests     Friendship[]    @relation("FriendshipRequester")
+  receivedFriendRequests Friendship[]    @relation("FriendshipReceiver")
+  sentEncouragements     Encouragement[] @relation("EncouragementSender")
+  receivedEncouragements Encouragement[] @relation("EncouragementReceiver")
+
+  // AI & Notifications
+  aiChatHistory   AIChatHistory[]
+  notifications   Notification[]
+  analyticsEvents AnalyticsEvent[]
 
   // Arena relations
   teamMemberships TeamMember[]
   graduateProfile GraduateProfile?
 
+  // Certificate & Tests
+  certificates                 Certificate[]
+  milestoneTests               MilestoneTest[]
+  finalTest                    FinalTest?
+  advancedChapterCompletions   AdvancedChapterCompletion[]
+  advancedProjectSubmissions   AdvancedProjectSubmission[]
+
   // Indexes for performance
   @@index([xp])
   @@index([level])
   @@index([email])
+  @@index([username])
   @@index([createdAt])
+  @@index([currentStreak])
+  @@index([lastActiveDate])
+  @@index([role])
 }
 
 model VerificationToken {
@@ -94,32 +269,40 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// Application specific models
+// ═══════════════════════════════════════════════════════════
+// LEARNING MODELS
+// ═══════════════════════════════════════════════════════════
 
 model Chapter {
-  id          String  @id @default(uuid())
-  chapterId   String  @unique
+  id          String             @id @default(uuid())
+  chapterId   String             @unique // "01"-"40"
   title       String
   description String?
-  xpReward    Int     @default(100)
-  difficulty  String
+  xpReward    Int                @default(100)
+  difficulty  ExerciseDifficulty @default(EASY)
   order       Int
+  module      Int                @default(1) // 1-8
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  questions   Question[]
+  // Relations
+  questions          Question[]
+  microLessons       MicroLesson[]
+  concepts           Concept[]
+  completedBy        CompletedChapter[]
+  completions        ChapterCompletion[]
+  progress           ChapterProgress[]
+  projectSubmissions ProjectSubmission[]
 
-  completedBy CompletedChapter[]
-  progress    ChapterProgress[]
-
-  // Indexes for performance
+  @@index([chapterId])
   @@index([difficulty])
   @@index([order])
+  @@index([module])
 }
 
-
 model CompletedChapter {
+  // DEPRECATED - use ChapterCompletion for new features
   id          String   @id @default(uuid())
   userId      String
   chapterId   String
@@ -135,12 +318,48 @@ model CompletedChapter {
   @@index([completedAt])
 }
 
+model ChapterCompletion {
+  id                String   @id @default(uuid())
+  userId            String
+  chapterId         String   // "01", "02", etc
+  completedChapter  Boolean  @default(false)
+  answeredQuestions Boolean  @default(false)
+  submittedProject  Boolean  @default(false)
+  stars             Int      @default(0)
+  bestScore         Int      @default(0)
+  completionTime    Int?
+  attempts          Int      @default(1)
+  xpEarned          Int      @default(0)
+  perfectRun        Boolean  @default(false)
+  completedAt       DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chapter Chapter? @relation(fields: [chapterId], references: [chapterId])
+
+  @@unique([userId, chapterId])
+  @@index([userId])
+  @@index([chapterId])
+  @@index([userId, chapterId])
+  @@index([completedAt])
+  @@index([userId, completedChapter])
+}
+
 model ChapterProgress {
-  id          String   @id @default(uuid())
-  userId      String
-  chapterId   String
-  progress    Int      @default(0)
-  lastUpdated DateTime @default(now())
+  id               String   @id @default(uuid())
+  userId           String
+  chapterId        String
+  progress         Int      @default(0)
+  currentStep      Int      @default(0)
+  totalSteps       Int      @default(0)
+  lessonsCompleted Int      @default(0)
+  exercisesCorrect Int      @default(0)
+  exercisesTotal   Int      @default(0)
+  timeSpentSeconds Int      @default(0)
+  lastAccessedAt   DateTime @default(now())
+  lastUpdated      DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   chapter Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
@@ -149,16 +368,116 @@ model ChapterProgress {
   @@index([userId])
   @@index([chapterId])
   @@index([lastUpdated])
+  @@index([userId, chapterId])
 }
 
+// ═══════════════════════════════════════════════════════════
+// MICRO-LESSONS & EXERCISES
+// ═══════════════════════════════════════════════════════════
+
+model MicroLesson {
+  id          String   @id @default(uuid())
+  chapterId   String
+  order       Int
+  title       String
+  content     String
+  summary     String?
+  xpReward    Int      @default(10)
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  chapter   Chapter    @relation(fields: [chapterId], references: [chapterId])
+  exercises Exercise[]
+
+  @@unique([chapterId, order])
+  @@index([chapterId])
+}
+
+model Exercise {
+  id            String             @id @default(uuid())
+  microLessonId String
+  order         Int
+  type          ExerciseType
+  difficulty    ExerciseDifficulty @default(MEDIUM)
+  question      String
+  data          Json
+  explanation   String?
+  hints         String[]
+  xpReward      Int                @default(5)
+  conceptId     String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  microLesson MicroLesson @relation(fields: [microLessonId], references: [id], onDelete: Cascade)
+  concept     Concept?    @relation(fields: [conceptId], references: [id])
+
+  @@index([microLessonId])
+  @@index([type])
+  @@index([conceptId])
+}
+
+// ═══════════════════════════════════════════════════════════
+// SPACED REPETITION
+// ═══════════════════════════════════════════════════════════
+
+model Concept {
+  id          String   @id @default(uuid())
+  chapterId   String
+  name        String
+  description String?
+  tags        String[]
+  createdAt   DateTime @default(now())
+
+  chapter     Chapter      @relation(fields: [chapterId], references: [chapterId])
+  exercises   Exercise[]
+  reviewCards ReviewCard[]
+
+  @@unique([chapterId, name])
+  @@index([chapterId])
+}
+
+model ReviewCard {
+  id           String        @id @default(uuid())
+  userId       String
+  conceptId    String
+  easeFactor   Float         @default(2.5)
+  interval     Int           @default(0)
+  repetitions  Int           @default(0)
+  nextReviewAt DateTime      @default(now())
+  lastReviewAt DateTime?
+  totalReviews Int           @default(0)
+  correctCount Int           @default(0)
+  lastRating   ReviewRating?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  concept Concept @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, conceptId])
+  @@index([userId])
+  @@index([nextReviewAt])
+  @@index([userId, nextReviewAt])
+}
+
+// ═══════════════════════════════════════════════════════════
+// GAMIFICATION
+// ═══════════════════════════════════════════════════════════
+
 model Achievement {
-  id          String @id @default(uuid())
-  badgeId     String @unique
+  id          String  @id @default(uuid())
+  badgeId     String  @unique
   name        String
   description String
   icon        String
+  category    String  @default("learning")
   xpReward    Int
+  gemReward   Int     @default(0)
   rarity      String
+  requirement Json?
+  isSecret    Boolean @default(false)
+  order       Int     @default(0)
 
   createdAt DateTime @default(now())
 
@@ -166,6 +485,7 @@ model Achievement {
 
   @@index([badgeId])
   @@index([rarity])
+  @@index([category])
 }
 
 model UserAchievement {
@@ -173,6 +493,8 @@ model UserAchievement {
   userId        String
   achievementId String
   unlockedAt    DateTime @default(now())
+  progress      Int      @default(100)
+  notified      Boolean  @default(false)
 
   user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
@@ -181,6 +503,25 @@ model UserAchievement {
   @@index([userId])
   @@index([achievementId])
   @@index([unlockedAt])
+  @@index([userId, unlockedAt])
+}
+
+model StreakHistory {
+  id               String             @id @default(uuid())
+  userId           String
+  date             DateTime           @db.Date
+  xpEarned         Int                @default(0)
+  lessonsCompleted Int                @default(0)
+  froze            Boolean            @default(false)
+  freezeSource     StreakFreezeSource?
+  createdAt        DateTime           @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@index([date])
+  @@index([userId, date])
 }
 
 model CognitiveGlitchAttempt {
@@ -200,30 +541,247 @@ model CognitiveGlitchAttempt {
   @@index([attemptedAt])
 }
 
-// Chapter completion tracking with 3-star system
-// Each star represents independent achievement:
-// Star 1: Chapter completed
-// Star 2: Questions answered correctly
-// Star 3: Project submitted
-model ChapterCompletion {
-  id                 String   @id @default(uuid())
-  userId             String
-  chapterId          String
-  completedChapter   Boolean  @default(false)
-  answeredQuestions  Boolean  @default(false)
-  submittedProject   Boolean  @default(false)
-  completedAt        DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+// ═══════════════════════════════════════════════════════════
+// SHOP
+// ═══════════════════════════════════════════════════════════
+
+model ShopItem {
+  id          String           @id @default(uuid())
+  key         String           @unique
+  name        String
+  description String
+  category    ShopItemCategory
+  price       Int
+  icon        String
+  effectData  Json
+  isActive    Boolean          @default(true)
+  maxPerWeek  Int?
+  order       Int              @default(0)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  purchases UserPurchase[]
+
+  @@index([category])
+  @@index([isActive])
+}
+
+model UserPurchase {
+  id        String    @id @default(uuid())
+  userId    String
+  itemId    String
+  price     Int
+  usedAt    DateTime?
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item ShopItem @relation(fields: [itemId], references: [id])
+
+  @@index([userId])
+  @@index([userId, createdAt])
+}
+
+// ═══════════════════════════════════════════════════════════
+// LEAGUES
+// ═══════════════════════════════════════════════════════════
+
+model League {
+  id        String     @id @default(uuid())
+  tier      LeagueTier
+  weekStart DateTime   @db.Date
+  weekEnd   DateTime   @db.Date
+  createdAt DateTime   @default(now())
+
+  members LeagueMembership[]
+
+  @@unique([tier, weekStart])
+  @@index([weekStart])
+}
+
+model LeagueMembership {
+  id        String   @id @default(uuid())
+  userId    String
+  leagueId  String
+  weeklyXP  Int      @default(0)
+  rank      Int?
+  promoted  Boolean  @default(false)
+  demoted   Boolean  @default(false)
+  survived  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  league League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, leagueId])
+  @@index([leagueId])
+  @@index([leagueId, weeklyXP])
+}
+
+// ═══════════════════════════════════════════════════════════
+// QUESTS
+// ═══════════════════════════════════════════════════════════
+
+model Quest {
+  id          String        @id @default(uuid())
+  type        QuestType
+  category    QuestCategory
+  title       String
+  description String
+  targetValue Int
+  xpReward    Int           @default(0)
+  gemReward   Int           @default(0)
+  icon        String
+  isActive    Boolean       @default(true)
+  validFrom   DateTime?
+  validUntil  DateTime?
+  createdAt   DateTime      @default(now())
+
+  userQuests UserQuest[]
+
+  @@index([type])
+  @@index([isActive])
+}
+
+model UserQuest {
+  id          String    @id @default(uuid())
+  userId      String
+  questId     String
+  progress    Int       @default(0)
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  claimed     Boolean   @default(false)
+  claimedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quest Quest @relation(fields: [questId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questId])
+  @@index([userId])
+  @@index([userId, completed])
+}
+
+// ═══════════════════════════════════════════════════════════
+// SOCIAL
+// ═══════════════════════════════════════════════════════════
+
+model Friendship {
+  id          String           @id @default(uuid())
+  requesterId String
+  receiverId  String
+  status      FriendshipStatus @default(PENDING)
+  respondedAt DateTime?
+  createdAt   DateTime         @default(now())
+
+  requester User @relation("FriendshipRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  receiver  User @relation("FriendshipReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, receiverId])
+  @@index([requesterId])
+  @@index([receiverId])
+  @@index([status])
+}
+
+model Encouragement {
+  id         String   @id @default(uuid())
+  senderId   String
+  receiverId String
+  message    String?
+  type       String   @default("nudge")
+  createdAt  DateTime @default(now())
+
+  sender   User @relation("EncouragementSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("EncouragementReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([senderId])
+  @@index([receiverId])
+}
+
+// ═══════════════════════════════════════════════════════════
+// AI TUTOR, NOTIFICATIONS, ANALYTICS
+// ═══════════════════════════════════════════════════════════
+
+model AIChatHistory {
+  id         String   @id @default(uuid())
+  userId     String
+  chapterId  String?
+  role       String
+  content    String
+  model      String?
+  tokenCount Int?
+  helpful    Boolean?
+  flagged    Boolean  @default(false)
+  createdAt  DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, chapterId])
   @@index([userId])
-  @@index([chapterId])
-  @@index([completedAt])
+  @@index([userId, createdAt])
 }
 
-// Question answers for gamification
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  data      Json?
+  read      Boolean          @default(false)
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, read])
+}
+
+model AnalyticsEvent {
+  id        String             @id @default(uuid())
+  userId    String?
+  type      AnalyticsEventType
+  data      Json?
+  page      String?
+  sessionId String?
+  userAgent String?
+  ip        String?
+  createdAt DateTime           @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([type])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([type, createdAt])
+}
+
+// ═══════════════════════════════════════════════════════════
+// QUESTIONS & TESTS
+// ═══════════════════════════════════════════════════════════
+
+model Question {
+  id             String             @id @default(uuid())
+  chapterId      String
+  questionNumber Int
+  questionText   String
+  options        Json
+  correctAnswer  Int
+  explanation    String?
+  difficulty     ExerciseDifficulty @default(MEDIUM)
+  xpReward       Int                @default(10)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  chapter Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  @@unique([chapterId, questionNumber])
+  @@index([chapterId])
+}
+
 model QuestionAnswer {
   id         String   @id @default(uuid())
   userId     String
@@ -240,9 +798,9 @@ model QuestionAnswer {
   @@index([userId])
   @@index([chapterId])
   @@index([answeredAt])
+  @@index([userId, correct])
 }
 
-// Project submissions
 model ProjectSubmission {
   id          String   @id @default(uuid())
   userId      String
@@ -250,17 +808,25 @@ model ProjectSubmission {
   projectUrl  String
   description String?
   xpEarned    Int      @default(0)
+  gemsEarned  Int      @default(0)
   submittedAt DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // AI Review fields
+  aiReviewScore    Int?      // 0-100
+  aiReviewFeedback String?   // Detailed feedback from Gemini
+  aiReviewedAt     DateTime?
+  aiApproved       Boolean   @default(false)
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chapter Chapter @relation(fields: [chapterId], references: [chapterId])
 
   @@unique([userId, chapterId])
   @@index([userId])
   @@index([chapterId])
   @@index([submittedAt])
+  @@index([aiApproved])
 }
 
-// Module test attempts (tests after every 10 chapters)
 model ModuleTestAttempt {
   id             String    @id @default(uuid())
   userId         String
@@ -285,31 +851,10 @@ model ModuleTestAttempt {
   @@index([userId, moduleNumber])
 }
 
-// Questions for each chapter (comprehensive model)
-model Question {
-  id             String   @id @default(uuid())
-  chapterId      String
-  questionNumber Int      // 1, 2, 3 for ordering
-  questionText   String
-  options        Json     // Array of strings: ["option1", "option2", "option3"]
-  correctAnswer  Int      // Index of correct option (0, 1, 2, etc.)
-  explanation    String?  // Optional explanation
-  xpReward       Int      @default(10)
+// ═══════════════════════════════════════════════════════════
+// ARENA SYSTEM
+// ═══════════════════════════════════════════════════════════
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  chapter Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
-
-  @@unique([chapterId, questionNumber])
-  @@index([chapterId])
-}
-
-// ========================================
-// ARENA SYSTEM MODELS
-// ========================================
-
-// Hackathon - main competition events
 model Hackathon {
   id                   String   @id @default(uuid())
   title                String
@@ -317,75 +862,75 @@ model Hackathon {
   theme                String
   startDate            DateTime
   endDate              DateTime
-  status               String   @default("upcoming") // upcoming, active, completed
+  status               String   @default("upcoming")
   maxTeamSize          Int      @default(4)
   registrationDeadline DateTime
   bannerImage          String?
-  prizes               Json     // [{place, title, description, value}]
-  judges               Json     // [{id, name, title, company, bio, avatar?}]
-  sponsors             Json     @default("[]") // ["Sponsor1", "Sponsor2"]
+  prizes               Json
+  judges               Json
+  sponsors             Json     @default("[]")
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
-  teams                Team[]
-  projects             HackathonProject[]
+
+  teams    Team[]
+  projects HackathonProject[]
 
   @@index([status])
   @@index([startDate])
 }
 
-// Team - hackathon participant teams
 model Team {
-  id          String             @id @default(uuid())
+  id          String   @id @default(uuid())
   name        String
   hackathonId String
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
-  hackathon   Hackathon          @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
-  members     TeamMember[]
-  project     HackathonProject?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  hackathon Hackathon         @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  members   TeamMember[]
+  project   HackathonProject?
 
   @@index([hackathonId])
 }
 
-// TeamMember - user membership in teams
 model TeamMember {
   id       String   @id @default(uuid())
   teamId   String
   userId   String
-  role     String   @default("member") // leader, member
+  role     String   @default("member")
   skills   Json     @default("[]")
   joinedAt DateTime @default(now())
-  team     Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, userId])
   @@index([teamId])
   @@index([userId])
 }
 
-// HackathonProject - submitted project for hackathon
 model HackathonProject {
-  id           String    @id @default(uuid())
-  teamId       String    @unique
+  id           String   @id @default(uuid())
+  teamId       String   @unique
   hackathonId  String
   title        String
   description  String
   githubUrl    String
   demoUrl      String?
   videoUrl     String?
-  screenshots  Json      @default("[]")
-  technologies Json      @default("[]")
-  submittedAt  DateTime  @default(now())
+  screenshots  Json     @default("[]")
+  technologies Json     @default("[]")
+  submittedAt  DateTime @default(now())
   score        Int?
   placement    Int?
-  feedback     Json?     // [{judgeId, score, comments, categories}]
-  team         Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  hackathon    Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  feedback     Json?
+
+  team      Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  hackathon Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
 
   @@index([hackathonId])
 }
 
-// GraduateProfile - alumni showcase profile
 model GraduateProfile {
   id             String   @id @default(uuid())
   userId         String   @unique
@@ -393,7 +938,7 @@ model GraduateProfile {
   graduatedAt    DateTime @default(now())
   certificateId  String   @unique
   skills         Json     @default("[]")
-  portfolio      Json     @default("[]") // [{id, title, description, url, type, technologies}]
+  portfolio      Json     @default("[]")
   linkedIn       String?
   github         String?
   website        String?
@@ -401,8 +946,162 @@ model GraduateProfile {
   preferredRoles Json     @default("[]")
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([lookingForWork])
   @@index([graduatedAt])
+}
+
+// ═══════════════════════════════════════════════════════════
+// CERTIFICATE SYSTEM
+// ═══════════════════════════════════════════════════════════
+
+model Certificate {
+  id               String   @id @default(uuid())
+  uniqueCode       String   @unique // e.g., "CERT-2024-XXXXX"
+  userId           String
+  userName         String   // Snapshot of name at time of certificate
+  courseTitle      String   @default("Učebnice programování AI")
+  courseLevel      String   @default("foundation") // "foundation" (40 chapters) or "advanced" (50 chapters)
+  completedAt      DateTime @default(now())
+  totalXP          Int
+  totalChapters    Int
+  averageScore     Float?
+  pdfPath          String?  // Path to generated PDF
+  verificationUrl  String?  // URL for QR code verification
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([uniqueCode])
+  @@index([completedAt])
+}
+
+// ═══════════════════════════════════════════════════════════
+// MILESTONE TESTS
+// ═══════════════════════════════════════════════════════════
+
+model MilestoneTest {
+  id              String   @id @default(uuid())
+  userId          String
+  milestone       Int      // 10, 20, 30, or 40 (final)
+  score           Int      // Percentage 0-100
+  questionsTotal  Int      @default(20)
+  questionsCorrect Int
+  projectSubmitted Boolean @default(false)
+  projectScore    Int?
+  projectFeedback String?
+  passed          Boolean  @default(false)
+  gemsEarned      Int      @default(0)
+  xpEarned        Int      @default(0)
+  startedAt       DateTime @default(now())
+  completedAt     DateTime?
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, milestone])
+  @@index([userId])
+  @@index([milestone])
+  @@index([passed])
+}
+
+model FinalTest {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  questionsScore     Int      // 0-100 for logic questions
+  selectedProjectId  Int      // 1, 2, or 3
+  projectSubmitted   Boolean  @default(false)
+  projectUrl         String?
+  projectScore       Int?
+  projectFeedback    String?
+  passed             Boolean  @default(false)
+  gemsEarned         Int      @default(0)
+  xpEarned           Int      @default(0)
+  startedAt          DateTime @default(now())
+  completedAt        DateTime?
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([passed])
+}
+
+// ═══════════════════════════════════════════════════════════
+// EMAIL VERIFICATION
+// ═══════════════════════════════════════════════════════════
+
+model EmailVerificationToken {
+  id        String   @id @default(uuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  @@index([email])
+  @@index([token])
+}
+
+// ═══════════════════════════════════════════════════════════
+// LLM ADVANCED CHAPTERS (41-50)
+// ═══════════════════════════════════════════════════════════
+
+model AdvancedChapter {
+  id              String   @id @default(uuid())
+  chapterNumber   Int      @unique // 41-50
+  title           String
+  description     String
+  content         Json     // Full chapter content
+  notebookLmUrl   String?  // Google NotebookLM podcast URL
+  colabUrl        String?  // Google Colab notebook URL
+  projectDescription String?
+  estimatedHours  Int      @default(4)
+  difficulty      String   @default("advanced")
+  prerequisites   Json     @default("[]") // Array of chapter numbers
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  completions AdvancedChapterCompletion[]
+  projects    AdvancedProjectSubmission[]
+  
+  @@index([chapterNumber])
+}
+
+model AdvancedChapterCompletion {
+  id          String   @id @default(uuid())
+  userId      String
+  chapterId   String
+  score       Int?
+  xpEarned    Int      @default(0)
+  gemsEarned  Int      @default(0)
+  completedAt DateTime @default(now())
+  
+  user    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chapter AdvancedChapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, chapterId])
+  @@index([userId])
+  @@index([chapterId])
+}
+
+model AdvancedProjectSubmission {
+  id               String    @id @default(uuid())
+  userId           String
+  chapterId        String
+  projectUrl       String
+  description      String?
+  aiReviewScore    Int?
+  aiReviewFeedback String?
+  aiApproved       Boolean   @default(false)
+  gemsEarned       Int       @default(0)
+  xpEarned         Int       @default(0)
+  submittedAt      DateTime  @default(now())
+  reviewedAt       DateTime?
+  
+  user    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chapter AdvancedChapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, chapterId])
+  @@index([userId])
+  @@index([chapterId])
+  @@index([aiApproved])
 }

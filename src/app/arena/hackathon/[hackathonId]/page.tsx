@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
@@ -97,7 +97,6 @@ interface HackathonData {
 }
 
 export default function HackathonDetailPage() {
-  const router = useRouter()
   const params = useParams()
   const hackathonId = params.hackathonId as string
   const { data: session } = useSession()
@@ -150,14 +149,6 @@ export default function HackathonDetailPage() {
 
     loadUserLevel()
   }, [session])
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('cs-CZ', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    })
-  }
 
   const formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('cs-CZ', {

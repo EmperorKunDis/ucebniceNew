@@ -56,7 +56,14 @@ interface GraduateData {
   graduatedAt: string
   certificateId: string
   skills: string[]
-  portfolio: { id?: string; title: string; description: string; url: string; type: string; technologies: string[] }[]
+  portfolio: {
+    id?: string
+    title: string
+    description: string
+    url: string
+    type: string
+    technologies: string[]
+  }[]
   linkedIn: string | null
   github: string | null
   website: string | null
@@ -206,7 +213,7 @@ export default function ArenaPage() {
   const [graduates, setGraduates] = useState<GraduateData[]>([])
   const [myTeams, setMyTeams] = useState<TeamData[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [, setError] = useState<string | null>(null)
 
   // Fetch hackathons
   useEffect(() => {
@@ -521,9 +528,7 @@ export default function ArenaPage() {
               <GlassSurface className="p-8 text-center">
                 <Stack direction="col" align="center" gap={4}>
                   <Users className="w-16 h-16 text-gray-600" />
-                  <h3 className="text-2xl font-bold text-white">
-                    Zatím nejsi členem žádného týmu
-                  </h3>
+                  <h3 className="text-2xl font-bold text-white">Zatím nejsi členem žádného týmu</h3>
                   <p className="text-gray-400">
                     Připoj se k hackathonu a vytvoř nebo se připoj k týmu!
                   </p>
