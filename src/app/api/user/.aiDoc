@@ -1,0 +1,27 @@
+---
+@META
+dir: src/app/api/user
+updated: 2026-03-18
+files: 0
+stack: Next.js 14 Route Handlers, Prisma
+
+@EXPORTS
+stats/route.ts: GET — user stats (XP, level, streak, achievements, recent completions, progress)
+profile-image/route.ts: POST — upload profile image, save to public/uploads/, update user.image
+graduate-profile/route.ts: GET/PUT — get or update graduate profile (bio, skills, portfolio, social links)
+
+@FUNCTIONS
+GET_stats(request) → NextResponse
+  purpose: aggregate user's gamification data (XP, level, streak, badges, chapter progress)
+  side-effects: none (cached)
+  called-by: profile page, navigation bar
+
+POST_profileImage(request) → NextResponse
+  purpose: handle file upload for user avatar
+  side-effects: file (save to public/uploads/), db (update user.image)
+  called-by: ProfilePhotoUpload component
+
+@DEPENDENCIES
+internal: @/lib/prisma, @/lib/auth, @/lib/cache, @/lib/validation-schemas
+external: next/server, next-auth
+---

@@ -1,0 +1,23 @@
+---
+@META
+dir: src/components/certificate
+updated: 2026-03-18
+files: 1
+stack: React 18, TypeScript, html2canvas, jspdf
+
+@EXPORTS
+certificate-generator.tsx: CertificateGenerator — generates & downloads PDF certificate for course completion
+
+@FUNCTIONS
+CertificateGenerator({userName,completionDate}) → JSX
+  purpose: render certificate preview & generate downloadable PDF
+  side-effects: file (PDF download)
+  called-by: /certificate page (dynamic import)
+
+@DEPENDENCIES
+internal: @/components/ui
+external: html2canvas, jspdf, react
+
+@WARNINGS
+- Dynamically imported to reduce bundle size (heavy deps: html2canvas + jspdf)
+---

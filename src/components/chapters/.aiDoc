@@ -1,0 +1,49 @@
+---
+@META
+dir: src/components/chapters
+updated: 2026-03-18
+files: 10
+stack: React 18, TypeScript, Tailwind CSS, react-markdown
+
+@EXPORTS
+ChapterCard.tsx: ChapterCard — card displaying chapter info, progress stars, completion state
+ChapterCard.stories.tsx: ChapterCardStories — Storybook stories
+ChapterContent.tsx: ChapterContent — markdown renderer for chapter text content
+ChapterHeader.tsx: ChapterHeader — chapter page header with title, number, difficulty badge
+ChapterLayout.tsx: ChapterLayout — chapter detail page layout with sidebar navigation
+ChapterNavigation.tsx: ChapterNavigation — prev/next chapter navigation buttons
+QuestionCard.tsx: QuestionCard — interactive quiz question with answer options & feedback
+ProjectSubmission.tsx: ProjectSubmission — form for submitting project URL & description
+VideoPlayer.tsx: VideoPlayer — HTML5 video player for chapter video lessons
+NotebookLinks.tsx: NotebookLinks — links to Google Colab & NotebookLM resources
+
+@FUNCTIONS
+ChapterCard({chapter,progress,completion}) → JSX
+  purpose: display chapter card in list with 3-star progress indicators
+  side-effects: none
+  called-by: chapters list page
+
+QuestionCard({question,chapterId,onAnswer}) → JSX
+  purpose: render quiz question, handle answer selection, show explanation
+  side-effects: api (POST /api/questions/answer)
+  called-by: chapter detail page
+
+ProjectSubmission({chapterId}) → JSX
+  purpose: form to submit project URL, calls submit API
+  side-effects: api (POST /api/projects/submit)
+  called-by: chapter detail page
+
+VideoPlayer({filename}) → JSX
+  purpose: stream video from /api/video/[filename]
+  side-effects: none
+  called-by: chapter detail page
+
+@DEPENDENCIES
+internal: @/components/ui, @/data/chapters, @/lib/utils, @/lib/constants
+external: react, react-markdown, lucide-react, next/link, next/image
+
+@STANDARDS
+- 3-star system: star1=chapter complete, star2=questions answered, star3=project submitted
+- Chapter content loaded from public/prednasky/*.md via react-markdown
+- Video streamed via API route (not direct file access)
+---

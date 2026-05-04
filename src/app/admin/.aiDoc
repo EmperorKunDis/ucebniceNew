@@ -1,0 +1,33 @@
+---
+@META
+dir: src/app/admin
+updated: 2026-03-18
+files: 11
+stack: Next.js 14, React 18, TypeScript
+
+@EXPORTS
+layout.tsx: AdminLayout — admin section layout with sidebar navigation & admin check
+page.tsx: AdminDashboardPage — admin overview with stats
+achievements/page.tsx: AdminAchievementsPage — CRUD for achievements/badges
+chapters/page.tsx: AdminChaptersPage — manage chapters & their questions
+users/page.tsx: AdminUsersPage — user management (list, edit, toggle admin)
+analytics/page.tsx: AdminAnalyticsPage — platform usage analytics & charts
+hackathons/page.tsx: AdminHackathonsPage — list hackathons
+hackathons/new/page.tsx: NewHackathonPage — create hackathon form
+hackathons/[id]/page.tsx: HackathonDetailPage — view hackathon details
+hackathons/[id]/edit/page.tsx: EditHackathonPage — edit hackathon form
+hackathons/components/hackathon-form.tsx: HackathonForm — reusable hackathon form component
+
+@PROCESSES
+AdminAccess: check isAdmin flag on user → redirect to / if not admin
+HackathonCRUD: list → create/edit form → POST/PUT /api/admin/hackathons → manage teams & projects
+
+@DEPENDENCIES
+internal: @/lib/admin-auth, @/components/ui, @/lib/validation-schemas
+external: next-auth/react, react, next/navigation
+
+@STANDARDS
+- All admin pages require isAdmin flag
+- AdminLayout wraps all admin pages with sidebar nav
+- Hackathon form is shared between create and edit pages
+---

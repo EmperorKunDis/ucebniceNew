@@ -1,0 +1,24 @@
+---
+@META
+dir: src/components/cognitive-glitch
+updated: 2026-03-18
+files: 1
+stack: React 18, TypeScript, Framer Motion
+
+@EXPORTS
+cognitive-glitch-modal.tsx: CognitiveGlitchModal — modal popup for surprise quiz challenges
+
+@FUNCTIONS
+CognitiveGlitchModal({challenge,onAnswer,onClose}) → JSX
+  purpose: display timed glitch challenge with glitch visual effects & answer options
+  side-effects: none
+  called-by: chapter pages (probabilistic trigger)
+
+@DEPENDENCIES
+internal: @/lib/glitch-challenges, @/components/ui
+external: react, framer-motion
+
+@STANDARDS
+- Triggered probabilistically based on GLITCH_CONFIG settings
+- Time-limited challenges with XP reward based on difficulty & speed
+---

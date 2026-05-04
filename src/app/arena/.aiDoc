@@ -1,0 +1,22 @@
+---
+@META
+dir: src/app/arena
+updated: 2026-03-18
+files: 5
+stack: Next.js 14, React 18, TypeScript
+
+@EXPORTS
+layout.tsx: ArenaLayout — arena section layout
+page.tsx: ArenaPage — hackathon listing & graduate showcase hub
+hackathon/[hackathonId]/page.tsx: HackathonDetailPage — hackathon details, teams, registration, project submissions
+graduate/[graduateId]/page.tsx: GraduateProfilePage — individual graduate portfolio & achievements
+
+@PROCESSES
+ArenaHub: /arena → fetch hackathons + graduates → display cards & filters
+HackathonJoin: view hackathon → create/join team → submit project → await judging
+GraduateView: browse graduate profiles → view portfolio, skills, contact info
+
+@DEPENDENCIES
+internal: @/types/arena, @/components/ui
+external: react, next/navigation
+---

@@ -1,0 +1,74 @@
+---
+@META
+dir: src/lib
+updated: 2026-03-18
+files: 13
+stack: TypeScript, Prisma 7, NextAuth, Zod, Upstash Redis, swagger-jsdoc
+
+@EXPORTS
+prisma.ts: prisma — PrismaClient singleton with pg Pool adapter
+auth.ts: authOptions — NextAuth config (Google|GitHub|Credentials providers)
+admin-auth.ts: requireAdmin|isAdmin — admin route protection middleware
+api-client.ts: APIClient|apiClient|APIError|NetworkError|TimeoutError|safeAPICall|apiRequest — robust fetch client with retry & rate limit handling
+api-middleware.ts: applyRateLimit|addRateLimitHeaders|getUserIdFromSession — API rate limiting middleware
+cache.ts: CacheService|cache|CacheKeys|CacheInvalidation|cached — Redis caching layer with TTL & stale-while-revalidate
+rate-limit.ts: apiLimiter|progressLimiter|xpLimiter|achievementLimiter|authLimiter|getClientIdentifier|checkRateLimit — Upstash rate limiters
+gamification.ts: calculateLevel|getXPForLevel|getXPForNextLevel|getProgressToNextLevel|BADGES|checkAchievements|calculateTotalXP|shouldUpdateStreak — XP/level/badge system
+achievement-checker.ts: checkAndAwardAchievements — server-side achievement evaluation & DB persistence
+glitch-challenges.ts: GlitchChallenge|getRandomChallenge|calculateGlitchReward|shouldTriggerGlitch|getCategoryForLesson|getAllChallenges — cognitive glitch mini-game system
+constants.ts: GITHUB_CONFIG|XP_REWARDS|BADGES|GLITCH_CONFIG|LEVEL_CONFIG|COLORS|PAGINATION|RATE_LIMITS|VALIDATION|TIME|LEADERBOARD|XP|BADGE_IDS|ERROR_MESSAGES|SUCCESS_MESSAGES|ROUTES — all app constants
+validations.ts: signupSchema|signinSchema|completeChapterSchema|validateRequestBody — Zod API validation schemas (legacy)
+validation-schemas.ts: signInSchema|signUpSchema|onboarding*Schema|profileUpdateSchema|completeChapterSchema|answerQuestionSchema|submitTestSchema|submitProjectSchema|createHackathonSchema|createTeamSchema|joinTeamSchema|submitHackathonProjectSchema|updateGraduateProfileSchema|validateAPIRequest|validateQueryParams|formatZodErrors|validateForm — comprehensive Zod validation for all API & form inputs
+utils.ts: cn|generateColabUrl — Tailwind class merge utility & Colab URL generator
+theme.ts: colors|spacing|borderRadius|shadows|transitions|breakpoints|gradientText|glassEffect|theme — centralized design tokens
+env.ts: validateEnv|isRateLimitingEnabled|isSentryEnabled|isOAuthProviderConfigured|env — env var validation with Zod
+swagger.ts: swaggerSpec — OpenAPI 3.0 spec generated from JSDoc annotations
+
+@FUNCTIONS
+calculateLevel(xp:number) → number
+  purpose: compute user level from XP using quadratic formula: floor(sqrt(xp/100))+1
+  side-effects: none
+  called-by: gamification consumers
+
+checkAndAwardAchievements(userId:string) → Promise<BadgeId[]>
+  purpose: evaluate all achievement conditions & persist new badges to DB
+  side-effects: db (UserAchievement create, User xp increment)
+  called-by: API routes (progress, questions, projects, tests)
+
+applyRateLimit(request:NextRequest, limiter:Ratelimit|null, userId?:string) → Promise<NextResponse|null>
+  purpose: check rate limit, return 429 response or null (pass)
+  side-effects: api (Upstash Redis)
+  called-by: API route handlers
+
+requireAdmin() → Promise<NextResponse|null>
+  purpose: verify current user is admin; return error response or null
+  side-effects: db (user lookup)
+  called-by: admin API routes
+
+validateAPIRequest(request:Request, schema:ZodSchema) → Promise<{success,data}|{success,response}>
+  purpose: parse & validate JSON request body against Zod schema
+  side-effects: none
+  called-by: API routes
+
+@INTERFACES
+CacheOptions: { ttl?:number, staleWhileRevalidate?:boolean, serialize?:fn, deserialize?:fn }
+GlitchChallenge: { id:string, question:string, options:string[], correct:number, difficulty:enum, category:string, hint?:string, explanation?:string, timeLimit?:number }
+Env: Zod-inferred env variable types (DATABASE_URL, NEXTAUTH_*, OAUTH, UPSTASH, SENTRY, NODE_ENV)
+SignUpFormData|SignInFormData|ProfileUpdateData|CompleteChapterData|AnswerQuestionData|SubmitTestData|SubmitProjectData|CreateHackathonData|CreateTeamData: Zod-inferred request types
+
+@DEPENDENCIES
+internal: @/lib/prisma (cross-ref within lib)
+external: @prisma/client, @prisma/adapter-pg, pg, next-auth, @auth/prisma-adapter, bcryptjs, @upstash/ratelimit, @upstash/redis, zod, clsx, tailwind-merge, swagger-jsdoc, dotenv
+
+@STANDARDS
+- Two validation files: validations.ts (legacy, simpler) & validation-schemas.ts (comprehensive, preferred)
+- Rate limiters gracefully return success:true when Redis not configured
+- Cache falls back to direct fetch when Redis unavailable
+- All Czech error messages in constants.ts
+
+@WARNINGS
+- prisma.ts uses PrismaPg adapter with pg Pool — NOT standard Prisma connection
+- Two overlapping validation files — prefer validation-schemas.ts for new code
+- constants.ts has BADGES duplicate with gamification.ts BADGES — different keys/structure
+- env.ts validateEnv() runs at import time — throws in production if vars missing
+---

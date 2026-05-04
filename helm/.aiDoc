@@ -1,0 +1,35 @@
+---
+@META
+dir: helm
+updated: 2026-03-18
+files: 15
+stack: Helm 3, Kubernetes
+
+@EXPORTS
+ucebnice/: Helm chart — complete K8s deployment for the app
+ucebnice/templates/deployment.yaml: Deployment — Next.js app container
+ucebnice/templates/service.yaml: Service — ClusterIP service
+ucebnice/templates/ingress.yaml: Ingress — NGINX ingress with TLS
+ucebnice/templates/configmap.yaml: ConfigMap — non-secret config
+ucebnice/templates/secret.yaml: Secret — sensitive env vars
+ucebnice/templates/hpa.yaml: HPA — horizontal pod autoscaler
+ucebnice/templates/pdb.yaml: PDB — pod disruption budget
+ucebnice/templates/serviceaccount.yaml: ServiceAccount — pod identity
+ucebnice/templates/postgres-statefulset.yaml: StatefulSet — PostgreSQL database
+ucebnice/templates/postgres-service.yaml: Service — PostgreSQL ClusterIP
+ucebnice/templates/postgres-secret.yaml: Secret — DB credentials
+ucebnice/templates/data-pvc.yaml: PVC — persistent volume for data
+ucebnice/templates/_helpers.tpl: helpers — Helm template helpers
+
+@PROCESSES
+Deploy: helm upgrade --install ucebnice ./helm/ucebnice -f values-{env}.yaml
+
+@DEPENDENCIES
+internal: argocd/ (references this chart)
+external: Kubernetes 1.25+, NGINX Ingress Controller
+
+@STANDARDS
+- PostgreSQL deployed as StatefulSet alongside app
+- HPA scales 2-10 replicas based on CPU/memory
+- PDB ensures minimum availability during rollouts
+---

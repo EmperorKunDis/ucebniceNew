@@ -1,0 +1,21 @@
+---
+@META
+dir: data
+updated: 2026-03-18
+files: 0
+stack: static assets
+
+@EXPORTS
+videa/: 37 MP4 video files — chapter lesson recordings (Hodina1.mp4 to Hodina60.mp4)
+
+@PROCESSES
+VideoServing: /api/video/[filename] route reads from data/videa/ and streams to client
+
+@STANDARDS
+- Video files named HodinaX.mp4 or HodinyX_Y.mp4 for multi-hour chapters
+- Not in public/ — served via API route for access control
+
+@WARNINGS
+- Large binary files — not suitable for Git LFS is recommended
+- 37 video files covering 60 teaching hours
+---

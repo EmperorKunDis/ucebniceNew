@@ -1,0 +1,15 @@
+---
+@META
+dir: src/app/api/hackathons
+updated: 2026-03-18
+files: 0
+stack: Next.js 14 Route Handlers, Prisma
+
+@EXPORTS
+route.ts: GET — list all hackathons (public) | POST — create hackathon (admin)
+[id]/route.ts: GET — hackathon detail with teams & projects | PUT — update (admin) | DELETE — remove (admin)
+
+@DEPENDENCIES
+internal: @/lib/prisma, @/lib/auth, @/lib/admin-auth, @/lib/validation-schemas
+external: next/server, next-auth
+---

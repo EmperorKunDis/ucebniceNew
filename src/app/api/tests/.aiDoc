@@ -1,0 +1,20 @@
+---
+@META
+dir: src/app/api/tests
+updated: 2026-03-18
+files: 0
+stack: Next.js 14 Route Handlers, Prisma
+
+@EXPORTS
+submit/route.ts: POST — submit module test results (score, time, answers), award XP & stars
+
+@FUNCTIONS
+POST_submit(request) → NextResponse
+  purpose: create ModuleTestAttempt record, calculate stars (1-3), award XP with time bonus, check achievements
+  side-effects: db (ModuleTestAttempt create, User xp increment)
+  called-by: ModuleTestModal component
+
+@DEPENDENCIES
+internal: @/lib/prisma, @/lib/auth, @/lib/achievement-checker, @/lib/validation-schemas, @/data/module-tests
+external: next/server, next-auth
+---

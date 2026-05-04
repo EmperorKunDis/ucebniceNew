@@ -1,0 +1,23 @@
+---
+@META
+dir: src/app/api/admin
+updated: 2026-03-18
+files: 0
+stack: Next.js 14 Route Handlers, Prisma, NextAuth
+
+@PROCESSES
+Chapters: GET /api/admin/chapters → list all | POST → create | PUT /api/admin/chapters/[id] → update | DELETE → remove
+Users: GET /api/admin/users → list all | PUT /api/admin/users/[id] → update (toggle admin, edit)
+Achievements: GET/POST /api/admin/achievements → list/create badges
+Analytics: GET /api/admin/analytics → platform stats (users, completions, XP distribution)
+Hackathons: GET/POST /api/admin/hackathons → list/create | GET/PUT/DELETE /api/admin/hackathons/[id] → detail/update/delete
+
+@STANDARDS
+- All admin routes start with requireAdmin() check
+- Return 401 if not authenticated, 403 if not admin
+- Use Prisma for all DB operations
+
+@DEPENDENCIES
+internal: @/lib/admin-auth (requireAdmin), @/lib/prisma, @/lib/validation-schemas
+external: next/server, next-auth
+---

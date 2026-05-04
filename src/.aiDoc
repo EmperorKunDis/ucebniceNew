@@ -1,0 +1,31 @@
+---
+@META
+dir: src
+updated: 2026-03-18
+files: 1
+stack: Next.js 14 App Router, TypeScript, React 18
+
+@EXPORTS
+middleware.ts: withAuth — NextAuth middleware protecting routes
+
+@FUNCTIONS
+middleware(_req:NextRequest) → NextResponse
+  purpose: protect routes via NextAuth JWT; allow /auth, require login for rest
+  side-effects: none
+  called-by: Next.js middleware system
+
+@VARS_CONSTANTS
+config.matcher: string[] — routes protected by middleware (dashboard, certificate, etc.)
+
+@DEPENDENCIES
+internal: app/, components/, lib/, store/, data/, hooks/, types/, stories/, __tests__/
+external: next-auth/middleware, next/server
+
+@STANDARDS
+- middleware.ts at src root for route protection
+- Unprotected: /auth/*, /api/*, /chapters/*, /arena/*, /onboarding/*, static assets, home
+- Protected: /dashboard/*, /certificate/*, other dynamic paths
+
+@WARNINGS
+- Matcher regex is complex — test carefully when adding new public routes
+---

@@ -1,0 +1,24 @@
+---
+@META
+dir: src/__tests__
+updated: 2026-03-18
+files: 3
+stack: Jest 30, Testing Library, TypeScript
+
+@EXPORTS
+setup.test.ts: setupTest — basic test environment validation
+components/ChapterCard.test.tsx: ChapterCardTest — unit tests for ChapterCard component rendering & interactions
+utils/gamification.test.ts: GamificationTest — unit tests for XP calculation, level formula, streak logic
+
+@PROCESSES
+TestRun: `npm test` → Jest runs all *.test.ts(x) → coverage report with `npm run test:coverage`
+
+@DEPENDENCIES
+internal: @/components/chapters/ChapterCard, @/lib/gamification
+external: jest, @testing-library/react, @testing-library/jest-dom, @testing-library/user-event
+
+@STANDARDS
+- Tests colocated in __tests__/ with subdirectories mirroring src/ structure
+- Component tests use Testing Library (render, screen, userEvent)
+- Utility tests are pure function tests
+---

@@ -1,0 +1,20 @@
+---
+@META
+dir: src/app/api/teams
+updated: 2026-03-18
+files: 0
+stack: Next.js 14 Route Handlers, Prisma
+
+@EXPORTS
+route.ts: GET — list teams for hackathon | POST — create team
+[id]/route.ts: GET — team detail | PUT — update team | DELETE — remove team
+[id]/join/route.ts: POST — join team as member with skills
+[id]/project/route.ts: POST — submit hackathon project for team
+
+@PROCESSES
+TeamWorkflow: create team → invite/join members → submit project → await judging
+
+@DEPENDENCIES
+internal: @/lib/prisma, @/lib/auth, @/lib/validation-schemas
+external: next/server, next-auth
+---

@@ -1,0 +1,34 @@
+---
+@META
+dir: src/components
+updated: 2026-03-18
+files: 4
+stack: React 18, TypeScript, Tailwind CSS, Framer Motion
+
+@EXPORTS
+providers.tsx: Providers — wraps app with SessionProvider & QueryClientProvider & Toaster
+auth-provider.tsx: AuthProvider — manages auth session & syncs with user store
+ErrorBoundary.tsx: ErrorBoundary — React error boundary with fallback UI
+
+@FUNCTIONS
+Providers({children}) → JSX
+  purpose: root provider tree: NextAuth SessionProvider + TanStack QueryClientProvider + react-hot-toast Toaster
+  side-effects: none
+  called-by: src/app/layout.tsx
+
+AuthProvider({children}) → JSX
+  purpose: sync NextAuth session with Zustand user store on mount
+  side-effects: cache (user store sync)
+  called-by: Providers component
+
+@DEPENDENCIES
+internal: ui/, layout/, chapters/, certificate/, cognitive-glitch/, onboarding/, profile/, skills/, tests/
+external: next-auth/react, @tanstack/react-query, react-hot-toast, react
+
+@STANDARDS
+- Sub-directories organize by feature domain
+- ui/ = design system primitives (reusable across app)
+- layout/ = structural components (navigation, page layout, grid system)
+- chapters/ = chapter-specific components
+- Other dirs = feature-specific components
+---

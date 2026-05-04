@@ -1,0 +1,16 @@
+---
+@META
+dir: helm/ucebnice
+updated: 2026-03-18
+files: 3
+stack: Helm 3
+
+@EXPORTS
+Chart.yaml: HelmChart — chart metadata (name, version, appVersion)
+values.yaml: config — default Helm values (replicas, image, resources, env)
+templates/: K8s manifests — deployment, service, ingress, HPA, PDB, postgres, secrets
+
+@DEPENDENCIES
+internal: templates/ subdirectory
+external: Kubernetes 1.25+
+---

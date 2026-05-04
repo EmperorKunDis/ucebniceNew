@@ -1,0 +1,25 @@
+---
+@META
+dir: src/components/tests
+updated: 2026-03-18
+files: 1
+stack: React 18, TypeScript, Framer Motion
+
+@EXPORTS
+ModuleTestModal.tsx: ModuleTestModal — modal for taking module tests (10 questions, timed)
+
+@FUNCTIONS
+ModuleTestModal({moduleNumber,onComplete,onClose}) → JSX
+  purpose: render timed module test with question navigation, score calculation & star rating
+  side-effects: api (POST /api/tests/submit)
+  called-by: chapters page (every 10th chapter)
+
+@DEPENDENCIES
+internal: @/data/module-tests, @/components/ui
+external: react, framer-motion
+
+@STANDARDS
+- Tests appear after every 10 chapters (module 1=ch1-10, module 2=ch11-20, etc.)
+- Star system: 50-69% = 1, 70-89% = 2, 90-100% = 3 stars
+- Time bonus XP for completion under 5 minutes
+---
