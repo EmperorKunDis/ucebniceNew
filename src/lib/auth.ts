@@ -1,4 +1,5 @@
 import { NextAuthOptions } from 'next-auth'
+import type { Adapter } from 'next-auth/adapters'
 import GoogleProvider from 'next-auth/providers/google'
 import GitHubProvider from 'next-auth/providers/github'
 import CredentialsProvider from 'next-auth/providers/credentials'
@@ -7,7 +8,7 @@ import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma) as any,
+  adapter: PrismaAdapter(prisma) as Adapter,
   session: {
     strategy: 'jwt',
   },
@@ -55,13 +56,13 @@ export const authOptions: NextAuthOptions = {
         })
 
         if (!user || !user.password) {
-          throw new Error('Uživatel nenalezen')
+          throw new Error('Neplatné přihlašovací údaje')
         }
 
         const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
 
         if (!isPasswordValid) {
-          throw new Error('Neplatné heslo')
+          throw new Error('Neplatné přihlašovací údaje')
         }
 
         return {

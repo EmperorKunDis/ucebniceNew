@@ -7,10 +7,7 @@ import { validateAPIRequest, updateHackathonSchema } from '@/lib/validation-sche
  * GET /api/admin/hackathons/[id]
  * Get a single hackathon with full details
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const adminCheck = await requireAdmin()
   if (adminCheck) return adminCheck
 
@@ -66,10 +63,7 @@ export async function GET(
  * PUT /api/admin/hackathons/[id]
  * Update a hackathon
  */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const adminCheck = await requireAdmin()
   if (adminCheck) return adminCheck
 
@@ -116,10 +110,7 @@ export async function PUT(
       (updateData.registrationDeadline as Date) || existing.registrationDeadline
 
     if (endDate <= startDate) {
-      return NextResponse.json(
-        { error: 'Datum konce musí být po datu začátku' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Datum konce musí být po datu začátku' }, { status: 400 })
     }
 
     if (registrationDeadline >= startDate) {
@@ -146,7 +137,7 @@ export async function PUT(
  * Delete a hackathon
  */
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const adminCheck = await requireAdmin()

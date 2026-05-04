@@ -6,7 +6,6 @@ import { X, ChevronLeft, ChevronRight, Clock, Award, Star, Trophy } from 'lucide
 import { Button } from '@/components/ui/button'
 import { GreySurface } from '@/components/ui/grey-surface'
 import { ModuleTest, calculateTestScore } from '@/data/module-tests'
-import toast from 'react-hot-toast'
 
 interface ModuleTestModalProps {
   moduleTest: ModuleTest
@@ -34,7 +33,7 @@ export function ModuleTestModal({ moduleTest, onComplete, onAbandon }: ModuleTes
 
   useEffect(() => {
     // Load saved answer for current question
-    setSelectedOption(answers[currentQuestionIndex])
+    setSelectedOption(answers[currentQuestionIndex] ?? null)
   }, [currentQuestionIndex, answers])
 
   const handleOptionSelect = (optionIndex: number) => {
@@ -172,34 +171,36 @@ export function ModuleTestModal({ moduleTest, onComplete, onAbandon }: ModuleTes
                 </div>
 
                 {/* Question */}
-                <div className="mb-8">
-                  <h3 className="text-xl font-semibold text-white mb-6">
-                    {currentQuestion.question}
-                  </h3>
+                {currentQuestion && (
+                  <div className="mb-8">
+                    <h3 className="text-xl font-semibold text-white mb-6">
+                      {currentQuestion.question}
+                    </h3>
 
-                  <div className="space-y-3">
-                    {currentQuestion.options.map((option, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleOptionSelect(index)}
-                        className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
-                          selectedOption === index
-                            ? 'border-purple-500 bg-purple-500/10'
-                            : 'border-gray-700 hover:border-purple-400'
-                        }`}
-                      >
-                        <span className="text-white">{option}</span>
-                      </button>
-                    ))}
+                    <div className="space-y-3">
+                      {currentQuestion.options.map((option, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleOptionSelect(index)}
+                          className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                            selectedOption === index
+                              ? 'border-purple-500 bg-purple-500/10'
+                              : 'border-gray-700 hover:border-purple-400'
+                          }`}
+                        >
+                          <span className="text-white">{option}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Navigation */}
                 <div className="flex items-center justify-between">
                   <Button
                     onClick={handlePrevious}
                     disabled={currentQuestionIndex === 0}
-                    variant="outline"
+                    variant="secondary"
                   >
                     <ChevronLeft className="w-4 h-4 mr-2" />
                     Předchozí

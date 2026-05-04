@@ -40,24 +40,8 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // Count hackathon wins for each graduate
-    const graduateIds = graduates.map(g => g.userId)
-    const hackathonWins = await prisma.hackathonProject.groupBy({
-      by: ['teamId'],
-      where: {
-        placement: { lte: 3 },
-        team: {
-          members: {
-            some: {
-              userId: { in: graduateIds },
-            },
-          },
-        },
-      },
-      _count: true,
-    })
-
     // Get team member info to map wins to users
+    const graduateIds = graduates.map(g => g.userId)
     const teamsWithWins = await prisma.teamMember.findMany({
       where: {
         userId: { in: graduateIds },

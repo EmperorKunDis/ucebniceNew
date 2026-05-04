@@ -24,11 +24,22 @@ export async function cleanupTestDb() {
   const db = getTestDb()
 
   // Clean up in order to respect foreign key constraints
+  await db.analyticsEvent.deleteMany()
+  await db.notification.deleteMany()
+  await db.userQuest.deleteMany()
+  await db.quest.deleteMany()
+  await db.friendship.deleteMany()
+  await db.leagueMembership.deleteMany()
+  await db.league.deleteMany()
+  await db.aIChatHistory.deleteMany()
+  await db.reviewCard.deleteMany()
+  await db.questionAnswer.deleteMany()
   await db.userAchievement.deleteMany()
   await db.achievement.deleteMany()
-  await db.completedLesson.deleteMany()
-  await db.lessonProgress.deleteMany()
-  await db.lesson.deleteMany()
+  await db.chapterCompletion.deleteMany()
+  await db.chapterProgress.deleteMany()
+  await db.userPurchase.deleteMany()
+  await db.shopItem.deleteMany()
   await db.account.deleteMany()
   await db.session.deleteMany()
   await db.user.deleteMany()
@@ -51,6 +62,10 @@ export async function createTestUser(data: {
   username: string
   name: string
   password?: string
+  xp?: number
+  level?: number
+  gems?: number
+  hearts?: number
 }) {
   const db = getTestDb()
   const bcrypt = await import('bcryptjs')
@@ -65,10 +80,83 @@ export async function createTestUser(data: {
       username: data.username,
       name: data.name,
       password: hashedPassword,
-      xp: 0,
-      level: 1,
+      xp: data.xp ?? 0,
+      level: data.level ?? 1,
+      gems: data.gems ?? 100,
+      hearts: data.hearts ?? 5,
+      maxHearts: 5,
       currentStreak: 0,
       longestStreak: 0,
+    },
+  })
+}
+
+/**
+ * Create chapter completion for a user
+ */
+export async function createChapterCompletion(data: {
+  userId: string
+  chapterId: string
+  stars?: number
+  xpEarned?: number
+}) {
+  const db = getTestDb()
+  return db.chapterCompletion.create({
+    data: {
+      userId: data.userId,
+      chapterId: data.chapterId,
+      completedChapter: true,
+      stars: data.stars ?? 3,
+      xpEarned: data.xpEarned ?? 100,
+    },
+  })
+}
+
+/**
+ * Create a quest for testing
+ */
+export async function createTestQuest(data: {
+  type: 'DAILY' | 'WEEKLY'
+  title: string
+  targetValue: number
+  xpReward: number
+  gemReward?: number
+}) {
+  const db = getTestDb()
+  return db.quest.create({
+    data: {
+      type: data.type,
+      category: 'LESSONS_COMPLETED',
+      title: data.title,
+      description: `Complete ${data.targetValue} tasks`,
+      targetValue: data.targetValue,
+      xpReward: data.xpReward,
+      gemReward: data.gemReward ?? 0,
+      icon: '🎯',
+      isActive: true,
+    },
+  })
+}
+
+/**
+ * Create a shop item for testing
+ */
+export async function createTestShopItem(data: {
+  name: string
+  price: number
+  category: 'POWER_UP' | 'COSMETIC' | 'STREAK' | 'HEART' | 'XP_BOOST'
+}) {
+  const db = getTestDb()
+  return db.shopItem.create({
+    data: {
+      key: `test-${Date.now()}`,
+      name: data.name,
+      description: `Test ${data.category}`,
+      category: data.category,
+      price: data.price,
+      icon: '🛒',
+      effectData: {},
+      isActive: true,
     },
   })
 }

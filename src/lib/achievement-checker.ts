@@ -19,7 +19,7 @@ export async function checkAndAwardAchievements(userId: string): Promise<BadgeId
 
     // Získej statistiky uživatele
     const [
-      completedChapters,
+      _completedChapters,
       allQuestionAnswers,
       allProjects,
       allTestAttempts,

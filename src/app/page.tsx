@@ -1,10 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { PageLayout } from '@/components/layout/page-layout'
-import { GlassSurface } from '@/components/ui/glass-surface'
 import { GreySurface } from '@/components/ui/grey-surface'
 import { Button } from '@/components/ui/button'
 import { Stack, Grid, Box } from '@/components/layout'
@@ -26,12 +23,9 @@ const ProfileCard = dynamic(
 )
 
 export default function HomePage() {
-  const router = useRouter()
-  const { username, onboardingCompleted } = useUserStore()
-  const hasGoodPerformance = usePerformanceCheck()
-
-  // Surface component based on performance
-  const HeroSurface = hasGoodPerformance ? GlassSurface : GreySurface
+  const { username } = useUserStore()
+  // hasGoodPerformance kept for future dynamic surface switching
+  usePerformanceCheck()
 
   // Removed auto-redirect - let users browse freely first
   return (

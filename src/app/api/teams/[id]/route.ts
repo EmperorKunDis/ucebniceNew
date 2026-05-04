@@ -8,10 +8,7 @@ import { validateAPIRequest, updateTeamSchema } from '@/lib/validation-schemas'
  * GET /api/teams/[id]
  * Get team detail
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
 
@@ -59,10 +56,7 @@ export async function GET(
  * PUT /api/teams/[id]
  * Update team (leader only)
  */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -92,10 +86,7 @@ export async function PUT(
     }
 
     if (membership.role !== 'leader') {
-      return NextResponse.json(
-        { error: 'Pouze vedoucí týmu může upravovat tým' },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: 'Pouze vedoucí týmu může upravovat tým' }, { status: 403 })
     }
 
     const validation = await validateAPIRequest(request, updateTeamSchema)
@@ -119,10 +110,7 @@ export async function PUT(
       })
 
       if (existingTeam) {
-        return NextResponse.json(
-          { error: 'Tým s tímto názvem již existuje' },
-          { status: 400 }
-        )
+        return NextResponse.json({ error: 'Tým s tímto názvem již existuje' }, { status: 400 })
       }
     }
 
@@ -164,7 +152,7 @@ export async function PUT(
  * Leave team (or delete if leader and only member)
  */
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -206,9 +194,7 @@ export async function DELETE(
 
     // If user is leader and there are other members, transfer leadership
     if (membership.role === 'leader' && membership.team.members.length > 1) {
-      const newLeader = membership.team.members.find(
-        m => m.userId !== session.user.id
-      )
+      const newLeader = membership.team.members.find(m => m.userId !== session.user.id)
       if (newLeader) {
         await prisma.teamMember.update({
           where: { id: newLeader.id },

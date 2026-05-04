@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma'
  * GET /api/admin/users/[id]
  * Get a single user with full details
  */
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
   const adminCheck = await requireAdmin()
   if (adminCheck) return adminCheck
 
@@ -84,7 +84,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
  * DELETE /api/admin/users/[id]
  * Delete a user
  */
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
   const adminCheck = await requireAdmin()
   if (adminCheck) return adminCheck
 

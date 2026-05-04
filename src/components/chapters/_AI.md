@@ -1,23 +1,25 @@
 # src/components/chapters/ - AI Context
 
 ## 🎯 PURPOSE
+
 Components for rendering chapter content: video players, content display, quiz questions, project submission, and navigation between chapters.
 
 ## 📦 EXPORTS
 
-| Component | Description |
-|-----------|-------------|
-| `ChapterCard` | Card for chapter list display |
-| `ChapterContent` | Main chapter content renderer |
-| `ChapterLayout` | Layout wrapper for chapter pages |
-| `ChapterHeader` | Chapter title and metadata |
-| `ChapterNavigation` | Previous/next chapter links |
-| `VideoPlayer` | Video player with controls |
-| `QuestionCard` | Quiz question with options |
-| `ProjectSubmission` | Project URL submission form |
-| `NotebookLinks` | Colab/NotebookLM links |
+| Component           | Description                      |
+| ------------------- | -------------------------------- |
+| `ChapterCard`       | Card for chapter list display    |
+| `ChapterContent`    | Main chapter content renderer    |
+| `ChapterLayout`     | Layout wrapper for chapter pages |
+| `ChapterHeader`     | Chapter title and metadata       |
+| `ChapterNavigation` | Previous/next chapter links      |
+| `VideoPlayer`       | Video player with controls       |
+| `QuestionCard`      | Quiz question with options       |
+| `ProjectSubmission` | Project URL submission form      |
+| `NotebookLinks`     | Colab/NotebookLM links           |
 
 ## 🔗 DEPENDENCIES
+
 - `@/data/chapters` - Chapter data
 - `@/data/questions` - Question data
 - `@/lib/api-client` - API calls
@@ -28,6 +30,7 @@ Components for rendering chapter content: video players, content display, quiz q
 ## 🏗️ PATTERNS
 
 ### ChapterCard Pattern
+
 ```typescript
 interface ChapterCardProps {
   chapter: Chapter
@@ -42,6 +45,7 @@ export function ChapterCard({ chapter, progress, isLocked }: ChapterCardProps) {
 ```
 
 ### VideoPlayer Pattern
+
 ```typescript
 export function VideoPlayer({ videoFile }: { videoFile: string }) {
   // Streams from /api/video/[filename]
@@ -54,6 +58,7 @@ export function VideoPlayer({ videoFile }: { videoFile: string }) {
 ```
 
 ### QuestionCard Pattern
+
 ```typescript
 interface QuestionCardProps {
   question: Question
@@ -63,6 +68,7 @@ interface QuestionCardProps {
 ```
 
 ### 3-Star Progress Display
+
 ```typescript
 function StarDisplay({ progress }: { progress: ChapterCompletion }) {
   return (
@@ -84,21 +90,62 @@ function StarDisplay({ progress }: { progress: ChapterCompletion }) {
 5. **Colab links**: External links, open in new tab
 
 ## 📁 STRUCTURE
+
 ```
 chapters/
 ├── ChapterCard.tsx        # List item card
 ├── ChapterCard.stories.tsx # Storybook
 ├── ChapterContent.tsx     # Content renderer
-├── ChapterLayout.tsx      # Page layout
+├── ChapterLayout.tsx      # Page layout (refactored 2026-02-08)
 ├── ChapterHeader.tsx      # Header section
 ├── ChapterNavigation.tsx  # Nav links
 ├── VideoPlayer.tsx        # Video component
 ├── QuestionCard.tsx       # Quiz question
 ├── ProjectSubmission.tsx  # Project form
-└── NotebookLinks.tsx      # External links
+├── NotebookLinks.tsx      # External links
+└── hooks/                 # ⭐ NEW: Custom hooks
+    ├── index.ts           # Exports
+    ├── useChapterProgress.ts  # Progress state & API
+    └── useChapterQuestions.ts # Questions fetching
+```
+
+## 🆕 HOOKS (added 2026-02-08)
+
+### useChapterProgress
+
+Manages chapter progress state, completion, and question answering.
+
+```typescript
+const progress = useChapterProgress(chapterId)
+
+// Returns:
+{
+  completedChapter: boolean
+  answeredQuestions: boolean
+  submittedProject: boolean
+  completed: boolean
+  isChapterLocked: boolean
+  loading: boolean
+  questionAnswers: Map<string, boolean>
+  completing: boolean
+  completionData: CompletionData | null
+  completeChapter: () => Promise<CompletionData | null>
+  answerQuestion: (id, index) => Promise<Result>
+  markProjectSubmitted: () => void
+  isAuthenticated: boolean
+}
+```
+
+### useChapterQuestions
+
+Fetches questions for a chapter.
+
+```typescript
+const { questions, loading, error } = useChapterQuestions(chapterId)
 ```
 
 ## 🔄 RELATED
+
 - `src/data/chapters.ts` - Chapter definitions
 - `src/data/questions.ts` - Question data
 - `src/app/chapters/` - Chapter pages
@@ -107,6 +154,7 @@ chapters/
 - `src/app/api/projects/` - Project API
 
 ---
+
 <!-- META: For AI agents -->
 <!-- TRAVERSE: no -->
 <!-- DEPTH: all -->

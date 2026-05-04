@@ -6,17 +6,16 @@ import { prisma } from '@/lib/prisma'
  * GET /api/admin/analytics
  * Get comprehensive analytics and statistics
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   const adminCheck = await requireAdmin()
   if (adminCheck) return adminCheck
 
   try {
-    // Get counts
+    // Get counts - use ChapterCompletion as primary source
     const [
       totalUsers,
       totalChapters,
       totalAchievements,
-      totalCompletedChapters,
       totalChapterCompletions,
       totalQuestionAnswers,
       totalProjectSubmissions,
@@ -25,8 +24,9 @@ export async function GET(request: NextRequest) {
       prisma.user.count(),
       prisma.chapter.count(),
       prisma.achievement.count(),
-      prisma.completedChapter.count(),
-      prisma.chapterCompletion.count(),
+      prisma.chapterCompletion.count({
+        where: { completedChapter: true },
+      }),
       prisma.questionAnswer.count(),
       prisma.projectSubmission.count(),
       // Active users (logged in within last 7 days)
@@ -62,12 +62,14 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // Get chapter completion rates
+    // Get chapter completion rates using ChapterCompletion model
     const chaptersWithCompletions = await prisma.chapter.findMany({
       include: {
         _count: {
           select: {
-            completedBy: true,
+            completions: {
+              where: { completedChapter: true },
+            },
           },
         },
       },
@@ -81,22 +83,21 @@ export async function GET(request: NextRequest) {
       chapterId: chapter.chapterId,
       title: chapter.title,
       order: chapter.order,
-      completions: chapter._count.completedBy,
+      completions: chapter._count.completions,
       completionRate:
-        totalUsers > 0 ? ((chapter._count.completedBy / totalUsers) * 100).toFixed(2) : '0.00',
+        totalUsers > 0 ? ((chapter._count.completions / totalUsers) * 100).toFixed(2) : '0.00',
     }))
 
-    // Get recent activity (last 30 days)
+    // Get recent activity (last 30 days) using ChapterCompletion
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
 
-    const recentActivity = await prisma.completedChapter.groupBy({
-      by: ['completedAt'],
+    const recentCompletions = await prisma.chapterCompletion.count({
       where: {
+        completedChapter: true,
         completedAt: {
           gte: thirtyDaysAgo,
         },
       },
-      _count: true,
     })
 
     // Get achievement unlock stats
@@ -117,14 +118,12 @@ export async function GET(request: NextRequest) {
     })
 
     // User growth (new users per day, last 30 days)
-    const newUsers = await prisma.user.groupBy({
-      by: ['createdAt'],
+    const newUsersCount = await prisma.user.count({
       where: {
         createdAt: {
           gte: thirtyDaysAgo,
         },
       },
-      _count: true,
     })
 
     return NextResponse.json({
@@ -133,7 +132,7 @@ export async function GET(request: NextRequest) {
         activeUsers: activeUsersCount,
         totalChapters,
         totalAchievements,
-        totalCompletedChapters,
+        totalCompletedChapters: totalChapterCompletions, // Renamed for clarity
         totalChapterCompletions,
         totalQuestionAnswers,
         totalProjectSubmissions,
@@ -155,8 +154,8 @@ export async function GET(request: NextRequest) {
           totalUsers > 0 ? ((achievement._count.users / totalUsers) * 100).toFixed(2) : '0.00',
       })),
       activityTrends: {
-        recentCompletions: recentActivity.length,
-        newUsersCount: newUsers.length,
+        recentCompletions,
+        newUsersCount,
       },
     })
   } catch (error) {

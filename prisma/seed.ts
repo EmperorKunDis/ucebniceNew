@@ -21,7 +21,7 @@ async function main() {
         title: chapter.title,
         description: chapter.description,
         xpReward: 100,
-        difficulty: 'střední',
+        difficulty: 'MEDIUM',
         order: chapter.number,
       },
       create: {
@@ -29,7 +29,7 @@ async function main() {
         title: chapter.title,
         description: chapter.description,
         xpReward: 100,
-        difficulty: 'střední',
+        difficulty: 'MEDIUM',
         order: chapter.number,
       },
     })

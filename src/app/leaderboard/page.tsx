@@ -47,7 +47,6 @@ function TiltCard({
   enable3D?: boolean
 }) {
   const cardRef = useRef<HTMLDivElement>(null)
-  const maskId = `edge-mask-${rank}-${Math.random().toString(36).substr(2, 9)}`
   const [rotateX, setRotateX] = useState(0)
   const [rotateY, setRotateY] = useState(0)
   const [isHovered, setIsHovered] = useState(false)
@@ -182,7 +181,7 @@ function TiltCard({
     }
   }
 
-  const getEdgeMetallicGradient = (mouseX: number, mouseY: number, isHovered: boolean) => {
+  const getEdgeMetallicGradient = (mouseX: number, mouseY: number, _isHovered: boolean) => {
     // Vypočítá úhel kurzoru od středu karty - živý, dynamický pohyb stříbrného odlesku
     const angle = Math.atan2(mouseY - 50, mouseX - 50) * (180 / Math.PI)
 

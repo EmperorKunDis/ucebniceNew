@@ -160,7 +160,7 @@ export const ProjectSubmission = memo(function ProjectSubmission({
             </div>
           </div>
 
-          <Button onClick={() => setSubmitted(false)} variant="outline" className="w-full">
+          <Button onClick={() => setSubmitted(false)} variant="secondary" className="w-full">
             Aktualizovat projekt
           </Button>
         </motion.div>
