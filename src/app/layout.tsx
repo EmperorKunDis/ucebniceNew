@@ -2,6 +2,7 @@ import './globals.css'
 import type { Metadata, Viewport } from 'next'
 import { Montserrat, Exo_2 } from 'next/font/google'
 import { Providers } from '@/components/providers'
+import { Footer } from '@/components/layout/footer'
 
 const montserrat = Montserrat({
   subsets: ['latin', 'latin-ext'],
@@ -83,8 +84,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="cs" className={`${montserrat.variable} ${exo2.variable}`}>
-      <body className="font-sans bg-gray-900 text-gray-100">
-        <Providers>{children}</Providers>
+      <body className="font-sans bg-gray-900 text-gray-100 min-h-screen flex flex-col">
+        <Providers>
+          <div className="flex-1 flex flex-col">{children}</div>
+          <Footer />
+        </Providers>
       </body>
     </html>
   )
