@@ -157,7 +157,7 @@ jobs:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
     needs: [lint, build]  # When you re-enable test/e2e, add them here: needs: [lint, test, e2e, build]
-    if: github.event_name == 'push'  # Only build docker on push, not PRs
+    if: false  # Disabled - Harbor registry (harbor.praut.cz) decommissioned; deploy directly to VPS
     permissions:
       contents: write  # Need write permission to commit values changes
       packages: write
