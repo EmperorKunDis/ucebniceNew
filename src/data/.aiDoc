@@ -1,0 +1,53 @@
+---
+@META
+dir: src/data
+updated: 2026-03-18
+files: 4
+stack: TypeScript
+
+@EXPORTS
+chapters.ts: Chapter|chapters|getChapterById|getNextChapter|getPreviousChapter|PATHS — 40 AI education chapters with metadata (title, description, video, notebook, colab links)
+questions.ts: Question|ChapterQuestions|CHAPTER_QUESTIONS|getChapterQuestions|getChapterQuestionsXP|checkAnswer — per-chapter quiz questions (3 per chapter, chapters 01-05 defined)
+module-tests.ts: ModuleTestQuestion|ModuleTest|MODULE_TESTS|getModuleTest|calculateTestScore — module-level tests (every 10 chapters), module 1 has 10 questions
+skills-graph.ts: skillNodes|skillLinks — skill tree nodes & dependency links for competence nebula visualization
+
+@VARS_CONSTANTS
+PATHS: { texts:"/texty/", lectures:"/prednasky/", videos:"/videa/", colabNotebooks:"/colab_notebooks/" }
+
+@FUNCTIONS
+getChapterById(id:string) → Chapter|undefined
+  purpose: find chapter by 2-digit string ID (e.g. "01")
+  side-effects: none
+  called-by: chapter pages, API routes
+
+checkAnswer(chapterId:string, questionId:string, answerIndex:number) → {correct,explanation,xpReward}
+  purpose: validate quiz answer against static data
+  side-effects: none
+  called-by: question answer API
+
+calculateTestScore(correctAnswers:number, totalQuestions:number, timeElapsed:number) → {score,percentage,timeBonus,totalXP,stars}
+  purpose: compute module test results with time bonus & star rating (1-3)
+  side-effects: none
+  called-by: test submit API
+
+@INTERFACES
+Chapter: { id:string, number:number, title:string, description:string, hours:string, textFile:string, lectureFile:string, videoFile?:string, notebookLMUrl?:string, colabNotebook?:string, aiBasicsHours?:string[] }
+Question: { id:string, question:string, options:string[], correctAnswer:number, explanation:string, xpReward:number }
+ModuleTestQuestion: { id:string, question:string, options:string[], correctAnswer:number, explanation:string, difficulty:enum }
+SkillNode: { id:string, name:string, category:enum, level:number, dependencies:string[], lessons:string[], description:string }
+
+@DEPENDENCIES
+internal: @/types/skills
+external: none
+
+@STANDARDS
+- Chapter IDs are zero-padded 2-digit strings: "01" to "40"
+- Questions have 3 per chapter, IDs are "q1", "q2", "q3"
+- Module tests have 10 questions per module, 4 modules total (only module 1 populated)
+- Star system: 50-69% = 1 star, 70-89% = 2 stars, 90-100% = 3 stars
+
+@WARNINGS
+- Only chapters 01-05 have questions defined in questions.ts (rest TBD or in DB)
+- Only module 1 test is populated — modules 2-4 need content
+- skills-graph.ts maps to generic lesson IDs, not actual chapter IDs
+---

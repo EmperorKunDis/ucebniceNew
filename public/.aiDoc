@@ -1,0 +1,24 @@
+---
+@META
+dir: public
+updated: 2026-03-18
+files: varies
+stack: static assets
+
+@EXPORTS
+prednasky/: 40+ markdown files — chapter lecture content (Kapitola01.md to Kapitola40.md + Glosar.md)
+images/: static images — logos, backgrounds, illustrations
+avatars/: user avatar images
+assets/3d/: 3D model assets for Three.js visualizations
+assets/demo/: demo screenshots & media
+uploads/: user-uploaded files (profile images, project screenshots)
+
+@STANDARDS
+- Chapter content in prednasky/ follows naming: KapitolaXX.md
+- All public files served statically by Next.js
+- Images optimized via next/image component
+
+@WARNINGS
+- uploads/ contains user content — ensure proper sanitization
+- prednasky/ markdown is the source of truth for chapter text content
+---

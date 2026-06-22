@@ -1,0 +1,31 @@
+---
+@META
+dir: src/hooks
+updated: 2026-03-18
+files: 2
+stack: React 18, TypeScript
+
+@EXPORTS
+use-reduced-motion.ts: useReducedMotion — hook detecting OS prefers-reduced-motion setting
+use-performance-check.ts: usePerformanceCheck — hook detecting device performance (CPU, RAM, GPU, mobile)
+
+@FUNCTIONS
+useReducedMotion() → boolean
+  purpose: return true if user has OS-level reduced motion preference
+  side-effects: event (MediaQueryList listener)
+  called-by: animation components
+
+usePerformanceCheck() → boolean
+  purpose: return true if device has good performance (desktop, WebGL, 4+ cores, 4+ GB RAM)
+  side-effects: none
+  called-by: glass effect components (FluidGlass, FluidGlassSimple)
+
+@DEPENDENCIES
+internal: none
+external: react (useEffect, useState)
+
+@STANDARDS
+- Both hooks are "use client" components
+- Default to false on server-side rendering
+- usePerformanceCheck gates heavy visual effects (glass morphism, 3D)
+---

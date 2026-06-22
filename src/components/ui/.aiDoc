@@ -1,0 +1,52 @@
+---
+@META
+dir: src/components/ui
+updated: 2026-03-18
+files: 20
+stack: React 18, TypeScript, Tailwind CSS, Framer Motion
+
+@EXPORTS
+index.ts: Box|Stack|Grid|Button|GlassSurface|GreySurface|ElectricBorder|Lightning|LightningBackground|LaserFlow|ProfileCard|DecryptedText|FallingText|FuzzyText|FluidGlass|FluidGlassSimple|StatCard|SectionHeader — barrel export of all UI components
+button.tsx: Button — polymorphic button with variants (primary|secondary|ghost|outline|danger) & sizes
+box.tsx: Box — generic container with padding/margin/bg props
+stack.tsx: Stack — flex column/row layout with gap
+grid.tsx: Grid — CSS grid layout with responsive columns
+glass-surface.tsx: GlassSurface — glassmorphism card with backdrop blur
+grey-surface.tsx: GreySurface — muted surface variant
+fluid-glass.tsx: FluidGlass — animated glass effect (desktop only, performance-gated)
+fluid-glass-simple.tsx: FluidGlassSimple — lightweight glass fallback for mobile
+fluid-glass-fallback.tsx: FluidGlassFallback — static fallback for low-perf devices
+electric-border.tsx: ElectricBorder — animated electric glow border effect
+lightning.tsx: Lightning — SVG lightning bolt effect
+lightning-background.tsx: LightningBackground — full-page lightning background
+laser-flow.tsx: LaserFlow — animated laser line effect
+profile-card.tsx: ProfileCard — user profile display card
+decrypted-text.tsx: DecryptedText — text reveal animation (typing effect)
+falling-text.tsx: FallingText — physics-based falling text animation
+fuzzy-text.tsx: FuzzyText — glitch/fuzzy text effect
+stat-card.tsx: StatCard — gamification stat display (XP, level, streak)
+section-header.tsx: SectionHeader — page section header with gradient text
+button.stories.tsx: ButtonStories — Storybook stories for Button
+
+@INTERFACES
+ButtonProps: { variant:enum, size:enum, asChild?:boolean } & HTML button attrs
+BoxProps: { as?:ElementType, p?:string, m?:string, bg?:string, className?:string }
+StackProps: { direction?:"row"|"col", gap?:string, align?:string, justify?:string }
+GridProps: { cols?:number|{sm,md,lg}, gap?:string }
+
+@DEPENDENCIES
+internal: @/lib/utils (cn), @/lib/theme, @/hooks/use-performance-check, @/hooks/use-reduced-motion
+external: react, framer-motion, lucide-react, @radix-ui/react-slot, clsx, tailwind-merge, matter-js (FallingText physics)
+
+@STANDARDS
+- All components use cn() for Tailwind class merging
+- Glass effects gated by usePerformanceCheck — fallback on mobile/low-end
+- Button uses Radix Slot for polymorphic "asChild" pattern
+- Dark theme by default (gray-900 backgrounds, white text)
+- Design tokens from src/lib/theme.ts
+
+@WARNINGS
+- FluidGlass uses WebGL/canvas — heavy on GPU, only rendered on desktop with 4+ cores
+- FallingText depends on matter-js physics engine — large dependency for text effect
+- Some components have Storybook stories (*.stories.tsx)
+---

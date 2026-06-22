@@ -1,0 +1,14 @@
+---
+@META
+dir: src/app/api/swagger
+updated: 2026-03-18
+files: 1
+stack: Next.js 14, swagger-jsdoc
+
+@EXPORTS
+route.ts: GET — return OpenAPI 3.0 JSON spec
+
+@DEPENDENCIES
+internal: @/lib/swagger (swaggerSpec)
+external: next/server, swagger-jsdoc
+---

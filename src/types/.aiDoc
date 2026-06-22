@@ -1,0 +1,32 @@
+---
+@META
+dir: src/types
+updated: 2026-03-18
+files: 3
+stack: TypeScript
+
+@EXPORTS
+next-auth.d.ts: Session|User — NextAuth module augmentation adding id, xp, level, streak, username to session
+arena.ts: Hackathon|Prize|Judge|Team|TeamMember|Project|JudgeFeedback|PortfolioItem|Graduate — Arena system client-side types
+skills.ts: SkillNode|SkillLink|SkillCategory|SKILL_CATEGORIES — skill graph visualization types & category definitions
+
+@INTERFACES
+Session.user: { id:string, email:string, name?:string, image?:string, username?:string, xp:number, level:number, currentStreak:number, longestStreak:number }
+Hackathon: { id, title, description, theme, startDate, endDate, status:enum, prizes, judges, sponsors, maxTeamSize, registrationDeadline, bannerImage? }
+Team: { id, name, members:TeamMember[], hackathonId, projectId?, createdAt }
+Project: { id, teamId, hackathonId, title, description, githubUrl, demoUrl?, videoUrl?, screenshots, technologies, submittedAt, score?, feedback?, placement? }
+Graduate: { id, username, fullName, email, avatar?, bio, graduatedAt, certificateId, skills, portfolio, hackathonWins, linkedIn?, github?, website?, lookingForWork, preferredRoles }
+SkillNode: { id, name, category:6-categories, level:0-5, x?, y?, dependencies:string[], lessons:string[], description, icon? }
+SKILL_CATEGORIES: Record<string, {id,name,color,description}> — fundamentals|data-structures|algorithms|web|ai-ml|databases
+
+@DEPENDENCIES
+internal: none
+external: next-auth
+
+@STANDARDS
+- next-auth.d.ts must be kept in sync with Prisma User model fields
+- Arena types mirror Prisma models but with client-friendly structures
+
+@WARNINGS
+- next-auth.d.ts augments Session.user — any new user fields must be added here AND in auth.ts callbacks
+---

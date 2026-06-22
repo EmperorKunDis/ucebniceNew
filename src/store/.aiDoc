@@ -1,0 +1,53 @@
+---
+@META
+dir: src/store
+updated: 2026-03-18
+files: 1
+stack: Zustand 4, TypeScript
+
+@EXPORTS
+user-store.ts: useUserStore — Zustand store with localStorage persistence for client-side user state
+
+@FUNCTIONS
+setUser(user:{userId,username,email,avatar?}) → void
+  purpose: set authenticated user identity
+  side-effects: cache (localStorage via zustand/persist)
+  called-by: auth components
+
+addXP(amount:number) → void
+  purpose: increment XP & recalculate level (sqrt(xp/100)+1)
+  side-effects: cache (localStorage)
+  called-by: chapter completion, quiz, project submission
+
+completeLesson(lessonId:string, xpEarned:number) → void
+  purpose: mark lesson complete, add XP, prevent duplicate completions
+  side-effects: cache (localStorage)
+  called-by: chapter page
+
+updateStreak() → void
+  purpose: increment/reset daily streak based on lastActiveDate
+  side-effects: cache (localStorage)
+  called-by: app layout on load
+
+reset() → void
+  purpose: clear all user state (logout)
+  side-effects: cache (localStorage clear)
+  called-by: signout flow
+
+@INTERFACES
+UserState: { userId:string|null, username:string|null, email:string|null, avatar:string|null, onboardingCompleted:boolean, userGoal:string|null, experienceLevel:string|null, xp:number, level:number, streak:number, lastActiveDate:string|null, badges:Badge[], progress:UserProgress[] }
+Badge: { id:string, name:string, description:string, icon:string, unlockedAt?:Date }
+UserProgress: { lessonId:string, completedAt:Date, xpEarned:number }
+
+@DEPENDENCIES
+internal: none
+external: zustand, zustand/middleware (persist)
+
+@STANDARDS
+- persist middleware stores to localStorage key "user-storage"
+- Level calculation duplicated from lib/gamification.ts — keep in sync
+
+@WARNINGS
+- Client-side state only — NOT source of truth, server DB is authoritative
+- calculateLevel duplicated inline — potential drift from lib/gamification.ts
+---

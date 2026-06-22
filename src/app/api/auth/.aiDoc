@@ -1,0 +1,30 @@
+---
+@META
+dir: src/app/api/auth
+updated: 2026-03-18
+files: 0
+stack: Next.js 14, NextAuth 4, bcryptjs
+
+@EXPORTS
+[...nextauth]/route.ts: NextAuthHandlers — GET/POST handlers for NextAuth (signin, signout, session, csrf)
+register/route.ts: RegisterHandler — POST handler for user registration
+
+@PROCESSES
+Login: POST credentials → bcrypt compare → JWT token → session cookie
+Register: POST {name,email,username,password} → validate → bcrypt hash → prisma.user.create → return user
+OAuth: Google|GitHub provider → PrismaAdapter → create/link account → JWT
+
+@FUNCTIONS
+POST_register(request) → NextResponse
+  purpose: create new user with hashed password
+  side-effects: db (User create)
+  called-by: /auth/signup page, /onboarding flow
+
+@DEPENDENCIES
+internal: @/lib/auth (authOptions), @/lib/prisma, @/lib/validations
+external: next-auth, bcryptjs
+
+@WARNINGS
+- Credentials provider uses JWT strategy (not database sessions)
+- OAuth providers conditionally loaded based on env vars
+---

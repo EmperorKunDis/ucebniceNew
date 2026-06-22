@@ -1,0 +1,23 @@
+---
+@META
+dir: src/components/skills
+updated: 2026-03-18
+files: 1
+stack: React 18, TypeScript, D3.js
+
+@EXPORTS
+competence-nebula.tsx: CompetenceNebula — interactive D3 force-directed skill graph visualization
+
+@FUNCTIONS
+CompetenceNebula({skills,links}) → JSX
+  purpose: render interactive skill tree as force-directed graph with zoom/pan
+  side-effects: none
+  called-by: profile page
+
+@DEPENDENCIES
+internal: @/data/skills-graph, @/types/skills
+external: d3, react
+
+@WARNINGS
+- Heavy D3 dependency — consider dynamic import for bundle optimization
+---

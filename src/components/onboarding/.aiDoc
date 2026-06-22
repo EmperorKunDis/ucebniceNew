@@ -1,0 +1,25 @@
+---
+@META
+dir: src/components/onboarding
+updated: 2026-03-18
+files: 1
+stack: React 18, TypeScript, Framer Motion, Zod
+
+@EXPORTS
+onboarding-flow.tsx: OnboardingFlow — multi-step onboarding wizard (name → register → goal → experience → complete)
+
+@FUNCTIONS
+OnboardingFlow() → JSX
+  purpose: guide new users through registration & preference selection
+  side-effects: api (POST /api/auth/register, POST /api/onboarding/complete)
+  called-by: /onboarding page
+
+@DEPENDENCIES
+internal: @/lib/validation-schemas, @/store/user-store, @/components/ui
+external: react, framer-motion, next/navigation
+
+@STANDARDS
+- 5-step wizard with animated transitions
+- Validates each step with Zod schemas
+- Awards onboarding-complete achievement & XP on finish
+---

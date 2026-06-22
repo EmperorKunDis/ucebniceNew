@@ -1,0 +1,22 @@
+---
+@META
+dir: src/app/profile
+updated: 2026-03-18
+files: 3
+stack: Next.js 14, React 18, TypeScript
+
+@EXPORTS
+layout.tsx: ProfileLayout — profile section layout
+page.tsx: ProfilePage — user profile with stats, achievements, progress overview, skill graph
+page_old.tsx: ProfilePageOld — deprecated old profile page
+
+@PROCESSES
+ViewProfile: fetch user stats from /api/user/stats → render XP bar, level, streak, badges, CompetenceNebula skill graph
+
+@DEPENDENCIES
+internal: @/components/profile/ProfilePhotoUpload, @/components/skills/CompetenceNebula, @/components/ui, @/store/user-store
+external: react, next-auth/react
+
+@WARNINGS
+- page_old.tsx is deprecated — do not use or reference
+---

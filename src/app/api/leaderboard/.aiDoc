@@ -1,0 +1,20 @@
+---
+@META
+dir: src/app/api/leaderboard
+updated: 2026-03-18
+files: 1
+stack: Next.js 14 Route Handlers, Prisma
+
+@EXPORTS
+route.ts: GET — ranked user list by XP with period filtering
+
+@FUNCTIONS
+GET(request) → NextResponse
+  purpose: return top users ranked by XP, filtered by time period (daily/weekly/monthly/all-time)
+  side-effects: none (cached)
+  called-by: leaderboard page
+
+@DEPENDENCIES
+internal: @/lib/prisma, @/lib/cache (CacheKeys.leaderboard), @/lib/constants (LEADERBOARD)
+external: next/server
+---

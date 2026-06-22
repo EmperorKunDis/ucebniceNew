@@ -1,0 +1,20 @@
+---
+@META
+dir: src/app/api/health
+updated: 2026-03-18
+files: 1
+stack: Next.js 14 Route Handlers, Prisma
+
+@EXPORTS
+route.ts: GET — health check endpoint, verifies DB connection
+
+@FUNCTIONS
+GET() → NextResponse
+  purpose: return {status:"ok"} if DB is reachable, 500 otherwise
+  side-effects: db (SELECT 1 query)
+  called-by: K8s liveness/readiness probes
+
+@DEPENDENCIES
+internal: @/lib/prisma
+external: next/server
+---

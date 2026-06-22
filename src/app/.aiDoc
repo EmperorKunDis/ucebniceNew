@@ -1,0 +1,33 @@
+---
+@META
+dir: src/app
+updated: 2026-03-18
+files: 3
+stack: Next.js 14 App Router, React 18, TypeScript, Tailwind CSS
+
+@EXPORTS
+layout.tsx: RootLayout|metadata|viewport — root HTML layout with Montserrat+Exo2 fonts, Providers wrapper, SEO metadata
+page.tsx: HomePage — landing page with hero, feature cards, CTA; redirects to onboarding if not completed
+globals.css: styles — Tailwind base/components/utilities + custom CSS vars
+
+@PROCESSES
+LandingFlow: visit / → check onboardingCompleted in store → redirect to /onboarding if not done → show hero + features
+AuthFlow: /auth/signin | /auth/signup → NextAuth credentials/OAuth → redirect to /chapters
+ChapterFlow: /chapters → list all 40 chapters → /chapters/[chapterId] → video + text + questions + project
+ProgressFlow: complete chapter → POST /api/progress/complete-chapter → XP + achievements → update stars
+ArenaFlow: /arena → hackathons list → /arena/hackathon/[id] → teams → projects
+
+@DEPENDENCIES
+internal: api/, admin/, auth/, chapters/, arena/, achievements/, certificate/, demo/, leaderboard/, onboarding/, profile/, examples/, api-docs/
+external: next/font/google (Montserrat, Exo_2), next/navigation
+
+@STANDARDS
+- App Router with nested layouts (each section has own layout.tsx)
+- "use client" for interactive pages, server components where possible
+- Dynamic imports for heavy components (certificate, 3D, ProfileCard)
+- Czech locale (lang="cs"), SEO-friendly metadata
+
+@WARNINGS
+- globals.css imported only in root layout
+- page.tsx is client component due to useUserStore dependency
+---

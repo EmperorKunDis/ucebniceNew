@@ -1,0 +1,40 @@
+---
+@META
+dir: src/components/layout
+updated: 2026-03-18
+files: 7
+stack: React 18, TypeScript, Tailwind CSS, Next.js
+
+@EXPORTS
+index.ts: Stack|Grid|Box|Navigation|UnifiedPageLayout — barrel export
+navigation.tsx: Navigation — main app navigation bar with auth state & user info
+page-layout.tsx: PageLayout — legacy page wrapper with header & content areas
+unified-page-layout.tsx: UnifiedPageLayout — new unified page layout with consistent nav & footer
+box.tsx: Box — layout container (re-export from ui)
+stack.tsx: Stack — flex layout (re-export from ui)
+grid.tsx: Grid — grid layout (re-export from ui)
+
+@FUNCTIONS
+Navigation() → JSX
+  purpose: render top navigation bar with logo, links, user avatar, XP display
+  side-effects: none
+  called-by: layout.tsx files
+
+UnifiedPageLayout({children,title?,showNav?}) → JSX
+  purpose: consistent page shell with navigation, content area, footer
+  side-effects: none
+  called-by: app page layouts
+
+@DEPENDENCIES
+internal: @/components/ui, @/store/user-store, @/lib/constants (ROUTES)
+external: next/link, next/navigation, next-auth/react, lucide-react
+
+@STANDARDS
+- UnifiedPageLayout is preferred over PageLayout for new pages
+- Navigation shows different links for auth/unauth/admin users
+- Layout components duplicate ui/ box/stack/grid for convenience import path
+
+@WARNINGS
+- page-layout.tsx is legacy — use unified-page-layout.tsx for new pages
+- box/stack/grid here are re-exports of ui/ versions — avoid import confusion
+---

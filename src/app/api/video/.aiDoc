@@ -1,0 +1,25 @@
+---
+@META
+dir: src/app/api/video
+updated: 2026-03-18
+files: 0
+stack: Next.js 14 Route Handlers, Node.js fs
+
+@EXPORTS
+[filename]/route.ts: GET — stream video file from data/videa/ directory
+
+@FUNCTIONS
+GET(request, {params:{filename}}) → Response
+  purpose: read video file from disk & stream with proper content-type & range headers
+  side-effects: file (read from data/videa/)
+  called-by: VideoPlayer component
+
+@STANDARDS
+- Supports HTTP Range requests for video seeking
+- Content-Type: video/mp4
+- Files served from data/videa/ (not public/)
+
+@WARNINGS
+- File I/O on every request — no CDN caching
+- Filename not sanitized for path traversal — verify security
+---

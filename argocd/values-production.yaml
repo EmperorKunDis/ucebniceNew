@@ -6,7 +6,7 @@ replicaCount: 3
 image:
   repository: harbor.praut.cz/ucebnice/ucebnice-app
   pullPolicy: Always
-  tag: "v1.0.37"  # Update this with actual version tags
+  tag: "v1.0.42"  # Update this with actual version tags
 
 # Image pull secrets are created via Sealed Secrets
 # See: argocd/harbor-registry-sealed-secret.yaml

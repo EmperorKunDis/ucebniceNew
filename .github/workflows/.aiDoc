@@ -1,0 +1,16 @@
+---
+@META
+dir: .github/workflows
+updated: 2026-03-18
+files: 1
+stack: GitHub Actions
+
+@EXPORTS
+ci.yml: CI — lint + type-check + test + build pipeline on push/PR
+
+@PROCESSES
+CI: checkout → setup Node.js → install deps → lint → type-check → test → build
+
+@DEPENDENCIES
+external: actions/checkout, actions/setup-node, Node.js 20
+---

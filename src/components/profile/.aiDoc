@@ -1,0 +1,20 @@
+---
+@META
+dir: src/components/profile
+updated: 2026-03-18
+files: 1
+stack: React 18, TypeScript
+
+@EXPORTS
+ProfilePhotoUpload.tsx: ProfilePhotoUpload — avatar image upload with preview & crop
+
+@FUNCTIONS
+ProfilePhotoUpload({currentImage,onUpload}) → JSX
+  purpose: upload & preview profile photo, call profile-image API
+  side-effects: api (POST /api/user/profile-image)
+  called-by: /profile page
+
+@DEPENDENCIES
+internal: @/components/ui
+external: react, next/image
+---

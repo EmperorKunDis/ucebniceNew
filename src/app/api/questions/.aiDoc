@@ -1,0 +1,21 @@
+---
+@META
+dir: src/app/api/questions
+updated: 2026-03-18
+files: 0
+stack: Next.js 14 Route Handlers, Prisma
+
+@EXPORTS
+route.ts: GET — get questions for a chapter (from DB Question model)
+answer/route.ts: POST — submit answer, validate correctness, award XP, update star 2
+
+@FUNCTIONS
+POST_answer(request) → NextResponse
+  purpose: record question answer, award XP if correct, update ChapterCompletion.answeredQuestions, trigger achievement check
+  side-effects: db (QuestionAnswer create, User xp increment, ChapterCompletion update)
+  called-by: QuestionCard component
+
+@DEPENDENCIES
+internal: @/lib/prisma, @/lib/auth, @/lib/achievement-checker, @/lib/validation-schemas
+external: next/server, next-auth
+---

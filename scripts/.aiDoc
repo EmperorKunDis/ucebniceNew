@@ -1,0 +1,34 @@
+---
+@META
+dir: scripts
+updated: 2026-03-18
+files: 8
+stack: TypeScript, Node.js, Bash
+
+@EXPORTS
+make-admin.ts: makeAdmin — promote user to admin by email
+sync-lesson-titles.ts: syncTitles — sync chapter titles from static data to DB
+update-avatar-paths.mjs: updateAvatarPaths — fix avatar image paths in DB
+generate-grain-svg.js: generateGrainSVG — generate grain texture SVG for UI
+generate-grain-texture.js: generateGrainTexture — generate grain texture as image
+kubernetes/deploy.sh: deploy — K8s deployment script
+kubernetes/create-secrets.sh: createSecrets — create K8s secrets from env vars
+kubernetes/create-sealed-secrets.sh: createSealedSecrets — create sealed secrets for GitOps
+kubernetes/create-postgres-sealed-secret.sh: createPostgresSecret — create DB connection sealed secret
+migration/import-postgres-data.ts: importData — import data from SQLite to PostgreSQL
+migration/archive/export-sqlite-data.ts: exportData — export data from old SQLite DB
+migration/verify-migration.ts: verifyMigration — verify data migration integrity
+
+@PROCESSES
+MakeAdmin: `tsx scripts/make-admin.ts <email>` → set isAdmin=true on user
+Migration: export-sqlite-data → import-postgres-data → verify-migration
+K8sDeploy: create-secrets → deploy.sh → apply K8s manifests
+
+@DEPENDENCIES
+internal: @/lib/prisma (make-admin, sync-lesson-titles)
+external: tsx, pg
+
+@WARNINGS
+- migration/archive/export-sqlite-data.ts is for one-time migration — do not reuse
+- K8s scripts reference specific Harbor registry & namespace
+---
