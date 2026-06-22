@@ -22,7 +22,12 @@ const customJestConfig = {
     '!src/app/**/page.tsx',
     '!src/app/**/layout.tsx',
   ],
-  testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/'],
+  testPathIgnorePatterns: [
+    '<rootDir>/.next/',
+    '<rootDir>/node_modules/',
+    '<rootDir>/e2e/', // Playwright E2E specs run via `npm run test:e2e`, not Jest
+    '<rootDir>/src/lib/__tests__/', // Vitest specs run via vitest, not Jest
+  ],
   transformIgnorePatterns: [
     'node_modules/(?!(@auth/prisma-adapter)/)',
   ],
