@@ -32,11 +32,14 @@ export default function SignInPage() {
 
     if (!validation.success) {
       const errors: Record<string, string> = {}
-      validation.error.errors.forEach(err => {
+      for (const err of validation.error.issues) {
         if (err.path.length > 0) {
-          errors[err.path[0].toString()] = err.message
+          const key = err.path[0]
+          if (key !== undefined) {
+            errors[key.toString()] = err.message
+          }
         }
-      })
+      }
       setValidationErrors(errors)
       toast.error('Opravte prosím chyby ve formuláři')
       return

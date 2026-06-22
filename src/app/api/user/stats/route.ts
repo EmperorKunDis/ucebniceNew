@@ -205,21 +205,21 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // Get chapter titles for recent completions
-    const recentCompletions = await Promise.all(
-      recentCompletionsRaw.map(async completion => {
-        const chapter = await prisma.chapter.findFirst({
-          where: { chapterId: completion.chapterId },
-        })
-        return {
-          id: completion.id,
-          chapterId: completion.chapterId,
-          chapterTitle: chapter?.title || `Chapter ${completion.chapterId}`,
-          completedAt: completion.completedAt,
-          xpEarned: 100, // Base XP for chapter completion
-        }
-      })
-    )
+    // Get chapter titles in a single batched query (avoiding N+1)
+    const chapterIds = [...new Set(recentCompletionsRaw.map(c => c.chapterId))]
+    const chapters = await prisma.chapter.findMany({
+      where: { chapterId: { in: chapterIds } },
+      select: { chapterId: true, title: true },
+    })
+    const chapterMap = new Map(chapters.map(c => [c.chapterId, c.title]))
+
+    const recentCompletions = recentCompletionsRaw.map(completion => ({
+      id: completion.id,
+      chapterId: completion.chapterId,
+      chapterTitle: chapterMap.get(completion.chapterId) || `Chapter ${completion.chapterId}`,
+      completedAt: completion.completedAt,
+      xpEarned: 100, // Base XP for chapter completion
+    }))
 
     // Calculate level progress
     const levelProgress = getProgressToNextLevel(user.xp)

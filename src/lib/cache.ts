@@ -240,7 +240,7 @@ export function cached<T extends (...args: any[]) => Promise<any>>(
   keyGenerator: (...args: Parameters<T>) => string,
   options: CacheOptions = {}
 ) {
-  return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
+  return function (_target: any, _propertyName: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value
 
     descriptor.value = async function (...args: Parameters<T>) {

@@ -75,14 +75,14 @@ export const onboardingRegisterSchema = signUpSchema
 // Onboarding step 3 - Goal
 export const onboardingGoalSchema = z.object({
   goal: z.enum(['career', 'skills', 'ai', 'fun'], {
-    errorMap: () => ({ message: 'Vyberte prosím svůj cíl' }),
+    message: 'Vyberte prosím svůj cíl',
   }),
 })
 
 // Onboarding step 4 - Experience
 export const onboardingExperienceSchema = z.object({
   experience: z.enum(['beginner', 'some', 'intermediate', 'advanced'], {
-    errorMap: () => ({ message: 'Vyberte prosím svou zkušenost' }),
+    message: 'Vyberte prosím svou zkušenost',
   }),
 })
 
@@ -110,11 +110,14 @@ export type ProfileUpdateData = z.infer<typeof profileUpdateSchema>
  */
 export function formatZodErrors(error: z.ZodError): Record<string, string> {
   const errors: Record<string, string> = {}
-  error.errors.forEach(err => {
+  for (const err of error.issues) {
     if (err.path.length > 0) {
-      errors[err.path[0].toString()] = err.message
+      const key = err.path[0]
+      if (key !== undefined) {
+        errors[key.toString()] = err.message
+      }
     }
-  })
+  }
   return errors
 }
 
@@ -165,8 +168,46 @@ export const answerIndexSchema = z
   .min(0, 'Index odpovědi musí být nezáporný')
   .max(10, 'Neplatný index odpovědi')
 
-// URL validation
+// URL validation (basic)
 export const urlSchema = z.string().url('Neplatná URL adresa')
+
+// Base URL schema with security checks
+export const safeUrlSchema = z
+  .string()
+  .url('Neplatná URL adresa')
+  .max(2048, 'URL je příliš dlouhá')
+  .refine(url => {
+    try {
+      const parsed = new URL(url)
+      return ['http:', 'https:'].includes(parsed.protocol)
+    } catch {
+      return false
+    }
+  }, 'URL musí používat protokol http nebo https')
+  .refine(url => {
+    try {
+      const hostname = new URL(url).hostname
+      const blockedPatterns = ['localhost', '127.0.0.1', '10.', '192.168.', '0.0.0.0', '::1']
+      return !blockedPatterns.some(pattern => hostname.startsWith(pattern) || hostname === pattern)
+    } catch {
+      return false
+    }
+  }, 'URL nesmí odkazovat na lokální adresy')
+
+// GitHub-specific URL validation
+export const githubUrlSchema = safeUrlSchema.refine(url => {
+  try {
+    return new URL(url).hostname === 'github.com'
+  } catch {
+    return false
+  }
+}, 'URL musí být z github.com')
+
+// Demo URL (can be any safe URL)
+export const demoUrlSchema = safeUrlSchema.optional()
+
+// URL type exports
+export type SafeUrl = z.infer<typeof safeUrlSchema>
 
 // Score validation
 export const scoreSchema = z
@@ -225,7 +266,7 @@ export const submitTestSchema = z.object({
  */
 export const submitProjectSchema = z.object({
   chapterId: chapterIdSchema,
-  projectUrl: urlSchema,
+  projectUrl: safeUrlSchema,
   description: z.string().max(1000, 'Popis může mít maximálně 1000 znaků').optional(),
 })
 
@@ -318,11 +359,9 @@ export async function validateAPIRequest<T>(
 export function validateQueryParams<T>(
   searchParams: URLSearchParams,
   schema: z.ZodSchema<T>
-): {
-  success: boolean
-  data?: T
-  errors?: Record<string, string>
-} {
+):
+  | { success: true; data: T }
+  | { success: false; data?: undefined; errors: Record<string, string> } {
   const params = Object.fromEntries(searchParams.entries())
   const result = schema.safeParse(params)
 
@@ -409,10 +448,10 @@ export const joinTeamSchema = z.object({
 export const submitHackathonProjectSchema = z.object({
   title: z.string().min(3, 'Název projektu musí mít alespoň 3 znaky').max(200),
   description: z.string().min(10, 'Popis projektu musí mít alespoň 10 znaků'),
-  githubUrl: z.string().url('Neplatná GitHub URL'),
-  demoUrl: z.string().url('Neplatná demo URL').optional().nullable(),
-  videoUrl: z.string().url('Neplatná video URL').optional().nullable(),
-  screenshots: z.array(z.string().url()).default([]),
+  githubUrl: githubUrlSchema,
+  demoUrl: demoUrlSchema.nullable(),
+  videoUrl: safeUrlSchema.optional().nullable(),
+  screenshots: z.array(safeUrlSchema).default([]),
   technologies: z.array(z.string()).default([]),
 })
 

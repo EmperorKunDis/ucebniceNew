@@ -173,14 +173,13 @@ export function OnboardingFlow() {
                     placeholder="Minimálně 6 znaků"
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 transition-all pr-12"
                   />
-                  <Box
-                    as="button"
+                  <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </Box>
+                  </button>
                 </Box>
               </Stack>
               <Stack gap={2}>
@@ -195,8 +194,7 @@ export function OnboardingFlow() {
                     placeholder="Zadej heslo znovu"
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 transition-all pr-12"
                   />
-                  <Box
-                    as="button"
+                  <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
@@ -206,7 +204,7 @@ export function OnboardingFlow() {
                     ) : (
                       <Eye className="w-5 h-5" />
                     )}
-                  </Box>
+                  </button>
                 </Box>
               </Stack>
             </Stack>

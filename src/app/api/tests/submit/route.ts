@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
       return validation.response
     }
 
-    const { moduleNumber, score, totalQuestions, timeElapsed, answers } = validation.data
+    const { moduleNumber, score, totalQuestions, timeElapsed, answers: _answers } = validation.data
 
     // Get user
     const user = await prisma.user.findUnique({

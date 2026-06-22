@@ -1,0 +1,48 @@
+import { NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
+
+export async function GET() {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { isAdmin: true },
+    })
+    if (!user?.isAdmin) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const [totalLeagues, totalMembers] = await Promise.all([
+      prisma.league.count(),
+      prisma.leagueMembership.count(),
+    ])
+
+    // Calculate current week boundaries
+    const now = new Date()
+    const dayOfWeek = now.getDay()
+    const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+    const weekStart = new Date(now)
+    weekStart.setDate(now.getDate() - diff)
+    weekStart.setHours(0, 0, 0, 0)
+
+    const weekEnd = new Date(weekStart)
+    weekEnd.setDate(weekStart.getDate() + 6)
+    weekEnd.setHours(23, 59, 59, 999)
+
+    return NextResponse.json({
+      totalLeagues,
+      totalMembers,
+      currentWeekStart: weekStart.toISOString(),
+      currentWeekEnd: weekEnd.toISOString(),
+    })
+  } catch (error) {
+    console.error('Error fetching league stats:', error)
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
+  }
+}

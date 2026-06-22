@@ -61,9 +61,9 @@ export function validateEnv(): Env {
 
   if (!result.success) {
     console.error('❌ Invalid environment variables:')
-    result.error.errors.forEach(err => {
+    for (const err of result.error.issues) {
       console.error(`  ${err.path.join('.')}: ${err.message}`)
-    })
+    }
 
     // In production, throw error. In development, just warn
     if (process.env.NODE_ENV === 'production') {

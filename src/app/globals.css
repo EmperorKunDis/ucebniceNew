@@ -229,3 +229,49 @@ nav [title]::after {
   display: none !important;
   content: none !important;
 }
+
+/* Safe area support for iOS */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* Mobile touch improvements */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets on mobile */
+  button, a {
+    min-height: 44px;
+  }
+  
+  /* Disable hover effects on touch devices */
+  .hover\:bg-gray-800:hover {
+    background-color: inherit;
+  }
+  
+  /* Active states instead of hover */
+  button:active, a:active {
+    opacity: 0.7;
+  }
+}
+
+/* Prevent zoom on input focus (iOS) */
+@media screen and (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

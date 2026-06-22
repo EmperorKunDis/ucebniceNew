@@ -91,7 +91,7 @@ export default function HackathonDetailPage() {
       active: { bg: 'bg-green-100', text: 'text-green-800', label: 'Probíhá' },
       completed: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Ukončeno' },
     }
-    const badge = badges[status] || badges.upcoming
+    const badge = badges[status] ?? badges.upcoming!
     return (
       <span
         className={`px-3 py-1 inline-flex text-sm font-semibold rounded-full ${badge.bg} ${badge.text}`}
@@ -125,10 +125,7 @@ export default function HackathonDetailPage() {
   return (
     <div className="px-4 py-6">
       <div className="mb-6">
-        <Link
-          href="/admin/hackathons"
-          className="text-indigo-600 hover:text-indigo-500 text-sm"
-        >
+        <Link href="/admin/hackathons" className="text-indigo-600 hover:text-indigo-500 text-sm">
           &larr; Zpět na seznam
         </Link>
         <div className="flex justify-between items-start mt-2">
@@ -257,9 +254,7 @@ export default function HackathonDetailPage() {
 
       {/* Teams */}
       <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">
-          Týmy ({hackathon.teams.length})
-        </h2>
+        <h2 className="text-lg font-medium text-gray-900 mb-4">Týmy ({hackathon.teams.length})</h2>
         {hackathon.teams.length === 0 ? (
           <p className="text-gray-500">Zatím se nezaregistroval žádný tým</p>
         ) : (

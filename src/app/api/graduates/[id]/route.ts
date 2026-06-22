@@ -5,10 +5,7 @@ import { prisma } from '@/lib/prisma'
  * GET /api/graduates/[id]
  * Get graduate profile detail
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
 

@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -44,7 +44,8 @@ export async function GET(request: NextRequest) {
         completedChapter: completion.completedChapter,
         answeredQuestions: completion.answeredQuestions,
         submittedProject: completion.submittedProject,
-        completed: true,
+        // BUG FIX: completed = Star 1 (completedChapter), not just record existence
+        completed: completion.completedChapter,
       }
     })
 

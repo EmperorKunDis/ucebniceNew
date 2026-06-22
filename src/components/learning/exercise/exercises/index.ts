@@ -1,0 +1,5 @@
+export { MultipleChoice } from './MultipleChoice'
+export { FillInBlank } from './FillInBlank'
+export { TrueFalse } from './TrueFalse'
+export { CodeOutput } from './CodeOutput'
+export { MatchPairs } from './MatchPairs'
