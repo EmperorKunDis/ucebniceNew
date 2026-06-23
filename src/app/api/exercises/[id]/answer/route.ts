@@ -129,6 +129,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
       // Update quest progress
       const questUpdates = await updateQuestProgress(userId, QuestCategory.XP_EARNED, xpEarned)
+      // A correct exercise answer counts toward the "perfect exercises" daily quest
+      const perfectUpdates = await updateQuestProgress(userId, QuestCategory.EXERCISES_PERFECT, 1)
+      questUpdates.push(...perfectUpdates)
 
       // Update chapter progress
       await prisma.chapterProgress.upsert({
