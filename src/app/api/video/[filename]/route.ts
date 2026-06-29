@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import { stat } from 'fs/promises'
 
-const VIDEO_FILES_DIR = process.env.VIDEO_FILES_DIR ?? '/data/videa'
+const VIDEO_FILES_DIR = process.env.VIDEO_FILES_DIR ?? path.join(process.cwd(), 'data', 'videa')
 
 export async function GET(request: NextRequest, { params }: { params: { filename: string } }) {
   const filename = params.filename

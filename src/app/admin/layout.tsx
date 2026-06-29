@@ -8,7 +8,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const session = await getServerSession(authOptions)
 
   if (!session?.user?.id) {
-    redirect('/auth/login?callbackUrl=/admin')
+    redirect('/auth/signin?callbackUrl=/admin')
   }
 
   const user = await prisma.user.findUnique({
