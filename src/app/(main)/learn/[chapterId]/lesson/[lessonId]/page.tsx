@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Heart, Loader2, CheckCircle, XCircle, ArrowRight } from 'lucide-react'
@@ -38,11 +38,7 @@ export default function LessonPage() {
     xp: number
   } | null>(null)
 
-  useEffect(() => {
-    fetchLesson()
-  }, [lessonId])
-
-  const fetchLesson = async () => {
+  const fetchLesson = useCallback(async () => {
     try {
       const res = await fetch(`/api/micro-lessons/lesson/${lessonId}`)
       if (!res.ok) throw new Error('Failed to fetch')
@@ -53,7 +49,11 @@ export default function LessonPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [lessonId])
+
+  useEffect(() => {
+    fetchLesson()
+  }, [fetchLesson])
 
   const handleExerciseComplete = (isCorrect: boolean, earnedXP: number) => {
     setLastAnswer({ correct: isCorrect, xp: earnedXP })

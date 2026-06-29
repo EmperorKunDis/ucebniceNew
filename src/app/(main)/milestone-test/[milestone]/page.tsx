@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -44,11 +44,7 @@ export default function MilestoneTestPage() {
   } | null>(null)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    fetchTest()
-  }, [milestone])
-
-  async function fetchTest() {
+  const fetchTest = useCallback(async () => {
     try {
       const res = await fetch(`/api/milestone-test?milestone=${milestone}`)
       const data = await res.json()
@@ -64,7 +60,11 @@ export default function MilestoneTestPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [milestone])
+
+  useEffect(() => {
+    fetchTest()
+  }, [fetchTest])
 
   async function submitTest() {
     setSubmitting(true)

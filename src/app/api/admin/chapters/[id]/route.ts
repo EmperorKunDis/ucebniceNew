@@ -6,13 +6,14 @@ import { prisma } from '@/lib/prisma'
  * GET /api/admin/chapters/[id]
  * Get a single chapter with full details
  */
-export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const adminCheck = await requireAdmin()
   if (adminCheck) return adminCheck
 
   try {
+    const { id } = await params
     const chapter = await prisma.chapter.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         completedBy: {
           include: {
@@ -56,16 +57,17 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
  * PUT /api/admin/chapters/[id]
  * Update chapter details
  */
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const adminCheck = await requireAdmin()
   if (adminCheck) return adminCheck
 
   try {
+    const { id } = await params
     const body = await request.json()
     const { chapterId, title, description, xpReward, difficulty, order } = body
 
     const chapter = await prisma.chapter.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(chapterId !== undefined && { chapterId }),
         ...(title !== undefined && { title }),
@@ -87,13 +89,17 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
  * DELETE /api/admin/chapters/[id]
  * Delete a chapter
  */
-export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const adminCheck = await requireAdmin()
   if (adminCheck) return adminCheck
 
   try {
+    const { id } = await params
     await prisma.chapter.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     return NextResponse.json({ success: true })

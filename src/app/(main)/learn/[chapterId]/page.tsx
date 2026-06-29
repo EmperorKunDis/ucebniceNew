@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -46,11 +46,7 @@ export default function ChapterOverviewPage() {
   const [chapter, setChapter] = useState<ChapterData | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchChapter()
-  }, [chapterId])
-
-  const fetchChapter = async () => {
+  const fetchChapter = useCallback(async () => {
     try {
       const res = await fetch(`/api/micro-lessons/${chapterId}`)
       if (!res.ok) throw new Error('Failed to fetch')
@@ -61,7 +57,11 @@ export default function ChapterOverviewPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [chapterId])
+
+  useEffect(() => {
+    fetchChapter()
+  }, [fetchChapter])
 
   if (loading) {
     return (

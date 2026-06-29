@@ -101,6 +101,8 @@ export function ProfilePhotoUpload({
             <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden relative">
               {currentImage || previewUrl ? (
                 <>
+                  {/* Dynamic user avatars can be arbitrary remote URLs outside next/image config. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={previewUrl || currentImage || ''}
                     alt={userName}

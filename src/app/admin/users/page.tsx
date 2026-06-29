@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 interface User {
   id: string
@@ -24,7 +24,7 @@ export default function UsersManagement() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setLoading(true)
     try {
       const params = new URLSearchParams({
@@ -40,11 +40,11 @@ export default function UsersManagement() {
       console.error('Error fetching users:', error)
     }
     setLoading(false)
-  }
+  }, [page, search])
 
   useEffect(() => {
     fetchUsers()
-  }, [page, search])
+  }, [fetchUsers])
 
   const handleDelete = async (userId: string) => {
     if (!confirm('Are you sure you want to delete this user?')) return

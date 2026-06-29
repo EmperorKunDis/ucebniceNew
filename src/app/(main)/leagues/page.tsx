@@ -180,11 +180,15 @@ export default function LeaguesPage() {
                 {/* Avatar */}
                 <div className="w-10 h-10 rounded-full bg-gray-700 overflow-hidden">
                   {member.avatar ? (
-                    <img
-                      src={member.avatar}
-                      alt={member.username}
-                      className="w-full h-full object-cover"
-                    />
+                    <>
+                      {/* Dynamic user avatars can be arbitrary remote URLs outside next/image config. */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={member.avatar}
+                        alt={member.username}
+                        className="w-full h-full object-cover"
+                      />
+                    </>
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400">
                       {member.username[0]?.toUpperCase()}

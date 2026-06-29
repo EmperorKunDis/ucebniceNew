@@ -6,16 +6,17 @@ import { activeStatusSchema, validateAPIRequest } from '@/lib/validation-schemas
 
 export const dynamic = 'force-dynamic'
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const adminCheck = await requireAdmin()
   if (adminCheck) return adminCheck
 
   try {
+    const { id } = await params
     const validation = await validateAPIRequest(request, activeStatusSchema)
     if (!validation.success) return validation.response
 
     const existingQuest = await prisma.quest.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: { id: true },
     })
 
@@ -24,7 +25,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     }
 
     const quest = await prisma.quest.update({
-      where: { id: params.id },
+      where: { id },
       data: { isActive: validation.data.isActive },
     })
 

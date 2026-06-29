@@ -6,13 +6,14 @@ import { prisma } from '@/lib/prisma'
  * GET /api/admin/users/[id]
  * Get a single user with full details
  */
-export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const adminCheck = await requireAdmin()
   if (adminCheck) return adminCheck
 
   try {
+    const { id } = await params
     const user = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         completedChapters: {
           include: {
@@ -52,16 +53,17 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
  * PUT /api/admin/users/[id]
  * Update user details
  */
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const adminCheck = await requireAdmin()
   if (adminCheck) return adminCheck
 
   try {
+    const { id } = await params
     const body = await request.json()
     const { xp, level, currentStreak, longestStreak, isAdmin, name, username } = body
 
     const user = await prisma.user.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(xp !== undefined && { xp }),
         ...(level !== undefined && { level }),
@@ -84,13 +86,17 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
  * DELETE /api/admin/users/[id]
  * Delete a user
  */
-export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const adminCheck = await requireAdmin()
   if (adminCheck) return adminCheck
 
   try {
+    const { id } = await params
     await prisma.user.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     return NextResponse.json({ success: true })

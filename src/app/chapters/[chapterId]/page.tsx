@@ -8,8 +8,9 @@ export async function generateStaticParams() {
   }))
 }
 
-export async function generateMetadata({ params }: { params: { chapterId: string } }) {
-  const chapter = getChapterById(params.chapterId)
+export async function generateMetadata({ params }: { params: Promise<{ chapterId: string }> }) {
+  const { chapterId } = await params
+  const chapter = getChapterById(chapterId)
 
   if (!chapter) {
     return {
@@ -23,8 +24,9 @@ export async function generateMetadata({ params }: { params: { chapterId: string
   }
 }
 
-export default function ChapterPage({ params }: { params: { chapterId: string } }) {
-  const chapter = getChapterById(params.chapterId)
+export default async function ChapterPage({ params }: { params: Promise<{ chapterId: string }> }) {
+  const { chapterId } = await params
+  const chapter = getChapterById(chapterId)
 
   if (!chapter) {
     notFound()

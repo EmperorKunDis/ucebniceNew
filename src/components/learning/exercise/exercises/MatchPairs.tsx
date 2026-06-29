@@ -42,6 +42,26 @@ export function MatchPairs({ pairs, onAnswer, disabled = false }: MatchPairsProp
     [disabled, submitted, matches]
   )
 
+  const handleSubmit = useCallback(
+    (finalMatches: Map<number, number>) => {
+      if (submitted) return
+
+      const newResults = new Map<number, boolean>()
+      finalMatches.forEach((rightIndex, leftIndex) => {
+        // Correct if left index matches the original right index (pairs[leftIndex].right === pairs[rightIndex].right)
+        // Since pairs are in order, leftIndex should match rightIndex for correct pair
+        newResults.set(leftIndex, leftIndex === rightIndex)
+      })
+
+      setResults(newResults)
+      setSubmitted(true)
+
+      const allCorrect = Array.from(newResults.values()).every(Boolean)
+      onAnswer(finalMatches, allCorrect)
+    },
+    [submitted, onAnswer]
+  )
+
   const handleRightClick = useCallback(
     (shuffledIndex: number) => {
       if (disabled || submitted || selectedLeft === null) return
@@ -61,27 +81,7 @@ export function MatchPairs({ pairs, onAnswer, disabled = false }: MatchPairsProp
         setTimeout(() => handleSubmit(newMatches), 500)
       }
     },
-    [disabled, submitted, selectedLeft, matches, pairs.length, rightOrder]
-  )
-
-  const handleSubmit = useCallback(
-    (finalMatches: Map<number, number>) => {
-      if (submitted) return
-
-      const newResults = new Map<number, boolean>()
-      finalMatches.forEach((rightIndex, leftIndex) => {
-        // Correct if left index matches the original right index (pairs[leftIndex].right === pairs[rightIndex].right)
-        // Since pairs are in order, leftIndex should match rightIndex for correct pair
-        newResults.set(leftIndex, leftIndex === rightIndex)
-      })
-
-      setResults(newResults)
-      setSubmitted(true)
-
-      const allCorrect = Array.from(newResults.values()).every(Boolean)
-      onAnswer(finalMatches, allCorrect)
-    },
-    [submitted, onAnswer]
+    [disabled, submitted, selectedLeft, matches, pairs.length, rightOrder, handleSubmit]
   )
 
   const isLeftMatched = (index: number) => matches.has(index)
