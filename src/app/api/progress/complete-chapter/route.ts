@@ -10,6 +10,8 @@ import {
   shouldUpdateStreak,
 } from '@/lib/gamification'
 import { applyRateLimit } from '@/lib/api-middleware'
+import { updateQuestProgress } from '@/lib/quest-tracker'
+import { QuestCategory } from '@prisma/client'
 import { progressLimiter } from '@/lib/rate-limit'
 import { checkAndAwardAchievements } from '@/lib/achievement-checker'
 import { validateAPIRequest, completeChapterSchema } from '@/lib/validation-schemas'
@@ -345,6 +347,9 @@ export async function POST(request: NextRequest) {
 
     // Merge all new achievements (from old system + centralized checker)
     const allNewBadges = [...result.newBadges, ...additionalAchievements]
+
+    // Advance quest progress for completing a chapter (daily/weekly quests)
+    await updateQuestProgress(session.user.id, QuestCategory.CHAPTERS_COMPLETED, 1)
 
     // Invalidate caches (fire and forget - don't block response)
     Promise.all([

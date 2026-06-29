@@ -85,6 +85,23 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    // Deduct a heart on a wrong answer (Duolingo-style), unless user has unlimited hearts
+    let hearts = user.hearts
+    let heartLost = false
+    const hasUnlimitedHearts =
+      !!user.unlimitedHeartsUntil && new Date(user.unlimitedHeartsUntil) > new Date()
+    if (!correct && !hasUnlimitedHearts && user.hearts > 0) {
+      hearts = user.hearts - 1
+      heartLost = true
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          hearts,
+          lastHeartRegenAt: new Date(),
+        },
+      })
+    }
+
     // Check if all questions answered correctly
     // 1. Get total questions count for this chapter
     const totalQuestions = await prisma.question.count({
@@ -132,6 +149,9 @@ export async function POST(request: NextRequest) {
       xpEarned: xpReward,
       allQuestionsCompleted: allCorrect,
       newAchievements,
+      hearts,
+      heartLost,
+      outOfHearts: hearts <= 0,
     })
   } catch (error) {
     console.error('Error answering question:', error)

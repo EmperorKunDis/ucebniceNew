@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { applyRateLimit } from '@/lib/api-middleware'
 import { authLimiter } from '@/lib/rate-limit'
 import { signupSchema, validateRequestBody } from '@/lib/validations'
+import { sendVerificationEmail } from '@/lib/email'
 
 /**
  * @swagger
@@ -138,6 +139,13 @@ export async function POST(req: NextRequest) {
         username: true,
       },
     })
+
+    // Send verification email (do not fail registration if email delivery fails)
+    try {
+      await sendVerificationEmail(email, name ?? undefined)
+    } catch (emailError) {
+      console.error('Failed to send verification email:', emailError)
+    }
 
     return NextResponse.json(
       {

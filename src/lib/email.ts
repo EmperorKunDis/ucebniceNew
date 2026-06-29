@@ -1,16 +1,16 @@
 /**
  * Email Service for Verification
  *
- * Uses Resend for sending emails (free tier: 100 emails/day)
- * Fallback: console.log for development
+ * Uses Postmark for sending emails (praut.cz is a verified sender domain)
+ * Fallback: console.log for development (when token is missing)
  */
 
 import { prisma } from './prisma'
 import { randomBytes } from 'crypto'
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY
+const POSTMARK_SERVER_TOKEN = process.env.POSTMARK_SERVER_TOKEN
 const APP_URL = process.env.NEXTAUTH_URL || 'http://localhost:3000'
-const FROM_EMAIL = process.env.EMAIL_FROM || 'Učebnice AI <noreply@ucebnice.ai>'
+const FROM_EMAIL = process.env.EMAIL_FROM || 'Učebnice AI <ucebnice@praut.cz>'
 
 interface SendEmailParams {
   to: string
@@ -19,10 +19,10 @@ interface SendEmailParams {
 }
 
 /**
- * Send email using Resend API
+ * Send email using Postmark API
  */
 async function sendEmail({ to, subject, html }: SendEmailParams): Promise<boolean> {
-  if (!RESEND_API_KEY) {
+  if (!POSTMARK_SERVER_TOKEN) {
     console.log('📧 [DEV MODE] Email would be sent:')
     console.log(`   To: ${to}`)
     console.log(`   Subject: ${subject}`)
@@ -31,23 +31,25 @@ async function sendEmail({ to, subject, html }: SendEmailParams): Promise<boolea
   }
 
   try {
-    const response = await fetch('https://api.resend.com/emails', {
+    const response = await fetch('https://api.postmarkapp.com/email', {
       method: 'POST',
       headers: {
+        Accept: 'application/json',
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${RESEND_API_KEY}`,
+        'X-Postmark-Server-Token': POSTMARK_SERVER_TOKEN,
       },
       body: JSON.stringify({
-        from: FROM_EMAIL,
-        to,
-        subject,
-        html,
+        From: FROM_EMAIL,
+        To: to,
+        Subject: subject,
+        HtmlBody: html,
+        MessageStream: 'outbound',
       }),
     })
 
     if (!response.ok) {
       const error = await response.text()
-      console.error('Resend API error:', error)
+      console.error('Postmark API error:', error)
       return false
     }
 

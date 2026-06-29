@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Bell, Menu, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -21,6 +22,44 @@ export function Topbar({ onMenuClick, showMenu, className }: TopbarProps) {
   const { hearts, maxHearts, nextRegenAt, unlimitedUntil } = useHearts()
   const { gems } = useGems()
   const [notificationCount] = useState(3) // TODO: Fetch from API
+  const pathname = usePathname()
+
+  // Live XP/level/streak from the DB so the HUD updates after earning XP
+  // (the NextAuth session is cached client-side and would otherwise stay stale)
+  const [liveXp, setLiveXp] = useState<number | null>(null)
+  const [liveLevel, setLiveLevel] = useState<number | null>(null)
+  const [liveStreak, setLiveStreak] = useState<number | null>(null)
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await fetch('/api/user/stats')
+      if (!res.ok) return
+      const data = await res.json()
+      if (data?.user) {
+        setLiveXp(data.user.xp ?? null)
+        setLiveLevel(data.user.level ?? null)
+        setLiveStreak(data.user.currentStreak ?? null)
+      }
+    } catch {
+      // keep last known values on transient errors
+    }
+  }, [])
+
+  // Refetch on mount and whenever the route changes (e.g. after finishing a lesson)
+  useEffect(() => {
+    fetchStats()
+  }, [fetchStats, pathname])
+
+  // Refetch when the tab regains focus
+  useEffect(() => {
+    const onFocus = () => fetchStats()
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
+  }, [fetchStats])
+
+  const displayXp = liveXp ?? session?.user?.xp ?? 0
+  const displayLevel = liveLevel ?? session?.user?.level ?? 1
+  const displayStreak = liveStreak ?? session?.user?.currentStreak ?? 0
 
   return (
     <header
@@ -40,14 +79,14 @@ export function Topbar({ onMenuClick, showMenu, className }: TopbarProps) {
 
         {/* Streak */}
         <Link href="/profile" className="hidden sm:block">
-          <StreakDisplay streak={session?.user?.currentStreak ?? 0} size="md" />
+          <StreakDisplay streak={displayStreak} size="md" />
         </Link>
       </div>
 
       {/* Center - XP and Level */}
       <div className="flex items-center gap-4">
-        <XPCounter value={session?.user?.xp ?? 0} size="md" />
-        <LevelBadge level={session?.user?.level ?? 1} size="md" />
+        <XPCounter value={displayXp} size="md" />
+        <LevelBadge level={displayLevel} size="md" />
       </div>
 
       {/* Right side - Hearts, Gems, Notifications, Avatar */}

@@ -123,7 +123,7 @@ export default function ShopPage() {
                   <motion.div
                     key={item.id}
                     className={cn(
-                      'bg-gray-800/80 rounded-xl p-4 border transition-all',
+                      'bg-gray-800/80 rounded-xl p-4 border transition-all h-full flex flex-col',
                       item.canPurchase
                         ? 'border-gray-700 hover:border-cyan-500/50'
                         : 'border-gray-700/50 opacity-60'
@@ -150,7 +150,7 @@ export default function ShopPage() {
                       onClick={() => handlePurchase(item.id)}
                       disabled={!item.canPurchase || purchasing === item.id}
                       className={cn(
-                        'w-full mt-4 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all',
+                        'w-full mt-auto py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all',
                         item.canPurchase
                           ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-600 hover:to-blue-600'
                           : 'bg-gray-700 text-gray-400 cursor-not-allowed'
