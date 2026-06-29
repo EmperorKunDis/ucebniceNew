@@ -1,10 +1,13 @@
 # src/components/ - AI Context
 
 ## 🎯 PURPOSE
+
 Reusable React components organized by feature. Contains UI primitives, chapter-specific components, layout helpers, and specialized feature components.
 
 ## 📦 EXPORTS
+
 Components are exported individually from their files:
+
 - `ui/` - Design system primitives (Button, Card, etc.)
 - `chapters/` - Chapter-related components
 - `layout/` - Layout building blocks
@@ -16,6 +19,7 @@ Components are exported individually from their files:
 - `onboarding/` - Onboarding flow components
 
 ## 🔗 DEPENDENCIES
+
 - `@/lib/utils` - `cn()` for class merging
 - `react` / `react-dom`
 - `framer-motion` - Animations
@@ -26,6 +30,7 @@ Components are exported individually from their files:
 ## 🏗️ PATTERNS
 
 ### Component File Pattern
+
 ```typescript
 // my-component.tsx
 'use client' // Only if needs interactivity
@@ -47,12 +52,14 @@ export function MyComponent({ className, children }: MyComponentProps) {
 ```
 
 ### Design System - Glass Morphism
+
 ```typescript
 // Standard glass effect classes
-className="bg-black/30 backdrop-blur-md border border-white/10 rounded-lg"
+className = 'bg-black/30 backdrop-blur-md border border-white/10 rounded-lg'
 ```
 
 ### Dynamic Import Pattern (Heavy Components)
+
 ```typescript
 // In page or parent component
 import dynamic from 'next/dynamic'
@@ -73,6 +80,7 @@ const HeavyComponent = dynamic(
 6. **Storybook**: Components in `ui/` may have `.stories.tsx` files
 
 ## 📁 STRUCTURE
+
 ```
 components/
 ├── providers.tsx          # App-level providers (CRITICAL)
@@ -119,12 +127,14 @@ components/
 ```
 
 ## 🔄 RELATED
+
 - `src/lib/utils.ts` - `cn()` utility
 - `src/lib/theme.ts` - Theme configuration
 - `tailwind.config.js` - Tailwind setup
 - `src/app/` - Pages using these components
 
 ---
+
 <!-- META: For AI agents -->
 <!-- TRAVERSE: yes -->
 <!-- DEPTH: 1 -->

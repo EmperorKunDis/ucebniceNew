@@ -10,19 +10,19 @@ interface LightningBackgroundProps {
   className?: string
 }
 
-export function LightningBackground({ 
+export function LightningBackground({
   hue = 272,
   baseSpeed = 0.8,
   baseIntensity = 0.8,
-  className = ''
+  className = '',
 }: LightningBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animationRef = useRef<number>()
   const { streak, level } = useUserStore()
-  
+
   // Dynamically adjust based on user progress
-  const speed = useMemo(() => baseSpeed + (streak * 0.05), [baseSpeed, streak])
-  const intensity = useMemo(() => baseIntensity + (level * 0.1), [baseIntensity, level])
+  const speed = useMemo(() => baseSpeed + streak * 0.05, [baseSpeed, streak])
+  const intensity = useMemo(() => baseIntensity + level * 0.1, [baseIntensity, level])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -70,26 +70,26 @@ export function LightningBackground({
       generateSegments() {
         const segments = []
         const steps = 15 + Math.floor(Math.random() * 10)
-        
+
         for (let i = 0; i <= steps; i++) {
           const progress = i / steps
           const x = this.x + (this.targetX - this.x) * progress
           const y = this.y + (this.targetY - this.y) * progress
-          
+
           // Add random offset for lightning effect
           const offset = (Math.random() - 0.5) * 50 * Math.sin(progress * Math.PI)
           segments.push({
             x: x + offset,
-            y: y
+            y: y,
           })
         }
-        
+
         return segments
       }
 
       update() {
         this.life++
-        
+
         // Fade in and out
         if (this.life < 10) {
           this.alpha = this.life / 10
@@ -117,12 +117,12 @@ export function LightningBackground({
             ctx.lineTo(seg.x, seg.y)
           }
         }
-        
+
         // Main bolt
         ctx.strokeStyle = `hsla(${hue}, 60%, 40%, ${this.alpha * intensity})`
         ctx.lineWidth = this.thickness * intensity
         ctx.stroke()
-        
+
         // Glow effect
         ctx.strokeStyle = `hsla(${hue}, 60%, 40%, ${this.alpha * 0.5 * intensity})`
         ctx.lineWidth = this.thickness * 3 * intensity
@@ -133,7 +133,7 @@ export function LightningBackground({
     // Create lightning bolts
     const bolts: LightningBolt[] = []
     const boltCount = 5 + Math.floor(streak / 2) // More bolts with higher streak
-    
+
     for (let i = 0; i < boltCount; i++) {
       bolts.push(new LightningBolt())
     }
@@ -142,20 +142,20 @@ export function LightningBackground({
     const animate = () => {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.05)'
       ctx.fillRect(0, 0, canvas.width, canvas.height)
-      
+
       // Update and draw bolts
       bolts.forEach(bolt => {
         bolt.update()
         bolt.draw(ctx)
       })
-      
+
       animationRef.current = requestAnimationFrame(animate)
     }
 
     // Start with clear canvas
     ctx.fillStyle = '#000'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
-    
+
     animate()
 
     return () => {
@@ -171,7 +171,7 @@ export function LightningBackground({
       ref={canvasRef}
       className={`fixed inset-0 -z-10 ${className}`}
       style={{
-        background: `radial-gradient(ellipse at center, hsl(${hue}, 50%, 10%) 0%, #000 100%)`
+        background: `radial-gradient(ellipse at center, hsl(${hue}, 50%, 10%) 0%, #000 100%)`,
       }}
     />
   )

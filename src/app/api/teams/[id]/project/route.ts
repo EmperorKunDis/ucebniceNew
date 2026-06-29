@@ -8,10 +8,7 @@ import { validateAPIRequest, submitHackathonProjectSchema } from '@/lib/validati
  * POST /api/teams/[id]/project
  * Submit project for hackathon
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -43,17 +40,11 @@ export async function POST(
 
     // Check hackathon status
     if (membership.team.hackathon.status === 'completed') {
-      return NextResponse.json(
-        { error: 'Hackathon již skončil' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Hackathon již skončil' }, { status: 400 })
     }
 
     if (membership.team.hackathon.status === 'upcoming') {
-      return NextResponse.json(
-        { error: 'Hackathon ještě nezačal' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Hackathon ještě nezačal' }, { status: 400 })
     }
 
     // Check if project already exists
@@ -94,10 +85,7 @@ export async function POST(
  * PUT /api/teams/[id]/project
  * Update submitted project
  */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
 

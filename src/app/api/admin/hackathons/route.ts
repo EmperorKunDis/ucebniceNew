@@ -109,10 +109,7 @@ export async function POST(request: NextRequest) {
     const registrationDeadline = new Date(data.registrationDeadline)
 
     if (endDate <= startDate) {
-      return NextResponse.json(
-        { error: 'Datum konce musí být po datu začátku' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Datum konce musí být po datu začátku' }, { status: 400 })
     }
 
     if (registrationDeadline >= startDate) {

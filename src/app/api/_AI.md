@@ -1,16 +1,20 @@
 # src/app/api/ - AI Context
 
 ## 🎯 PURPOSE
+
 RESTful API endpoints for the application. Handles all server-side business logic, database operations, and authentication.
 
 ## 📦 EXPORTS
+
 No exports. Each `route.ts` file defines HTTP handlers:
+
 - `GET` - Fetch data
 - `POST` - Create/action
 - `PUT/PATCH` - Update
 - `DELETE` - Remove
 
 ## 🔗 DEPENDENCIES
+
 - `next-auth` - Session management
 - `@/lib/prisma` - Database client
 - `@/lib/api-middleware` - Rate limiting
@@ -20,6 +24,7 @@ No exports. Each `route.ts` file defines HTTP handlers:
 ## 🏗️ PATTERNS
 
 ### Standard API Route Structure
+
 ```typescript
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
@@ -45,13 +50,12 @@ export async function POST(request: NextRequest) {
     // ... zod validation
 
     // 4. Business logic with Prisma
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async tx => {
       // ... database operations
     })
 
     // 5. Return response
     return NextResponse.json({ success: true, data: result })
-
   } catch (error) {
     console.error('Error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -60,6 +64,7 @@ export async function POST(request: NextRequest) {
 ```
 
 ### Admin Route Pattern
+
 ```typescript
 // Check admin flag before processing
 const user = await prisma.user.findUnique({ where: { id: session.user.id } })
@@ -78,6 +83,7 @@ if (!user?.isAdmin) {
 6. **Swagger docs**: Add JSDoc comments for `/api-docs` generation
 
 ## 📁 STRUCTURE
+
 ```
 api/
 ├── auth/
@@ -119,12 +125,13 @@ api/
 │   └── [id]/route.ts            # Graduate detail
 ├── leaderboard/route.ts         # XP rankings
 ├── onboarding/complete/route.ts # Complete onboarding
-├── video/[filename]/route.ts    # Serve video files
-├── health/route.ts              # Health check
+├── video/[filename]/route.ts    # Serve video files from VIDEO_FILES_DIR
+├── health/route.ts              # Health check without internal DB error leaks
 └── swagger/route.ts             # API documentation
 ```
 
 ## 🔄 RELATED
+
 - `src/lib/auth.ts` - Authentication configuration
 - `src/lib/prisma.ts` - Database client
 - `src/lib/api-middleware.ts` - Rate limiting
@@ -132,6 +139,7 @@ api/
 - `prisma/schema.prisma` - Database schema
 
 ---
+
 <!-- META: For AI agents -->
 <!-- TRAVERSE: yes -->
 <!-- DEPTH: 2 -->

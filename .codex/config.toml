@@ -1,0 +1,6 @@
+# Project-scoped Codex defaults for UcebniceNew.
+# Keep secrets, provider/auth settings, telemetry, and personal preferences in ~/.codex.
+
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+project_doc_max_bytes = 65536

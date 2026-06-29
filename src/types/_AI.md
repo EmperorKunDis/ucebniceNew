@@ -1,23 +1,26 @@
 # src/types/ - AI Context
 
 ## 🎯 PURPOSE
+
 TypeScript type definitions and declaration files for the application. Extends library types and defines domain-specific interfaces.
 
 ## 📦 EXPORTS
 
-| File | Exports | Description |
-|------|---------|-------------|
-| `next-auth.d.ts` | Extended Session/User types | Adds custom fields to NextAuth |
-| `arena.ts` | Hackathon, Team, Graduate types | Arena feature types |
-| `skills.ts` | SkillNode, SkillEdge types | Skill graph types |
+| File             | Exports                         | Description                    |
+| ---------------- | ------------------------------- | ------------------------------ |
+| `next-auth.d.ts` | Extended Session/User types     | Adds custom fields to NextAuth |
+| `arena.ts`       | Hackathon, Team, Graduate types | Arena feature types            |
+| `skills.ts`      | SkillNode, SkillEdge types      | Skill graph types              |
 
 ## 🔗 DEPENDENCIES
+
 - `next-auth` - Type augmentation
 - TypeScript built-in types
 
 ## 🏗️ PATTERNS
 
 ### NextAuth Type Extension
+
 ```typescript
 // next-auth.d.ts
 declare module 'next-auth' {
@@ -38,6 +41,7 @@ declare module 'next-auth' {
 ```
 
 ### Domain Types
+
 ```typescript
 // arena.ts
 export interface Hackathon {
@@ -64,6 +68,7 @@ export interface Team {
 4. **Prisma types**: Generated types are in `node_modules/.prisma/client` - don't duplicate
 
 ## 📁 STRUCTURE
+
 ```
 types/
 ├── next-auth.d.ts   # NextAuth type extensions (CRITICAL)
@@ -72,10 +77,12 @@ types/
 ```
 
 ## 🔄 RELATED
+
 - `src/lib/auth.ts` - NextAuth config (must match type extensions)
 - `prisma/schema.prisma` - Database types (Prisma generates its own)
 
 ---
+
 <!-- META: For AI agents -->
 <!-- TRAVERSE: no -->
 <!-- DEPTH: all -->

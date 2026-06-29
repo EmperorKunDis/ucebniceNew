@@ -84,7 +84,8 @@ export async function POST(request: NextRequest) {
       projectRequirements: 'Implementovat praktické řešení dle pracovního sešitu',
     })
 
-    // Calculate gems earned (only if AI approved)
+    // Calculate rewards only if AI approved. Provider fallback/manual review must not grant XP.
+    const xpEarned = aiReview.approved ? PROJECT_XP_REWARD : 0
     const gemsEarned = aiReview.approved ? GEMS_FOR_APPROVED_PROJECT : 0
 
     // Create new submission with AI review
@@ -94,60 +95,80 @@ export async function POST(request: NextRequest) {
         chapterId,
         projectUrl,
         description,
-        xpEarned: PROJECT_XP_REWARD,
+        xpEarned,
         gemsEarned,
         aiReviewScore: aiReview.score,
         aiReviewFeedback: aiReview.feedback,
         aiReviewedAt: new Date(),
         aiApproved: aiReview.approved,
+        aiReviewModel: aiReview.model,
+        aiReviewPromptVersion: aiReview.promptVersion,
+        aiReviewLatencyMs: aiReview.latencyMs,
+        aiReviewTokenCount: aiReview.tokenCount,
+        aiReviewFailureReason: aiReview.failureReason,
+        aiManualReviewRequired: aiReview.manualReviewRequired,
+        aiSafetyStatus: aiReview.safetyStatus,
       },
     })
 
     // Award XP and gems
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        xp: { increment: PROJECT_XP_REWARD },
-        gems: { increment: gemsEarned },
-      },
-    })
+    if (xpEarned > 0 || gemsEarned > 0) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          xp: { increment: xpEarned },
+          gems: { increment: gemsEarned },
+        },
+      })
+    }
 
-    // Update chapter completion - set submittedProject flag
-    await prisma.chapterCompletion.upsert({
-      where: {
-        userId_chapterId: {
+    if (aiReview.approved) {
+      // Update chapter completion only after successful automated approval.
+      await prisma.chapterCompletion.upsert({
+        where: {
+          userId_chapterId: {
+            userId: user.id,
+            chapterId,
+          },
+        },
+        create: {
           userId: user.id,
           chapterId,
+          completedChapter: false,
+          answeredQuestions: false,
+          submittedProject: true,
         },
-      },
-      create: {
-        userId: user.id,
-        chapterId,
-        completedChapter: false,
-        answeredQuestions: false,
-        submittedProject: true,
-      },
-      update: {
-        submittedProject: true,
-      },
-    })
+        update: {
+          submittedProject: true,
+        },
+      })
+    }
 
     // Check and award achievements
-    const newAchievements = await checkAndAwardAchievements(user.id)
+    const newAchievements = aiReview.approved ? await checkAndAwardAchievements(user.id) : []
 
     return NextResponse.json({
       message: aiReview.approved
         ? 'Projekt byl schválen AI a ohodnocen!'
-        : 'Projekt byl odevzdán, ale nedosáhl požadovaného skóre.',
-      xpEarned: PROJECT_XP_REWARD,
+        : aiReview.manualReviewRequired
+          ? 'Projekt byl odevzdán a čeká na ruční kontrolu.'
+          : 'Projekt byl odevzdán, ale nedosáhl požadovaného skóre.',
+      xpEarned,
       gemsEarned,
-      submittedProject: true,
+      submittedProject: aiReview.approved,
       aiReview: {
         score: aiReview.score,
         feedback: aiReview.feedback,
         strengths: aiReview.strengths,
         improvements: aiReview.improvements,
         approved: aiReview.approved,
+        model: aiReview.model,
+        promptVersion: aiReview.promptVersion,
+        latencyMs: aiReview.latencyMs,
+        tokenCount: aiReview.tokenCount,
+        failureReason: aiReview.failureReason,
+        safetyStatus: aiReview.safetyStatus,
+        manualReviewRequired: aiReview.manualReviewRequired,
       },
       newAchievements,
     })

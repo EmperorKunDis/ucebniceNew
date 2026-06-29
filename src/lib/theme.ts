@@ -7,7 +7,7 @@ export const colors = {
     pink: 'rgb(236, 72, 153)', // pink-500
     blue: 'rgb(96, 165, 250)', // blue-400
   },
-  
+
   // Gradient combinations
   gradients: {
     primary: 'from-purple-400 to-pink-400',
@@ -15,13 +15,13 @@ export const colors = {
     success: 'from-green-400 to-emerald-500',
     warning: 'from-yellow-400 to-orange-500',
     error: 'from-red-400 to-pink-500',
-    
+
     // Specific use cases
     button: 'from-purple-600 to-pink-600',
     card: 'from-purple-900/30 to-pink-900/30',
     glass: 'from-white/10 to-white/5',
   },
-  
+
   // Background colors
   background: {
     primary: 'rgb(17, 24, 39)', // gray-900
@@ -29,7 +29,7 @@ export const colors = {
     tertiary: 'rgb(55, 65, 81)', // gray-700
     glass: 'rgba(255, 255, 255, 0.1)',
   },
-  
+
   // Text colors
   text: {
     primary: 'rgb(255, 255, 255)', // white
@@ -37,7 +37,7 @@ export const colors = {
     muted: 'rgb(156, 163, 175)', // gray-400
     disabled: 'rgb(107, 114, 128)', // gray-500
   },
-  
+
   // Border colors
   border: {
     primary: 'rgb(75, 85, 99)', // gray-600
@@ -98,7 +98,7 @@ export const breakpoints = {
 } as const
 
 // Utility function pro konzistentní gradient text
-export const gradientText = (gradient: keyof typeof colors.gradients = 'primary') => 
+export const gradientText = (gradient: keyof typeof colors.gradients = 'primary') =>
   `bg-gradient-to-r ${colors.gradients[gradient]} bg-clip-text text-transparent`
 
 // Utility function pro glass effect

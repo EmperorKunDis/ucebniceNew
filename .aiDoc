@@ -1,15 +1,17 @@
 ---
 @META
 dir: .
-updated: 2026-03-18
+updated: 2026-06-29
 files: 38
-stack: Next.js 14, React 18, TypeScript, PostgreSQL, Prisma 7, Tailwind CSS, NextAuth.js, Zustand, TanStack Query, Three.js, Zod, Upstash Redis, Sentry, Playwright, Jest, Storybook, Docker, Kubernetes, Helm, ArgoCD
+stack: Next.js 14, React 18, TypeScript, PostgreSQL, Prisma 7, Tailwind CSS, NextAuth.js, Zustand, TanStack Query, Three.js, Zod, Upstash Redis, Sentry, Playwright, Jest, Storybook, Docker Compose, Caddy
 
 @EXPORTS
 package.json: config — npm scripts & dependencies
 Dockerfile: config — multi-stage Docker build
-docker-compose.yml: config — local dev stack (app + postgres)
-Makefile: config — build/push/deploy shortcuts for K8s
+docker-compose.yml: config — app + postgres + media volume runtime
+docker-compose.prod.yml: config — production Caddy TLS override
+Makefile: config — Docker Compose shortcuts
+scripts/deploy-vps.sh: deploy — VPS deploy with healthcheck and rollback
 next.config.js: config — Next.js configuration
 tailwind.config.js: config — Tailwind CSS theme & plugins
 tsconfig.json: config — TypeScript strict mode + path aliases (@/*)
@@ -21,9 +23,12 @@ prisma.config.ts: config — Prisma 7 adapter config
 DATABASE_URL: string = env — PostgreSQL connection string (required)
 NEXTAUTH_SECRET: string = env — session encryption key (required)
 NEXTAUTH_URL: string = env — app base URL (required)
+VIDEO_FILES_DIR: string = env — mounted video directory (default /data/videa)
 UPSTASH_REDIS_REST_URL: string = env — rate limiting Redis (optional)
 UPSTASH_REDIS_REST_TOKEN: string = env — Redis auth (optional)
 SENTRY_DSN: string = env — error tracking (optional)
+GEMINI_API_KEY: string = env — project review provider key (optional)
+OPENAI_API_KEY: string = env — AI Tutor provider key (optional)
 
 @PROCESSES
 Dev: `npm run dev` → Next.js dev server on :3000
@@ -31,11 +36,11 @@ Build: `npm run build` → production Next.js build
 Test: `npm test` → Jest unit tests | `npm run test:e2e` → Playwright
 Lint: `npm run lint` + `npm run format:check` + `npm run type-check`
 DB: `npx prisma migrate dev` → run migrations | `npx prisma studio` → GUI
-Deploy: `make build` → Docker → `make push` → Harbor → ArgoCD auto-deploy
+Deploy: GitHub `Deploy VPS` workflow → SSH → `scripts/deploy-vps.sh` → Docker Compose
 Seed: `npm run db:seed` → seed chapters & questions into PostgreSQL
 
 @DEPENDENCIES
-internal: src/, prisma/, e2e/, scripts/, data/, public/, helm/, argocd/
+internal: src/, prisma/, e2e/, scripts/, data/, public/, docs/, ops/
 external: next@14, react@18, prisma@7, next-auth@4, zustand@4, @tanstack/react-query@5, zod@4, three@0.181, framer-motion@11, @upstash/redis, @sentry/nextjs@10, d3@7, bcryptjs, lucide-react, react-markdown, react-hot-toast, html2canvas, jspdf, matter-js, clsx, tailwind-merge
 
 @STANDARDS
@@ -46,13 +51,14 @@ external: next@14, react@18, prisma@7, next-auth@4, zustand@4, @tanstack/react-q
 - NextAuth JWT strategy for auth
 - Prisma 7 with pg adapter (not Prisma default driver)
 - Path alias: @/* → src/*
-- ESLint + Prettier + Husky pre-commit hooks
+- ESLint + Prettier + Husky hooks; CI remains authoritative
 - Czech UI text, English code/comments
 
 @WARNINGS
 - Prisma 7 uses pg adapter — NOT standard Prisma driver
 - Rate limiting requires Upstash Redis — gracefully disabled without it
 - 40 chapters of AI education content — static data in src/data/
+- Production runtime videos are mounted through VIDEO_FILES_DIR
 - old_deprecated/ contains legacy code — do not use
 - sentry configs (client/server/edge) at root level
 ---

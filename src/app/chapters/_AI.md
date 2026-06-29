@@ -1,12 +1,15 @@
 # src/app/chapters/ - AI Context
 
 ## 🎯 PURPOSE
+
 Chapter listing and detail pages. The core learning experience - users progress through 40 chapters, each with video, content, questions, and optional project submission.
 
 ## 📦 EXPORTS
+
 No direct exports. Contains chapter pages.
 
 ## 🔗 DEPENDENCIES
+
 - `@/data/chapters` - Chapter definitions
 - `@/data/questions` - Quiz questions
 - `@/components/chapters/*` - Chapter components
@@ -15,6 +18,7 @@ No direct exports. Contains chapter pages.
 ## 🏗️ PATTERNS
 
 ### Chapter List Page
+
 ```typescript
 // /chapters - Lists all chapters with progress
 export default async function ChaptersPage() {
@@ -25,13 +29,10 @@ export default async function ChaptersPage() {
 ```
 
 ### Dynamic Chapter Page
+
 ```typescript
 // /chapters/[chapterId]
-export default async function ChapterPage({ 
-  params 
-}: { 
-  params: { chapterId: string } 
-}) {
+export default async function ChapterPage({ params }: { params: { chapterId: string } }) {
   const chapter = chapters.find(c => c.id === params.chapterId)
   const progress = await getChapterProgress(userId, params.chapterId)
   // Render chapter content
@@ -39,7 +40,9 @@ export default async function ChapterPage({
 ```
 
 ### 3-Star Completion System
+
 Each chapter can earn up to 3 stars:
+
 1. ⭐ **Star 1**: Complete chapter (watch video/read content)
 2. ⭐ **Star 2**: Answer all questions correctly
 3. ⭐ **Star 3**: Submit a project
@@ -53,6 +56,7 @@ Each chapter can earn up to 3 stars:
 5. **Progress persistence**: Saved in ChapterCompletion table
 
 ## 📁 STRUCTURE
+
 ```
 chapters/
 ├── layout.tsx           # Chapter section layout
@@ -62,6 +66,7 @@ chapters/
 ```
 
 ## 🔄 RELATED
+
 - `src/data/chapters.ts` - Chapter definitions (CRITICAL)
 - `src/data/questions.ts` - Quiz questions
 - `src/components/chapters/` - Chapter UI components
@@ -71,6 +76,7 @@ chapters/
 - `data/videa/` - Video files
 
 ---
+
 <!-- META: For AI agents -->
 <!-- TRAVERSE: yes -->
 <!-- DEPTH: 1 -->

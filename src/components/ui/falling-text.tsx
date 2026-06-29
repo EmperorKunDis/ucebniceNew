@@ -28,7 +28,7 @@ export function FallingText({
   wireframes = false,
   gravity = 1,
   mouseConstraintStiffness = 0.2,
-  fontSize = '1rem'
+  fontSize = '1rem',
 }: FallingTextProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const textRef = useRef<HTMLDivElement>(null)
@@ -92,13 +92,13 @@ export function FallingText({
         width,
         height,
         background: backgroundColor,
-        wireframes
-      }
+        wireframes,
+      },
     })
 
     const boundaryOptions = {
       isStatic: true,
-      render: { fillStyle: 'transparent' }
+      render: { fillStyle: 'transparent' },
     }
     const floor = Bodies.rectangle(width / 2, height + 25, width, 50, boundaryOptions)
     const leftWall = Bodies.rectangle(-25, height / 2, 50, height, boundaryOptions)
@@ -116,12 +116,12 @@ export function FallingText({
         render: { fillStyle: 'transparent' },
         restitution: 0.8,
         frictionAir: 0.01,
-        friction: 0.2
+        friction: 0.2,
       })
 
       Matter.Body.setVelocity(body, {
         x: (Math.random() - 0.5) * 5,
-        y: 0
+        y: 0,
       })
       Matter.Body.setAngularVelocity(body, (Math.random() - 0.5) * 0.05)
       return { elem: elem as HTMLElement, body }
@@ -139,12 +139,19 @@ export function FallingText({
       mouse,
       constraint: {
         stiffness: mouseConstraintStiffness,
-        render: { visible: false }
-      }
+        render: { visible: false },
+      },
     })
     render.mouse = mouse
 
-    World.add(engine.world, [floor, leftWall, rightWall, ceiling, mouseConstraint, ...wordBodies.map(wb => wb.body)])
+    World.add(engine.world, [
+      floor,
+      leftWall,
+      rightWall,
+      ceiling,
+      mouseConstraint,
+      ...wordBodies.map(wb => wb.body),
+    ])
 
     const runner = Runner.create()
     Runner.run(runner, engine)
@@ -192,7 +199,7 @@ export function FallingText({
         className="falling-text-target"
         style={{
           fontSize: fontSize,
-          lineHeight: 1.4
+          lineHeight: 1.4,
         }}
       />
       <div ref={canvasContainerRef} className="falling-text-canvas" />

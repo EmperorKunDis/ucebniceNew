@@ -18,7 +18,7 @@ interface CertificateGeneratorProps {
   completedCount: number
 }
 
-export function CertificateGenerator({ 
+export function CertificateGenerator({
   courseName = 'Učebnice programování s AI',
   completionDate = new Date(),
   instructorName = 'AI Mentor',
@@ -27,44 +27,43 @@ export function CertificateGenerator({
   level,
   xp,
   badgesCount,
-  completedCount
+  completedCount,
 }: CertificateGeneratorProps) {
   const certificateRef = useRef<HTMLDivElement>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [stars, setStars] = useState<Array<{ x: number; y: number; size: number }>>([])
 
-  
   // Generate random stars for background
   useEffect(() => {
     const newStars = Array.from({ length: 50 }, () => ({
       x: Math.random() * 100,
       y: Math.random() * 100,
-      size: Math.random() * 3 + 1
+      size: Math.random() * 3 + 1,
     }))
     setStars(newStars)
   }, [])
-  
+
   const generatePDF = async () => {
     if (!certificateRef.current) return
-    
+
     setIsGenerating(true)
-    
+
     try {
       // Capture the certificate as canvas
       const canvas = await html2canvas(certificateRef.current, {
         scale: 2,
         backgroundColor: null,
-        logging: false
+        logging: false,
       })
-      
+
       // Convert to PDF
       const imgData = canvas.toDataURL('image/png')
       const pdf = new jsPDF({
         orientation: 'landscape',
         unit: 'px',
-        format: [canvas.width, canvas.height]
+        format: [canvas.width, canvas.height],
       })
-      
+
       pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height)
       pdf.save(`certificate-${username}-${certificateId}.pdf`)
     } catch (error) {
@@ -73,18 +72,21 @@ export function CertificateGenerator({
       setIsGenerating(false)
     }
   }
-  
+
   const shareOnLinkedIn = () => {
     const text = `Právě jsem úspěšně dokončil kurz "${courseName}"! 🎓\n\nDosáhl jsem úrovně ${level} s ${xp} XP a získal ${badgesCount} odznaků.\n\n#programming #AI #learning`
     const url = window.location.origin
-    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}&summary=${encodeURIComponent(text)}`, '_blank')
+    window.open(
+      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}&summary=${encodeURIComponent(text)}`,
+      '_blank'
+    )
   }
-  
+
   return (
     <div className="w-full max-w-5xl mx-auto">
       {/* Certificate Preview */}
       <div className="mb-8">
-        <div 
+        <div
           ref={certificateRef}
           className="relative aspect-[1.414/1] w-full bg-gradient-to-br from-purple-900 via-purple-800 to-pink-900 rounded-lg overflow-hidden p-12"
         >
@@ -98,30 +100,30 @@ export function CertificateGenerator({
                   left: `${star.x}%`,
                   top: `${star.y}%`,
                   width: star.size,
-                  height: star.size
+                  height: star.size,
                 }}
                 animate={{
                   opacity: [0.2, 1, 0.2],
-                  scale: [1, 1.5, 1]
+                  scale: [1, 1.5, 1],
                 }}
                 transition={{
                   duration: 3 + Math.random() * 2,
                   repeat: Infinity,
-                  delay: Math.random() * 2
+                  delay: Math.random() * 2,
                 }}
               />
             ))}
           </div>
-          
+
           {/* Lightning effects */}
           <div className="absolute inset-0 opacity-20">
             <svg className="w-full h-full">
               <defs>
                 <filter id="glow">
-                  <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                  <feGaussianBlur stdDeviation="4" result="coloredBlur" />
                   <feMerge>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="SourceGraphic"/>
+                    <feMergeNode in="coloredBlur" />
+                    <feMergeNode in="SourceGraphic" />
                   </feMerge>
                 </filter>
               </defs>
@@ -135,19 +137,19 @@ export function CertificateGenerator({
                   filter="url(#glow)"
                   animate={{
                     opacity: [0, 1, 0],
-                    pathLength: [0, 1, 0]
+                    pathLength: [0, 1, 0],
                   }}
                   transition={{
                     duration: 2,
                     repeat: Infinity,
                     delay: i * 0.7,
-                    ease: "easeInOut"
+                    ease: 'easeInOut',
                   }}
                 />
               ))}
             </svg>
           </div>
-          
+
           {/* Certificate content */}
           <div className="relative z-10 h-full flex flex-col items-center justify-center text-center text-white">
             {/* Header */}
@@ -163,7 +165,7 @@ export function CertificateGenerator({
               </div>
               <p className="text-lg text-purple-200">Tímto potvrzujeme, že</p>
             </motion.div>
-            
+
             {/* Student name */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -176,7 +178,7 @@ export function CertificateGenerator({
               </h2>
               <div className="h-1 w-64 mx-auto bg-gradient-to-r from-yellow-400 to-pink-400 rounded-full" />
             </motion.div>
-            
+
             {/* Course completion */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -190,7 +192,7 @@ export function CertificateGenerator({
                 s celkovým počtem {xp} XP, dosažením úrovně {level} a ziskem {badgesCount} odznaků
               </p>
             </motion.div>
-            
+
             {/* Stats */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -211,7 +213,7 @@ export function CertificateGenerator({
                 <p className="text-sm text-purple-200">Získaných odznaků</p>
               </div>
             </motion.div>
-            
+
             {/* Footer */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -222,11 +224,13 @@ export function CertificateGenerator({
               <div className="flex items-center justify-center gap-12 text-sm">
                 <div>
                   <p className="text-purple-200">Datum dokončení</p>
-                  <p className="font-semibold">{completionDate.toLocaleDateString('cs-CZ', {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric'
-                  })}</p>
+                  <p className="font-semibold">
+                    {completionDate.toLocaleDateString('cs-CZ', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })}
+                  </p>
                 </div>
                 <Award className="w-16 h-16 text-yellow-400" />
                 <div>
@@ -237,26 +241,24 @@ export function CertificateGenerator({
               <p className="text-xs text-purple-300 mt-4">ID: {certificateId}</p>
             </motion.div>
           </div>
-          
+
           {/* Decorative borders */}
           <div className="absolute inset-4 border-2 border-purple-400/20 rounded-lg pointer-events-none" />
           <div className="absolute inset-8 border border-purple-300/10 rounded-lg pointer-events-none" />
         </div>
       </div>
-      
+
       {/* Actions */}
       <div className="flex gap-4 justify-center">
-        
-          <button
-            onClick={generatePDF}
-            disabled={isGenerating}
-            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            <Download className="w-5 h-5" />
-            {isGenerating ? 'Generování...' : 'Stáhnout PDF'}
-          </button>
-        
-        
+        <button
+          onClick={generatePDF}
+          disabled={isGenerating}
+          className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        >
+          <Download className="w-5 h-5" />
+          {isGenerating ? 'Generování...' : 'Stáhnout PDF'}
+        </button>
+
         <button
           onClick={shareOnLinkedIn}
           className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all flex items-center gap-2"

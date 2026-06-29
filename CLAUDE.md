@@ -13,6 +13,7 @@ This codebase uses a hierarchical `_AI.md` documentation system for AI agents:
 5. **Before changes**: Check RELATED folders
 
 ### Documentation Files
+
 - `_AI_INDEX.md` - Master index with architecture overview
 - `src/_AI.md` - Source folder overview
 - `src/lib/_AI.md` - Core utilities and business logic
@@ -71,15 +72,15 @@ npx prisma migrate reset # Reset database (CAUTION: deletes all data)
 npm run db:seed          # Seed database with initial data
 ```
 
-### Kubernetes Deployment (via Makefile)
+### VPS Docker Compose Deployment
 
 ```bash
-make build               # Build Docker image
-make push                # Push to Harbor registry
-make deploy-staging      # Deploy to staging environment
-make deploy-production   # Deploy to production
-make logs-staging        # View staging logs
-make logs-production     # View production logs
+make compose-config      # Validate local Docker Compose config
+make compose-config-prod # Validate production Compose config
+make up                  # Start local Compose stack
+make up-prod             # Start production Compose stack on VPS
+make migrate             # Run Prisma migrate deploy in app container
+make logs                # View app logs
 ```
 
 ## Architecture & Key Concepts
@@ -94,6 +95,7 @@ make logs-production     # View production logs
 - **Testing**: Jest for unit tests, Playwright for E2E
 - **Monitoring**: Sentry for error tracking
 - **Rate Limiting**: Upstash Redis
+- **Deployment**: VPS Docker Compose with Caddy reverse proxy and persistent PostgreSQL/media volumes
 
 ### Core Data Models
 
@@ -139,6 +141,10 @@ Optional:
 
 - `SENTRY_DSN`: Error tracking
 - `SENTRY_AUTH_TOKEN`: Sentry deployment tracking
+- `VIDEO_FILES_DIR`: Runtime directory for video files (default `/data/videa`)
+- `GEMINI_API_KEY`: Project review provider key
+- `GEMINI_REVIEW_MODEL`: Gemini project review model override
+- `AI_TUTOR_MODEL`: OpenAI tutor model override
 
 ### Testing Strategy
 

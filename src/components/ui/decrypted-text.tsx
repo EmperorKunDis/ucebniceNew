@@ -28,8 +28,8 @@ const styles = {
     margin: '-1px',
     overflow: 'hidden',
     clip: 'rect(0,0,0,0)',
-    border: 0
-  }
+    border: 0,
+  },
 }
 
 export function DecryptedText({
@@ -93,7 +93,7 @@ export function DecryptedText({
           char,
           isSpace: char === ' ',
           index: i,
-          isRevealed: currentRevealed.has(i)
+          isRevealed: currentRevealed.has(i),
         }))
 
         const nonSpaceChars = positions.filter(p => !p.isSpace && !p.isRevealed).map(p => p.char)
@@ -164,7 +164,16 @@ export function DecryptedText({
     return () => {
       if (interval) clearInterval(interval)
     }
-  }, [isHovering, text, speed, maxIterations, sequential, revealDirection, characters, useOriginalCharsOnly])
+  }, [
+    isHovering,
+    text,
+    speed,
+    maxIterations,
+    sequential,
+    revealDirection,
+    characters,
+    useOriginalCharsOnly,
+  ])
 
   useEffect(() => {
     if (animateOn !== 'view' && animateOn !== 'both') return
@@ -181,7 +190,7 @@ export function DecryptedText({
     const observerOptions = {
       root: null,
       rootMargin: '0px',
-      threshold: 0.1
+      threshold: 0.1,
     }
 
     const observer = new IntersectionObserver(observerCallback, observerOptions)
@@ -201,15 +210,15 @@ export function DecryptedText({
     animateOn === 'hover' || animateOn === 'both'
       ? {
           onMouseEnter: () => setIsHovering(true),
-          onMouseLeave: () => setIsHovering(false)
+          onMouseLeave: () => setIsHovering(false),
         }
       : {}
 
   return (
-    <motion.span 
-      className={cn('inline-block whitespace-pre-wrap', parentClassName)} 
-      ref={containerRef} 
-      {...hoverProps} 
+    <motion.span
+      className={cn('inline-block whitespace-pre-wrap', parentClassName)}
+      ref={containerRef}
+      {...hoverProps}
       {...props}
     >
       <span style={styles.srOnly}>{displayText}</span>

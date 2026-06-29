@@ -1,0 +1,34 @@
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: ucebnice-caddy
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    environment:
+      DOMAIN: ${DOMAIN:?DOMAIN is required}
+      ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL is required}
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./ops/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - ucebnice-network
+
+  app:
+    ports: !reset []
+    expose:
+      - '3000'
+
+  postgres:
+    ports: !reset []
+
+volumes:
+  caddy_data:
+    driver: local
+  caddy_config:
+    driver: local

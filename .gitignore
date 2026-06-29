@@ -69,8 +69,7 @@ scripts/migration/*.backup
 *storybook.log
 storybook-static
 
-# Kubernetes secrets (never commit unsealed secrets!)
+# Runtime secrets (never commit plaintext secrets)
 *-secret.yaml
-!*-sealed-secret.yaml
-!helm/**/templates/*-secret.yaml
-sealed-secrets-key-backup.yaml
+*.env.production
+*.env.staging

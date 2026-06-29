@@ -2,7 +2,7 @@
 
 ## 🎯 PURPOSE
 
-AI-powered tutoring system using OpenAI GPT to help students understand AI/ML concepts with context-aware responses.
+AI-powered tutoring system using OpenAI GPT to help students understand AI/ML concepts with context-aware responses. This is AI-readiness only, not a model training pipeline.
 
 ## 📦 EXPORTS (API Routes)
 
@@ -103,6 +103,7 @@ if (msgTime - lastTimestamp > 1800000) {
 3. **Context window**: Only last 10 messages included in conversation
 4. **Token counting**: Stored for cost tracking, but not billed to user
 5. **Helpful flag**: Exists in schema for feedback, not yet implemented
+6. **Readiness docs**: See `docs/AI_READINESS.md` for eval smoke scenarios and prompt/versioning expectations
 
 ## 📁 STRUCTURE
 

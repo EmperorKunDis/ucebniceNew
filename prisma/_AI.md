@@ -1,14 +1,18 @@
 # prisma/ - AI Context
 
 ## 🎯 PURPOSE
+
 Database schema definition and migrations for PostgreSQL via Prisma ORM. This is the single source of truth for data structure.
 
 ## 📦 EXPORTS
+
 Prisma generates types and client in `node_modules/.prisma/client`:
+
 - `PrismaClient` - Database client class
 - Model types: `User`, `Chapter`, `Achievement`, etc.
 
 ## 🔗 DEPENDENCIES
+
 - `prisma` (dev) - CLI and schema parser
 - `@prisma/client` - Generated client
 - `@prisma/adapter-pg` - PostgreSQL driver adapter
@@ -17,6 +21,7 @@ Prisma generates types and client in `node_modules/.prisma/client`:
 ## 🏗️ PATTERNS
 
 ### Schema Organization
+
 ```prisma
 // 1. Generator & datasource config
 generator client { ... }
@@ -40,6 +45,7 @@ model GraduateProfile { ... }
 ```
 
 ### Index Strategy
+
 ```prisma
 model User {
   // ... fields
@@ -52,6 +58,7 @@ model User {
 ```
 
 ### Relation Patterns
+
 ```prisma
 // One-to-many with cascade delete
 model User {
@@ -74,6 +81,7 @@ model CompletedChapter {
 6. **Migration deploy**: Production uses `prisma migrate deploy`, not `dev`
 
 ## 📁 STRUCTURE
+
 ```
 prisma/
 ├── schema.prisma    # Database schema (CRITICAL)
@@ -83,6 +91,7 @@ prisma/
 ```
 
 ## 🔄 RELATED
+
 - `src/lib/prisma.ts` - Client instantiation
 - `src/lib/auth.ts` - Uses PrismaAdapter
 - `src/app/api/` - API routes using Prisma
@@ -90,32 +99,49 @@ prisma/
 ## 📊 MODEL REFERENCE
 
 ### Core Models
-| Model | Purpose |
-|-------|---------|
-| `User` | User account with XP, level, streak |
-| `Account` | OAuth provider accounts (NextAuth) |
-| `Session` | User sessions (NextAuth) |
-| `Chapter` | Chapter metadata |
-| `CompletedChapter` | Legacy completion tracking |
-| `ChapterCompletion` | 3-star completion system |
-| `Achievement` | Badge definitions |
-| `UserAchievement` | User-badge relationships |
-| `Question` | Quiz questions |
-| `QuestionAnswer` | User answers |
-| `ProjectSubmission` | Project URLs |
-| `ModuleTestAttempt` | Test results |
-| `CognitiveGlitchAttempt` | Glitch challenge results |
+
+| Model                    | Purpose                             |
+| ------------------------ | ----------------------------------- |
+| `User`                   | User account with XP, level, streak |
+| `Account`                | OAuth provider accounts (NextAuth)  |
+| `Session`                | User sessions (NextAuth)            |
+| `Chapter`                | Chapter metadata                    |
+| `CompletedChapter`       | Legacy completion tracking          |
+| `ChapterCompletion`      | 3-star completion system            |
+| `Achievement`            | Badge definitions                   |
+| `UserAchievement`        | User-badge relationships            |
+| `Question`               | Quiz questions                      |
+| `QuestionAnswer`         | User answers                        |
+| `ProjectSubmission`      | Project URLs                        |
+| `ModuleTestAttempt`      | Test results                        |
+| `CognitiveGlitchAttempt` | Glitch challenge results            |
+
+### AI Review Metadata
+
+`ProjectSubmission` stores provider observability fields for Gemini review:
+
+- `aiReviewModel`
+- `aiReviewPromptVersion`
+- `aiReviewLatencyMs`
+- `aiReviewTokenCount`
+- `aiReviewFailureReason`
+- `aiManualReviewRequired`
+- `aiSafetyStatus`
+
+Provider fallback/manual review must not grant XP, gems, or project completion.
 
 ### Arena Models
-| Model | Purpose |
-|-------|---------|
-| `Hackathon` | Competition events |
-| `Team` | Hackathon teams |
-| `TeamMember` | Team membership |
+
+| Model              | Purpose            |
+| ------------------ | ------------------ |
+| `Hackathon`        | Competition events |
+| `Team`             | Hackathon teams    |
+| `TeamMember`       | Team membership    |
 | `HackathonProject` | Submitted projects |
-| `GraduateProfile` | Alumni profiles |
+| `GraduateProfile`  | Alumni profiles    |
 
 ---
+
 <!-- META: For AI agents -->
 <!-- TRAVERSE: no -->
 <!-- DEPTH: all -->

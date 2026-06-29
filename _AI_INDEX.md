@@ -1,12 +1,21 @@
 # Učebnice Codebase - AI Navigation Index
 
 > **Last Updated:** 2026-02-08
-> **Codebase Version:** v1.0.37 + Duolingo Transformation (uncommitted)
+> **Codebase Version:** v2.0 VPS Docker Compose migration (uncommitted)
 > **Total Files:** ~230+ TypeScript/TSX files (62 API routes, 75 components, 42 pages)
 > **Lines of Code:** ~58,000+
-> **Build Status:** ✅ PASSING (`npm run build` OK)
+> **Build Status:** pending local verification after v2.0 migration
 > **TS Errors:** 0 ✅
-> **Changed Files:** 102
+> **Changed Files:** v2.0 production infra, CI, hooks, AI readiness
+
+## v2.0 Production Direction (June 2026)
+
+- Active production target: VPS + Docker Compose.
+- Runtime services: Next.js app, PostgreSQL 16, Caddy reverse proxy/SSL, persistent media volume.
+- Deployment entry points: `docker-compose.yml`, `docker-compose.prod.yml`, `Makefile`, `scripts/deploy-vps.sh`.
+- CI gates: format check, type check, lint, unit tests, build, Compose config validation.
+- Security gates: npm audit high/critical, dependency review, CodeQL, Gitleaks, OpenSSF Scorecard.
+- AI readiness: no model training/MLOps pipeline; existing AI Tutor and Gemini review record provider metadata and fall back to manual review.
 
 ### Recent Fixes (2026-02-08)
 
@@ -156,14 +165,16 @@
 
 ## Quick Reference
 
-| Task               | Target Path                    | Critical Files                                 |
-| ------------------ | ------------------------------ | ---------------------------------------------- |
-| New API route      | `src/app/api/`                 | `src/lib/api-middleware.ts`, `src/lib/auth.ts` |
-| UI component       | `src/components/ui/`           | `src/lib/utils.ts`                             |
-| Learning component | `src/components/learning/`     | Exercise types, skill tree                     |
-| Gamification       | `src/components/gamification/` | Hearts, streak, celebrations                   |
-| Database changes   | `prisma/`                      | `src/lib/prisma.ts`                            |
-| Auth changes       | `src/app/api/auth/`            | `src/lib/auth.ts`                              |
+| Task               | Target Path                                    | Critical Files                                 |
+| ------------------ | ---------------------------------------------- | ---------------------------------------------- |
+| New API route      | `src/app/api/`                                 | `src/lib/api-middleware.ts`, `src/lib/auth.ts` |
+| UI component       | `src/components/ui/`                           | `src/lib/utils.ts`                             |
+| Learning component | `src/components/learning/`                     | Exercise types, skill tree                     |
+| Gamification       | `src/components/gamification/`                 | Hearts, streak, celebrations                   |
+| Database changes   | `prisma/`                                      | `src/lib/prisma.ts`                            |
+| Auth changes       | `src/app/api/auth/`                            | `src/lib/auth.ts`                              |
+| VPS deployment     | `docker-compose*.yml`, `scripts/deploy-vps.sh` | `docs/VPS_DOCKER_DEPLOYMENT.md`                |
+| AI readiness       | `src/lib/gemini.ts`, `src/app/api/ai-tutor/`   | `docs/AI_READINESS.md`                         |
 
 ## Architecture Overview
 
@@ -228,6 +239,7 @@
 | 3D         | Three.js                 | 0.181.x    |
 | Rate Limit | Upstash Redis            | -          |
 | Monitoring | Sentry                   | 10.17.x    |
+| Deployment | Docker Compose + Caddy   | v2.0       |
 
 ## Directory Structure (Updated)
 

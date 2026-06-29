@@ -1,13 +1,14 @@
-# Makefile for Ucebnice Kubernetes Deployment
+# Makefile for Ucebnice v2.0 Docker Compose operations
 
-.PHONY: help build push deploy-staging deploy-production secrets clean
+.PHONY: help build compose-config up down restart logs status shell migrate backup restore video-list clean test lint type-check format-check
 
-# Variables
-REGISTRY ?= harbor.praut.cz
-IMAGE_NAME ?= ucebnice/ucebnice-app
-VERSION ?= $(shell git describe --tags --always --dirty)
-NAMESPACE_STAGING ?= ucebnice-staging
-NAMESPACE_PROD ?= ucebnice-production
+COMPOSE ?= docker compose
+COMPOSE_FILES ?= -f docker-compose.yml
+PROD_COMPOSE_FILES ?= -f docker-compose.yml -f docker-compose.prod.yml
+APP_SERVICE ?= app
+DB_SERVICE ?= postgres
+BACKUP_DIR ?= backups
+BACKUP_FILE ?=
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -15,280 +16,65 @@ help: ## Show this help message
 	@echo 'Available targets:'
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-20s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-# Docker commands
-build: ## Build Docker image
-	@echo "Building image $(REGISTRY)/$(IMAGE_NAME):$(VERSION)"
-	docker build -t $(REGISTRY)/$(IMAGE_NAME):$(VERSION) .
-	docker tag $(REGISTRY)/$(IMAGE_NAME):$(VERSION) $(REGISTRY)/$(IMAGE_NAME):latest
+build: ## Build the application image
+	$(COMPOSE) $(COMPOSE_FILES) build $(APP_SERVICE)
 
-push: build ## Build and push Docker image to registry
-	@echo "Pushing image $(REGISTRY)/$(IMAGE_NAME):$(VERSION)"
-	docker push $(REGISTRY)/$(IMAGE_NAME):$(VERSION)
-	docker push $(REGISTRY)/$(IMAGE_NAME):latest
+compose-config: ## Validate local Docker Compose configuration
+	$(COMPOSE) $(COMPOSE_FILES) config
 
-# Kubernetes commands
-secrets-staging: ## Create secrets for staging environment (plain)
-	./scripts/kubernetes/create-secrets.sh $(NAMESPACE_STAGING)
+compose-config-prod: ## Validate production Docker Compose configuration
+	$(COMPOSE) $(PROD_COMPOSE_FILES) config
 
-secrets-production: ## Create secrets for production environment (plain)
-	./scripts/kubernetes/create-secrets.sh $(NAMESPACE_PROD)
+up: ## Start local Docker Compose stack
+	$(COMPOSE) $(COMPOSE_FILES) up -d --build
 
-sealed-secrets-staging: ## Create sealed secrets for staging environment
-	./scripts/kubernetes/create-sealed-secrets.sh $(NAMESPACE_STAGING)
+up-prod: ## Start production Docker Compose stack on the VPS
+	$(COMPOSE) $(PROD_COMPOSE_FILES) up -d --build
 
-sealed-secrets-production: ## Create sealed secrets for production environment
-	./scripts/kubernetes/create-sealed-secrets.sh $(NAMESPACE_PROD)
+down: ## Stop local Docker Compose stack
+	$(COMPOSE) $(COMPOSE_FILES) down
 
-sealed-postgres-secret: ## Create PostgreSQL sealed secret only
-	./scripts/kubernetes/create-postgres-sealed-secret.sh $(NAMESPACE_PROD)
+restart: ## Restart app service
+	$(COMPOSE) $(COMPOSE_FILES) restart $(APP_SERVICE)
 
-apply-sealed-secrets: ## Apply sealed secrets to cluster
-	@echo "Applying sealed secrets..."
-	kubectl apply -f argocd/harbor-registry-sealed-secret.yaml
-	@if [ -f argocd/postgres-sealed-secret.yaml ]; then \
-		kubectl apply -f argocd/postgres-sealed-secret.yaml; \
-	fi
-	kubectl apply -f argocd/ucebnice-sealed-secret.yaml
-	@echo "Sealed secrets applied. Secrets will be automatically decrypted by the controller."
+logs: ## Follow application logs
+	$(COMPOSE) $(COMPOSE_FILES) logs -f --tail=100 $(APP_SERVICE)
 
-# Helm commands
-helm-lint: ## Lint Helm chart
-	helm lint helm/ucebnice
+status: ## Show Docker Compose service status
+	$(COMPOSE) $(COMPOSE_FILES) ps
 
-helm-template: ## Generate Kubernetes manifests from Helm chart
-	helm template ucebnice helm/ucebnice -n $(NAMESPACE_PROD)
+shell: ## Open a shell in the app container
+	$(COMPOSE) $(COMPOSE_FILES) exec $(APP_SERVICE) sh
 
-helm-install-staging: ## Install Helm chart to staging
-	helm install ucebnice helm/ucebnice \
-		-n $(NAMESPACE_STAGING) \
-		--create-namespace \
-		-f argocd/values-staging.yaml \
-		--set image.tag=$(VERSION)
+migrate: ## Run Prisma migrations against the Compose database
+	$(COMPOSE) $(COMPOSE_FILES) exec $(APP_SERVICE) npx prisma migrate deploy
 
-helm-upgrade-staging: ## Upgrade Helm chart in staging
-	helm upgrade ucebnice helm/ucebnice \
-		-n $(NAMESPACE_STAGING) \
-		-f argocd/values-staging.yaml \
-		--set image.tag=$(VERSION)
+backup: ## Back up the Compose PostgreSQL database
+	@mkdir -p $(BACKUP_DIR)
+	$(COMPOSE) $(COMPOSE_FILES) exec -T $(DB_SERVICE) pg_dump -U $${POSTGRES_USER:-ucebnice_user} $${POSTGRES_DB:-ucebnice_db} > $(BACKUP_DIR)/ucebnice-$$(date +%Y%m%d-%H%M%S).sql
 
-helm-install-production: ## Install Helm chart to production
-	helm install ucebnice helm/ucebnice \
-		-n $(NAMESPACE_PROD) \
-		--create-namespace \
-		-f argocd/values-production.yaml \
-		--set image.tag=$(VERSION)
-
-helm-upgrade-production: ## Upgrade Helm chart in production
-	helm upgrade ucebnice helm/ucebnice \
-		-n $(NAMESPACE_PROD) \
-		-f argocd/values-production.yaml \
-		--set image.tag=$(VERSION)
-
-# Argo CD commands
-argocd-apply: ## Apply Argo CD Application
-	kubectl apply -f argocd/application.yaml
-
-argocd-sync: ## Trigger Argo CD sync
-	argocd app sync ucebnice
-
-argocd-status: ## Check Argo CD application status
-	argocd app get ucebnice
-
-# Deployment commands
-deploy-staging: push ## Deploy to staging (build, push, update ArgoCD)
-	@echo "Deploying version $(VERSION) to staging"
-	./scripts/kubernetes/deploy.sh staging $(VERSION)
-
-deploy-production: push ## Deploy to production (build, push, update ArgoCD)
-	@echo "Deploying version $(VERSION) to production"
-	./scripts/kubernetes/deploy.sh production $(VERSION)
-
-# Monitoring commands
-logs-staging: ## Show logs from staging pods
-	kubectl -n $(NAMESPACE_STAGING) logs -l app.kubernetes.io/name=ucebnice --tail=100 -f
-
-logs-production: ## Show logs from production pods
-	kubectl -n $(NAMESPACE_PROD) logs -l app.kubernetes.io/name=ucebnice --tail=100 -f
-
-status-staging: ## Check status in staging
-	@echo "=== Pods ==="
-	kubectl -n $(NAMESPACE_STAGING) get pods
-	@echo "\n=== Services ==="
-	kubectl -n $(NAMESPACE_STAGING) get svc
-	@echo "\n=== Ingress ==="
-	kubectl -n $(NAMESPACE_STAGING) get ingress
-
-status-production: ## Check status in production
-	@echo "=== Pods ==="
-	kubectl -n $(NAMESPACE_PROD) get pods
-	@echo "\n=== Services ==="
-	kubectl -n $(NAMESPACE_PROD) get svc
-	@echo "\n=== Ingress ==="
-	kubectl -n $(NAMESPACE_PROD) get ingress
-
-# Debugging commands
-debug-pod-staging: ## Get shell in staging pod
-	kubectl -n $(NAMESPACE_STAGING) exec -it $(shell kubectl -n $(NAMESPACE_STAGING) get pod -l app.kubernetes.io/name=ucebnice -o jsonpath='{.items[0].metadata.name}') -- sh
-
-debug-pod-production: ## Get shell in production pod
-	kubectl -n $(NAMESPACE_PROD) exec -it $(shell kubectl -n $(NAMESPACE_PROD) get pod -l app.kubernetes.io/name=ucebnice -o jsonpath='{.items[0].metadata.name}') -- sh
-
-port-forward-staging: ## Port forward to staging service
-	kubectl -n $(NAMESPACE_STAGING) port-forward svc/ucebnice 3000:80
-
-port-forward-production: ## Port forward to production service
-	kubectl -n $(NAMESPACE_PROD) port-forward svc/ucebnice 3000:80
-
-# Database commands
-db-migrate-staging: ## Run database migrations in staging
-	kubectl -n $(NAMESPACE_STAGING) exec -it $(shell kubectl -n $(NAMESPACE_STAGING) get pod -l app.kubernetes.io/name=ucebnice -o jsonpath='{.items[0].metadata.name}') -- npx prisma migrate deploy
-
-db-migrate-production: ## Run database migrations in production
-	kubectl -n $(NAMESPACE_PROD) exec -it $(shell kubectl -n $(NAMESPACE_PROD) get pod -l app.kubernetes.io/name=ucebnice -o jsonpath='{.items[0].metadata.name}') -- npx prisma migrate deploy
-
-# PostgreSQL commands (for in-cluster PostgreSQL)
-postgres-connect-staging: ## Connect to PostgreSQL in staging
-	kubectl -n $(NAMESPACE_STAGING) exec -it $(NAMESPACE_STAGING)-postgres-0 -- psql -U ucebnice -d ucebnice
-
-postgres-connect-production: ## Connect to PostgreSQL in production
-	kubectl -n $(NAMESPACE_PROD) exec -it $(NAMESPACE_PROD)-postgres-0 -- psql -U ucebnice -d ucebnice
-
-postgres-logs-staging: ## View PostgreSQL logs in staging
-	kubectl -n $(NAMESPACE_STAGING) logs -f $(NAMESPACE_STAGING)-postgres-0
-
-postgres-logs-production: ## View PostgreSQL logs in production
-	kubectl -n $(NAMESPACE_PROD) logs -f $(NAMESPACE_PROD)-postgres-0
-
-postgres-backup-staging: ## Backup PostgreSQL database in staging
-	@echo "Creating backup..."
-	kubectl -n $(NAMESPACE_STAGING) exec $(NAMESPACE_STAGING)-postgres-0 -- pg_dump -U ucebnice ucebnice > backup-staging-$(shell date +%Y%m%d-%H%M%S).sql
-	@echo "Backup created: backup-staging-$(shell date +%Y%m%d-%H%M%S).sql"
-
-postgres-backup-production: ## Backup PostgreSQL database in production
-	@echo "Creating backup..."
-	kubectl -n $(NAMESPACE_PROD) exec $(NAMESPACE_PROD)-postgres-0 -- pg_dump -U ucebnice ucebnice > backup-production-$(shell date +%Y%m%d-%H%M%S).sql
-	@echo "Backup created: backup-production-$(shell date +%Y%m%d-%H%M%S).sql"
-
-postgres-restore-staging: ## Restore PostgreSQL database in staging (requires BACKUP_FILE variable)
+restore: ## Restore PostgreSQL database from BACKUP_FILE=path.sql
 	@if [ -z "$(BACKUP_FILE)" ]; then \
-		echo "Error: BACKUP_FILE not specified"; \
-		echo "Usage: make postgres-restore-staging BACKUP_FILE=backup.sql"; \
+		echo "Error: BACKUP_FILE is required"; \
 		exit 1; \
 	fi
-	@echo "Restoring from $(BACKUP_FILE)..."
-	kubectl -n $(NAMESPACE_STAGING) cp $(BACKUP_FILE) $(NAMESPACE_STAGING)-postgres-0:/tmp/restore.sql
-	kubectl -n $(NAMESPACE_STAGING) exec $(NAMESPACE_STAGING)-postgres-0 -- psql -U ucebnice -d ucebnice -f /tmp/restore.sql
-	@echo "Restore complete"
+	@read -p "Restore database from $(BACKUP_FILE)? Type yes: " confirm; [ "$$confirm" = "yes" ]
+	$(COMPOSE) $(COMPOSE_FILES) exec -T $(DB_SERVICE) psql -U $${POSTGRES_USER:-ucebnice_user} -d $${POSTGRES_DB:-ucebnice_db} < $(BACKUP_FILE)
 
-postgres-restore-production: ## Restore PostgreSQL database in production (requires BACKUP_FILE variable)
-	@if [ -z "$(BACKUP_FILE)" ]; then \
-		echo "Error: BACKUP_FILE not specified"; \
-		echo "Usage: make postgres-restore-production BACKUP_FILE=backup.sql"; \
-		exit 1; \
-	fi
-	@echo "⚠️  WARNING: Restoring production database!"
-	@read -p "Are you sure? (yes/no): " confirm && [ "$$confirm" = "yes" ] || (echo "Cancelled" && exit 1)
-	@echo "Restoring from $(BACKUP_FILE)..."
-	kubectl -n $(NAMESPACE_PROD) cp $(BACKUP_FILE) $(NAMESPACE_PROD)-postgres-0:/tmp/restore.sql
-	kubectl -n $(NAMESPACE_PROD) exec $(NAMESPACE_PROD)-postgres-0 -- psql -U ucebnice -d ucebnice -f /tmp/restore.sql
-	@echo "Restore complete"
+video-list: ## List mounted runtime videos
+	$(COMPOSE) $(COMPOSE_FILES) exec $(APP_SERVICE) ls -lh /data/videa
 
-postgres-status: ## Check PostgreSQL pod status
-	@echo "=== Staging ==="
-	@kubectl -n $(NAMESPACE_STAGING) get pods -l app.kubernetes.io/component=database || echo "Not deployed in staging"
-	@echo "\n=== Production ==="
-	@kubectl -n $(NAMESPACE_PROD) get pods -l app.kubernetes.io/component=database || echo "Not deployed in production"
+clean: ## Remove stopped Compose resources for this project
+	$(COMPOSE) $(COMPOSE_FILES) down --remove-orphans
 
-# Video storage commands
-video-upload-staging: ## Upload videos to staging PVC
-	@if [ -z "$(VIDEO_PATH)" ]; then \
-		echo "Error: VIDEO_PATH not specified"; \
-		echo "Usage: make video-upload-staging VIDEO_PATH=./data/videa"; \
-		exit 1; \
-	fi
-	@echo "Uploading videos from $(VIDEO_PATH) to staging..."
-	@POD=$$(kubectl -n $(NAMESPACE_STAGING) get pod -l app.kubernetes.io/name=ucebnice -o jsonpath='{.items[0].metadata.name}'); \
-	kubectl -n $(NAMESPACE_STAGING) cp $(VIDEO_PATH)/. $$POD:/data/videa/
-	@echo "Upload complete"
+format-check: ## Run Prettier check
+	npm run format:check
 
-video-upload-production: ## Upload videos to production PVC
-	@if [ -z "$(VIDEO_PATH)" ]; then \
-		echo "Error: VIDEO_PATH not specified"; \
-		echo "Usage: make video-upload-production VIDEO_PATH=./data/videa"; \
-		exit 1; \
-	fi
-	@echo "⚠️  WARNING: Uploading videos to production!"
-	@read -p "Are you sure? (yes/no): " confirm && [ "$$confirm" = "yes" ] || (echo "Cancelled" && exit 1)
-	@echo "Uploading videos from $(VIDEO_PATH) to production..."
-	@POD=$$(kubectl -n $(NAMESPACE_PROD) get pod -l app.kubernetes.io/name=ucebnice -o jsonpath='{.items[0].metadata.name}'); \
-	kubectl -n $(NAMESPACE_PROD) cp $(VIDEO_PATH)/. $$POD:/data/videa/
-	@echo "Upload complete"
+type-check: ## Run TypeScript check
+	npm run type-check
 
-video-list-staging: ## List videos in staging PVC
-	@POD=$$(kubectl -n $(NAMESPACE_STAGING) get pod -l app.kubernetes.io/name=ucebnice -o jsonpath='{.items[0].metadata.name}'); \
-	kubectl -n $(NAMESPACE_STAGING) exec $$POD -- ls -lh /data/videa/
+lint: ## Run ESLint
+	npm run lint
 
-video-list-production: ## List videos in production PVC
-	@POD=$$(kubectl -n $(NAMESPACE_PROD) get pod -l app.kubernetes.io/name=ucebnice -o jsonpath='{.items[0].metadata.name}'); \
-	kubectl -n $(NAMESPACE_PROD) exec $$POD -- ls -lh /data/videa/
-
-data-storage-status: ## Check data PVC status
-	@echo "=== Staging ==="
-	@kubectl -n $(NAMESPACE_STAGING) get pvc -l app.kubernetes.io/component=data-storage || echo "Not enabled"
-	@echo "\n=== Production ==="
-	@kubectl -n $(NAMESPACE_PROD) get pvc -l app.kubernetes.io/component=data-storage || echo "Not enabled"
-
-# Cleanup commands
-clean: ## Remove local Docker images
-	docker rmi $(REGISTRY)/$(IMAGE_NAME):$(VERSION) || true
-	docker rmi $(REGISTRY)/$(IMAGE_NAME):latest || true
-
-uninstall-staging: ## Uninstall from staging
-	helm uninstall ucebnice -n $(NAMESPACE_STAGING)
-
-uninstall-production: ## Uninstall from production
-	helm uninstall ucebnice -n $(NAMESPACE_PROD)
-
-# Local Docker testing
-docker-run: ## Run Docker image locally with env file
-	@echo "Starting Docker container locally..."
-	docker run --rm -it \
-		--name ucebnice-test \
-		-p 3000:3000 \
-		--env-file .env.docker \
-		$(REGISTRY)/$(IMAGE_NAME):$(VERSION)
-
-docker-run-detached: ## Run Docker image in background
-	@echo "Starting Docker container in background..."
-	docker run -d \
-		--name ucebnice-test \
-		-p 3000:3000 \
-		--env-file .env.docker \
-		$(REGISTRY)/$(IMAGE_NAME):$(VERSION)
-	@echo "Container started. View logs with: docker logs -f ucebnice-test"
-	@echo "Stop with: docker stop ucebnice-test && docker rm ucebnice-test"
-
-docker-logs: ## View logs from local Docker container
-	docker logs -f ucebnice-test
-
-docker-stop: ## Stop and remove local Docker container
-	docker stop ucebnice-test && docker rm ucebnice-test
-
-docker-shell: ## Get shell in local Docker container
-	docker exec -it ucebnice-test sh
-
-docker-test: build docker-run ## Build and run Docker image locally
-	@echo "Testing Docker image locally"
-
-# Development commands
-dev: ## Run development server locally
-	npm run dev
-
-build-local: ## Build Next.js app locally
-	npm run build
-
-test: ## Run tests
-	npm test
-
-test-e2e: ## Run E2E tests
-	npm run test:e2e
+test: ## Run Jest tests
+	npm test -- --runInBand

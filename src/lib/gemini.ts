@@ -4,7 +4,8 @@
  * Uses Google's Gemini API to evaluate student projects
  */
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY
+const GEMINI_REVIEW_MODEL = process.env.GEMINI_REVIEW_MODEL ?? 'gemini-1.5-flash'
+export const PROJECT_REVIEW_PROMPT_VERSION = 'project-review-v2.0.0'
 
 interface ProjectReviewResult {
   score: number // 0-100
@@ -12,6 +13,13 @@ interface ProjectReviewResult {
   strengths: string[]
   improvements: string[]
   approved: boolean // score >= 70
+  model: string
+  promptVersion: string
+  latencyMs: number
+  tokenCount: number | null
+  failureReason: string | null
+  safetyStatus: 'passed' | 'manual_review' | 'provider_error'
+  manualReviewRequired: boolean
 }
 
 interface ReviewProjectParams {
@@ -28,9 +36,12 @@ interface ReviewProjectParams {
 export async function reviewProjectWithGemini(
   params: ReviewProjectParams
 ): Promise<ProjectReviewResult> {
-  if (!GEMINI_API_KEY) {
+  const startedAt = Date.now()
+  const geminiApiKey = process.env.GEMINI_API_KEY
+
+  if (!geminiApiKey) {
     console.warn('GEMINI_API_KEY not configured, using fallback review')
-    return fallbackReview()
+    return fallbackReview('missing_api_key', Date.now() - startedAt)
   }
 
   const { projectCode, chapterTitle, chapterDescription, projectRequirements, referenceNotebook } =
@@ -74,7 +85,7 @@ Buď přísný ale povzbudivý. Pokud kód nesplňuje základní požadavky, dej
 
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_REVIEW_MODEL}:generateContent?key=${geminiApiKey}`,
       {
         method: 'POST',
         headers: {
@@ -97,7 +108,7 @@ Buď přísný ale povzbudivý. Pokud kód nesplňuje základní požadavky, dej
     if (!response.ok) {
       const errorText = await response.text()
       console.error('Gemini API error:', response.status, errorText)
-      return fallbackReview()
+      return fallbackReview(`provider_http_${response.status}`, Date.now() - startedAt)
     }
 
     const data = await response.json()
@@ -105,7 +116,7 @@ Buď přísný ale povzbudivý. Pokud kód nesplňuje základní požadavky, dej
 
     if (!text) {
       console.error('No text in Gemini response')
-      return fallbackReview()
+      return fallbackReview('empty_provider_response', Date.now() - startedAt)
     }
 
     // Parse JSON from response (handle potential markdown code blocks)
@@ -118,30 +129,52 @@ Buď přísný ale povzbudivý. Pokud kód nesplňuje základní požadavky, dej
     }
 
     const result = JSON.parse(jsonStr)
+    const score = Math.min(100, Math.max(0, result.score || 0))
 
     return {
-      score: Math.min(100, Math.max(0, result.score || 0)),
+      score,
       feedback: result.feedback || 'Projekt byl zhodnocen.',
       strengths: result.strengths || [],
       improvements: result.improvements || [],
-      approved: (result.score || 0) >= 70,
+      approved: score >= 70,
+      model: GEMINI_REVIEW_MODEL,
+      promptVersion: PROJECT_REVIEW_PROMPT_VERSION,
+      latencyMs: Date.now() - startedAt,
+      tokenCount: data.usageMetadata?.totalTokenCount ?? null,
+      failureReason: null,
+      safetyStatus: 'passed',
+      manualReviewRequired: false,
     }
   } catch (error) {
     console.error('Error calling Gemini:', error)
-    return fallbackReview()
+    return fallbackReview(
+      error instanceof SyntaxError ? 'invalid_provider_json' : 'provider_exception',
+      Date.now() - startedAt
+    )
   }
 }
 
 /**
  * Fallback review when Gemini is not available
  */
-function fallbackReview(): ProjectReviewResult {
+function fallbackReview(
+  failureReason = 'provider_unavailable',
+  latencyMs = 0
+): ProjectReviewResult {
   return {
-    score: 75,
-    feedback: 'Projekt byl přijat. Pro detailnější zpětnou vazbu prosím kontaktujte učitele.',
-    strengths: ['Projekt byl odevzdán včas'],
-    improvements: ['Doporučujeme přidat více komentářů do kódu'],
-    approved: true,
+    score: 0,
+    feedback:
+      'Automatické hodnocení není momentálně dostupné. Projekt čeká na ruční kontrolu učitelem.',
+    strengths: [],
+    improvements: ['Vyčkej na ruční kontrolu nebo kontaktuj učitele.'],
+    approved: false,
+    model: GEMINI_REVIEW_MODEL,
+    promptVersion: PROJECT_REVIEW_PROMPT_VERSION,
+    latencyMs,
+    tokenCount: null,
+    failureReason,
+    safetyStatus: failureReason === 'missing_api_key' ? 'manual_review' : 'provider_error',
+    manualReviewRequired: true,
   }
 }
 
@@ -153,8 +186,11 @@ export async function reviewMilestoneProject(
   milestone: number,
   chaptersSummary: string
 ): Promise<ProjectReviewResult> {
-  if (!GEMINI_API_KEY) {
-    return fallbackReview()
+  const startedAt = Date.now()
+  const geminiApiKey = process.env.GEMINI_API_KEY
+
+  if (!geminiApiKey) {
+    return fallbackReview('missing_api_key', Date.now() - startedAt)
   }
 
   const prompt = `Jsi přísný učitel programování. Zhodnoť závěrečný projekt po ${milestone}. kapitole.
@@ -183,7 +219,7 @@ Odpověz POUZE v JSON formátu:
 
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_REVIEW_MODEL}:generateContent?key=${geminiApiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -195,13 +231,13 @@ Odpověz POUZE v JSON formátu:
     )
 
     if (!response.ok) {
-      return fallbackReview()
+      return fallbackReview(`provider_http_${response.status}`, Date.now() - startedAt)
     }
 
     const data = await response.json()
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text
 
-    if (!text) return fallbackReview()
+    if (!text) return fallbackReview('empty_provider_response', Date.now() - startedAt)
 
     let jsonStr = text.trim()
     if (jsonStr.startsWith('```')) {
@@ -212,16 +248,27 @@ Odpověz POUZE v JSON formátu:
     }
 
     const result = JSON.parse(jsonStr)
+    const score = Math.min(100, Math.max(0, result.score || 0))
 
     return {
-      score: Math.min(100, Math.max(0, result.score || 0)),
+      score,
       feedback: result.feedback || '',
       strengths: result.strengths || [],
       improvements: result.improvements || [],
-      approved: (result.score || 0) >= 70,
+      approved: score >= 70,
+      model: GEMINI_REVIEW_MODEL,
+      promptVersion: PROJECT_REVIEW_PROMPT_VERSION,
+      latencyMs: Date.now() - startedAt,
+      tokenCount: data.usageMetadata?.totalTokenCount ?? null,
+      failureReason: null,
+      safetyStatus: 'passed',
+      manualReviewRequired: false,
     }
   } catch (error) {
     console.error('Error in milestone review:', error)
-    return fallbackReview()
+    return fallbackReview(
+      error instanceof SyntaxError ? 'invalid_provider_json' : 'provider_exception',
+      Date.now() - startedAt
+    )
   }
 }

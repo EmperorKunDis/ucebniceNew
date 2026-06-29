@@ -283,7 +283,7 @@ export function LaserFlow({
   decay = 1.1,
   falloffStart = 1.2,
   fogFallSpeed = 0.6,
-  color = '#FF79C6'
+  color = '#FF79C6',
 }: LaserFlowProps) {
   const mountRef = useRef<HTMLDivElement>(null)
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null)
@@ -323,7 +323,7 @@ export function LaserFlow({
       premultipliedAlpha: false,
       preserveDrawingBuffer: false,
       failIfMajorPerformanceCaveat: false,
-      logarithmicDepthBuffer: false
+      logarithmicDepthBuffer: false,
     })
     rendererRef.current = renderer
 
@@ -344,7 +344,10 @@ export function LaserFlow({
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1)
 
     const geometry = new THREE.BufferGeometry()
-    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array([-1, -1, 0, 3, -1, 0, -1, 3, 0]), 3))
+    geometry.setAttribute(
+      'position',
+      new THREE.BufferAttribute(new Float32Array([-1, -1, 0, 3, -1, 0, -1, 3, 0]), 3)
+    )
 
     const uniforms = {
       iTime: { value: 0 },
@@ -368,7 +371,7 @@ export function LaserFlow({
       uFalloffStart: { value: falloffStart },
       uFogFallSpeed: { value: fogFallSpeed },
       uColor: { value: new THREE.Vector3(1, 1, 1) },
-      uFade: { value: hasFadedRef.current ? 1 : 0 }
+      uFade: { value: hasFadedRef.current ? 1 : 0 },
     }
     uniformsRef.current = uniforms
 
@@ -379,7 +382,7 @@ export function LaserFlow({
       transparent: false,
       depthTest: false,
       depthWrite: false,
-      blending: THREE.NormalBlending
+      blending: THREE.NormalBlending,
     })
 
     const mesh = new THREE.Mesh(geometry, material)
@@ -584,7 +587,7 @@ export function LaserFlow({
     decay,
     falloffStart,
     fogFallSpeed,
-    color
+    color,
   ])
 
   return <div ref={mountRef} className={`laser-flow-container ${className || ''}`} style={style} />

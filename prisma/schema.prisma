@@ -179,11 +179,11 @@ model User {
   role          Role      @default(USER)
 
   // Gamification core
-  xp            Int       @default(0)
-  level         Int       @default(1)
-  gems          Int       @default(100)
-  currentStreak Int       @default(0)
-  longestStreak Int       @default(0)
+  xp             Int       @default(0)
+  level          Int       @default(1)
+  gems           Int       @default(100)
+  currentStreak  Int       @default(0)
+  longestStreak  Int       @default(0)
   lastActiveDate DateTime?
 
   // Hearts system
@@ -244,11 +244,11 @@ model User {
   graduateProfile GraduateProfile?
 
   // Certificate & Tests
-  certificates                 Certificate[]
-  milestoneTests               MilestoneTest[]
-  finalTest                    FinalTest?
-  advancedChapterCompletions   AdvancedChapterCompletion[]
-  advancedProjectSubmissions   AdvancedProjectSubmission[]
+  certificates               Certificate[]
+  milestoneTests             MilestoneTest[]
+  finalTest                  FinalTest?
+  advancedChapterCompletions AdvancedChapterCompletion[]
+  advancedProjectSubmissions AdvancedProjectSubmission[]
 
   // Indexes for performance
   @@index([xp])
@@ -321,7 +321,7 @@ model CompletedChapter {
 model ChapterCompletion {
   id                String   @id @default(uuid())
   userId            String
-  chapterId         String   // "01", "02", etc
+  chapterId         String // "01", "02", etc
   completedChapter  Boolean  @default(false)
   answeredQuestions Boolean  @default(false)
   submittedProject  Boolean  @default(false)
@@ -507,14 +507,14 @@ model UserAchievement {
 }
 
 model StreakHistory {
-  id               String             @id @default(uuid())
+  id               String              @id @default(uuid())
   userId           String
-  date             DateTime           @db.Date
-  xpEarned         Int                @default(0)
-  lessonsCompleted Int                @default(0)
-  froze            Boolean            @default(false)
+  date             DateTime            @db.Date
+  xpEarned         Int                 @default(0)
+  lessonsCompleted Int                 @default(0)
+  froze            Boolean             @default(false)
   freezeSource     StreakFreezeSource?
-  createdAt        DateTime           @default(now())
+  createdAt        DateTime            @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -812,10 +812,17 @@ model ProjectSubmission {
   submittedAt DateTime @default(now())
 
   // AI Review fields
-  aiReviewScore    Int?      // 0-100
-  aiReviewFeedback String?   // Detailed feedback from Gemini
-  aiReviewedAt     DateTime?
-  aiApproved       Boolean   @default(false)
+  aiReviewScore          Int? // 0-100
+  aiReviewFeedback       String? // Detailed feedback from Gemini
+  aiReviewedAt           DateTime?
+  aiApproved             Boolean   @default(false)
+  aiReviewModel          String?
+  aiReviewPromptVersion  String?
+  aiReviewLatencyMs      Int?
+  aiReviewTokenCount     Int?
+  aiReviewFailureReason  String?
+  aiManualReviewRequired Boolean   @default(false)
+  aiSafetyStatus         String?
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   chapter Chapter @relation(fields: [chapterId], references: [chapterId])
@@ -825,6 +832,7 @@ model ProjectSubmission {
   @@index([chapterId])
   @@index([submittedAt])
   @@index([aiApproved])
+  @@index([aiManualReviewRequired])
 }
 
 model ModuleTestAttempt {
@@ -856,21 +864,21 @@ model ModuleTestAttempt {
 // ═══════════════════════════════════════════════════════════
 
 model Hackathon {
-  id                   String   @id @default(uuid())
+  id                   String                  @id @default(uuid())
   title                String
   description          String
   theme                String
   startDate            DateTime
   endDate              DateTime
-  status               String   @default("upcoming")
-  maxTeamSize          Int      @default(4)
+  status               String                  @default("upcoming")
+  maxTeamSize          Int                     @default(4)
   registrationDeadline DateTime
   bannerImage          String?
   prizes               Json
   judges               Json
-  sponsors             Json     @default("[]")
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  sponsors             Json                    @default("[]")
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
   teams                Team[]
   projects             HackathonProject[]
   registrations        HackathonRegistration[]
@@ -958,21 +966,21 @@ model GraduateProfile {
 // ═══════════════════════════════════════════════════════════
 
 model Certificate {
-  id               String   @id @default(uuid())
-  uniqueCode       String   @unique // e.g., "CERT-2024-XXXXX"
-  userId           String
-  userName         String   // Snapshot of name at time of certificate
-  courseTitle      String   @default("Učebnice programování AI")
-  courseLevel      String   @default("foundation") // "foundation" (40 chapters) or "advanced" (50 chapters)
-  completedAt      DateTime @default(now())
-  totalXP          Int
-  totalChapters    Int
-  averageScore     Float?
-  pdfPath          String?  // Path to generated PDF
-  verificationUrl  String?  // URL for QR code verification
-  
+  id              String   @id @default(uuid())
+  uniqueCode      String   @unique // e.g., "CERT-2024-XXXXX"
+  userId          String
+  userName        String // Snapshot of name at time of certificate
+  courseTitle     String   @default("Učebnice programování AI")
+  courseLevel     String   @default("foundation") // "foundation" (40 chapters) or "advanced" (50 chapters)
+  completedAt     DateTime @default(now())
+  totalXP         Int
+  totalChapters   Int
+  averageScore    Float?
+  pdfPath         String? // Path to generated PDF
+  verificationUrl String? // URL for QR code verification
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@index([userId])
   @@index([uniqueCode])
   @@index([completedAt])
@@ -983,23 +991,23 @@ model Certificate {
 // ═══════════════════════════════════════════════════════════
 
 model MilestoneTest {
-  id              String   @id @default(uuid())
-  userId          String
-  milestone       Int      // 10, 20, 30, or 40 (final)
-  score           Int      // Percentage 0-100
-  questionsTotal  Int      @default(20)
+  id               String    @id @default(uuid())
+  userId           String
+  milestone        Int // 10, 20, 30, or 40 (final)
+  score            Int // Percentage 0-100
+  questionsTotal   Int       @default(20)
   questionsCorrect Int
-  projectSubmitted Boolean @default(false)
-  projectScore    Int?
-  projectFeedback String?
-  passed          Boolean  @default(false)
-  gemsEarned      Int      @default(0)
-  xpEarned        Int      @default(0)
-  startedAt       DateTime @default(now())
-  completedAt     DateTime?
-  
+  projectSubmitted Boolean   @default(false)
+  projectScore     Int?
+  projectFeedback  String?
+  passed           Boolean   @default(false)
+  gemsEarned       Int       @default(0)
+  xpEarned         Int       @default(0)
+  startedAt        DateTime  @default(now())
+  completedAt      DateTime?
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@unique([userId, milestone])
   @@index([userId])
   @@index([milestone])
@@ -1007,22 +1015,22 @@ model MilestoneTest {
 }
 
 model FinalTest {
-  id                 String   @id @default(uuid())
-  userId             String   @unique
-  questionsScore     Int      // 0-100 for logic questions
-  selectedProjectId  Int      // 1, 2, or 3
-  projectSubmitted   Boolean  @default(false)
-  projectUrl         String?
-  projectScore       Int?
-  projectFeedback    String?
-  passed             Boolean  @default(false)
-  gemsEarned         Int      @default(0)
-  xpEarned           Int      @default(0)
-  startedAt          DateTime @default(now())
-  completedAt        DateTime?
-  
+  id                String    @id @default(uuid())
+  userId            String    @unique
+  questionsScore    Int // 0-100 for logic questions
+  selectedProjectId Int // 1, 2, or 3
+  projectSubmitted  Boolean   @default(false)
+  projectUrl        String?
+  projectScore      Int?
+  projectFeedback   String?
+  passed            Boolean   @default(false)
+  gemsEarned        Int       @default(0)
+  xpEarned          Int       @default(0)
+  startedAt         DateTime  @default(now())
+  completedAt       DateTime?
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@index([passed])
 }
 
@@ -1036,7 +1044,7 @@ model EmailVerificationToken {
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
-  
+
   @@index([email])
   @@index([token])
 }
@@ -1046,23 +1054,23 @@ model EmailVerificationToken {
 // ═══════════════════════════════════════════════════════════
 
 model AdvancedChapter {
-  id              String   @id @default(uuid())
-  chapterNumber   Int      @unique // 41-50
-  title           String
-  description     String
-  content         Json     // Full chapter content
-  notebookLmUrl   String?  // Google NotebookLM podcast URL
-  colabUrl        String?  // Google Colab notebook URL
+  id                 String   @id @default(uuid())
+  chapterNumber      Int      @unique // 41-50
+  title              String
+  description        String
+  content            Json // Full chapter content
+  notebookLmUrl      String? // Google NotebookLM podcast URL
+  colabUrl           String? // Google Colab notebook URL
   projectDescription String?
-  estimatedHours  Int      @default(4)
-  difficulty      String   @default("advanced")
-  prerequisites   Json     @default("[]") // Array of chapter numbers
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
+  estimatedHours     Int      @default(4)
+  difficulty         String   @default("advanced")
+  prerequisites      Json     @default("[]") // Array of chapter numbers
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
   completions AdvancedChapterCompletion[]
   projects    AdvancedProjectSubmission[]
-  
+
   @@index([chapterNumber])
 }
 
@@ -1074,10 +1082,10 @@ model AdvancedChapterCompletion {
   xpEarned    Int      @default(0)
   gemsEarned  Int      @default(0)
   completedAt DateTime @default(now())
-  
+
   user    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   chapter AdvancedChapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
-  
+
   @@unique([userId, chapterId])
   @@index([userId])
   @@index([chapterId])
@@ -1096,39 +1104,40 @@ model AdvancedProjectSubmission {
   xpEarned         Int       @default(0)
   submittedAt      DateTime  @default(now())
   reviewedAt       DateTime?
-  
+
   user    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   chapter AdvancedChapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
-  
+
   @@unique([userId, chapterId])
   @@index([userId])
   @@index([chapterId])
   @@index([aiApproved])
 }
+
 // HackathonRegistration - open registration form submissions
 model HackathonRegistration {
-  id                  String   @id @default(uuid())
+  id                  String    @id @default(uuid())
   hackathonId         String
   fullName            String
   email               String
   phone               String?
   school              String?
-  yearOfStudy         String?  // 1, 2, 3, 4, 5+, graduated, other
-  experience          String   // beginner, intermediate, advanced
-  technologies        Json     @default("[]") // ["React", "Python", ...]
+  yearOfStudy         String? // 1, 2, 3, 4, 5+, graduated, other
+  experience          String // beginner, intermediate, advanced
+  technologies        Json      @default("[]") // ["React", "Python", ...]
   github              String?
   linkedIn            String?
-  preferredRole       String?  // frontend, backend, design, pm, fullstack
+  preferredRole       String? // frontend, backend, design, pm, fullstack
   motivation          String?
-  teamPreference      String?  // solo, have-team, looking-for-team
+  teamPreference      String? // solo, have-team, looking-for-team
   teamName            String?
-  tshirtSize          String?  // S, M, L, XL, XXL
+  tshirtSize          String? // S, M, L, XL, XXL
   dietaryRestrictions String?
   specialNeeds        String?
-  howDidYouHear       String?  // social, school, friend, other
-  previousHackathons  String?  // 0, 1-2, 3+
-  gdprConsent         Boolean  @default(false)
-  createdAt           DateTime @default(now())
+  howDidYouHear       String? // social, school, friend, other
+  previousHackathons  String? // 0, 1-2, 3+
+  gdprConsent         Boolean   @default(false)
+  createdAt           DateTime  @default(now())
   hackathon           Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
 
   @@unique([hackathonId, email])
