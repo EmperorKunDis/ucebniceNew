@@ -1,47 +1,50 @@
-'use client';
+'use client'
 
-import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { Box, Button } from '@/components/ui';
-import { ChevronLeft, ChevronRight, Home, Lock } from 'lucide-react';
-import { getNextChapter, getPreviousChapter } from '@/data/chapters';
+import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { Box, Button } from '@/components/ui'
+import { ChevronLeft, ChevronRight, Home, Lock } from 'lucide-react'
+import { getNextChapter, getPreviousChapter } from '@/data/chapters'
 
 interface ChapterNavigationProps {
-  currentChapterId: string;
-  isCompleted?: boolean; // External prop to signal completion
+  currentChapterId: string
+  isCompleted?: boolean // External prop to signal completion
 }
 
-export function ChapterNavigation({ currentChapterId, isCompleted = false }: ChapterNavigationProps) {
-  const router = useRouter();
-  const prevChapter = getPreviousChapter(currentChapterId);
-  const nextChapter = getNextChapter(currentChapterId);
-  const [isCurrentChapterCompleted, setIsCurrentChapterCompleted] = useState(isCompleted);
-  const [loading, setLoading] = useState(true);
+export function ChapterNavigation({
+  currentChapterId,
+  isCompleted = false,
+}: ChapterNavigationProps) {
+  const router = useRouter()
+  const prevChapter = getPreviousChapter(currentChapterId)
+  const nextChapter = getNextChapter(currentChapterId)
+  const [isCurrentChapterCompleted, setIsCurrentChapterCompleted] = useState(isCompleted)
+  const [loading, setLoading] = useState(true)
 
   // Update state when external prop changes
   useEffect(() => {
-    setIsCurrentChapterCompleted(isCompleted);
-  }, [isCompleted]);
+    setIsCurrentChapterCompleted(isCompleted)
+  }, [isCompleted])
 
   useEffect(() => {
     async function checkProgress() {
       try {
-        const response = await fetch(`/api/chapters/progress?chapterId=${currentChapterId}`);
+        const response = await fetch(`/api/chapters/progress?chapterId=${currentChapterId}`)
         if (response.ok) {
-          const data = await response.json();
-          setIsCurrentChapterCompleted(data.completed || false);
+          const data = await response.json()
+          setIsCurrentChapterCompleted(data.completed || false)
         }
       } catch (error) {
-        console.error('Error checking progress:', error);
+        console.error('Error checking progress:', error)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
     }
 
-    checkProgress();
-  }, [currentChapterId]);
+    checkProgress()
+  }, [currentChapterId])
 
-  const isNextChapterLocked = !isCurrentChapterCompleted && nextChapter !== null;
+  const isNextChapterLocked = !isCurrentChapterCompleted && nextChapter !== null
 
   return (
     <Box className="bg-gray-800 rounded-xl p-6">
@@ -90,8 +93,8 @@ export function ChapterNavigation({ currentChapterId, isCompleted = false }: Cha
               onClick={() => !isNextChapterLocked && router.push(`/chapters/${nextChapter.id}`)}
               variant="secondary"
               className={`w-full justify-end gap-2 flex-row-reverse ${
-                isNextChapterLocked 
-                  ? 'opacity-50 cursor-not-allowed bg-gray-800' 
+                isNextChapterLocked
+                  ? 'opacity-50 cursor-not-allowed bg-gray-800'
                   : 'hover:bg-gray-700'
               }`}
               disabled={isNextChapterLocked || loading}
@@ -123,5 +126,5 @@ export function ChapterNavigation({ currentChapterId, isCompleted = false }: Cha
         </Box>
       </div>
     </Box>
-  );
+  )
 }

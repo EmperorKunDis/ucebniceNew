@@ -10,7 +10,7 @@ export const skillNodes: SkillNode[] = [
     dependencies: [],
     lessons: ['lesson-1'],
     description: 'Základy ukládání dat do proměnných',
-    icon: '📦'
+    icon: '📦',
   },
   {
     id: 'data-types',
@@ -20,7 +20,7 @@ export const skillNodes: SkillNode[] = [
     dependencies: ['variables'],
     lessons: ['lesson-2'],
     description: 'String, number, boolean a další',
-    icon: '🔤'
+    icon: '🔤',
   },
   {
     id: 'operators',
@@ -30,7 +30,7 @@ export const skillNodes: SkillNode[] = [
     dependencies: ['variables'],
     lessons: ['lesson-3'],
     description: 'Aritmetické, logické a porovnávací operátory',
-    icon: '➕'
+    icon: '➕',
   },
   {
     id: 'conditions',
@@ -40,7 +40,7 @@ export const skillNodes: SkillNode[] = [
     dependencies: ['data-types', 'operators'],
     lessons: ['lesson-4'],
     description: 'If, else, elif podmínky',
-    icon: '🔀'
+    icon: '🔀',
   },
   {
     id: 'loops',
@@ -50,7 +50,7 @@ export const skillNodes: SkillNode[] = [
     dependencies: ['conditions'],
     lessons: ['lesson-5'],
     description: 'For a while cykly',
-    icon: '🔁'
+    icon: '🔁',
   },
   {
     id: 'functions',
@@ -60,9 +60,9 @@ export const skillNodes: SkillNode[] = [
     dependencies: ['loops'],
     lessons: ['lesson-6'],
     description: 'Definice a volání funkcí',
-    icon: '🎯'
+    icon: '🎯',
   },
-  
+
   // Data Structures
   {
     id: 'lists',
@@ -72,7 +72,7 @@ export const skillNodes: SkillNode[] = [
     dependencies: ['loops'],
     lessons: ['lesson-7'],
     description: 'Práce se seznamy a poli',
-    icon: '📋'
+    icon: '📋',
   },
   {
     id: 'dictionaries',
@@ -82,7 +82,7 @@ export const skillNodes: SkillNode[] = [
     dependencies: ['lists'],
     lessons: ['lesson-8'],
     description: 'Klíč-hodnota datové struktury',
-    icon: '📖'
+    icon: '📖',
   },
   {
     id: 'tuples-sets',
@@ -92,9 +92,9 @@ export const skillNodes: SkillNode[] = [
     dependencies: ['lists'],
     lessons: ['lesson-9'],
     description: 'Immutable a unique kolekce',
-    icon: '🎲'
+    icon: '🎲',
   },
-  
+
   // Algorithms
   {
     id: 'searching',
@@ -104,7 +104,7 @@ export const skillNodes: SkillNode[] = [
     dependencies: ['lists', 'functions'],
     lessons: ['lesson-11'],
     description: 'Lineární a binární vyhledávání',
-    icon: '🔍'
+    icon: '🔍',
   },
   {
     id: 'sorting',
@@ -114,7 +114,7 @@ export const skillNodes: SkillNode[] = [
     dependencies: ['searching'],
     lessons: ['lesson-12'],
     description: 'Bubble sort, quicksort a další',
-    icon: '📊'
+    icon: '📊',
   },
   {
     id: 'recursion',
@@ -124,7 +124,7 @@ export const skillNodes: SkillNode[] = [
     dependencies: ['functions'],
     lessons: ['lesson-13'],
     description: 'Funkce volající samy sebe',
-    icon: '🌀'
+    icon: '🌀',
   },
   {
     id: 'graph-algorithms',
@@ -134,9 +134,9 @@ export const skillNodes: SkillNode[] = [
     dependencies: ['dictionaries', 'recursion'],
     lessons: ['lesson-14'],
     description: 'BFS, DFS, shortest path',
-    icon: '🕸️'
+    icon: '🕸️',
   },
-  
+
   // Web
   {
     id: 'http-basics',
@@ -146,7 +146,7 @@ export const skillNodes: SkillNode[] = [
     dependencies: ['dictionaries', 'functions'],
     lessons: ['lesson-20'],
     description: 'Request, response, metody',
-    icon: '🌐'
+    icon: '🌐',
   },
   {
     id: 'api-requests',
@@ -156,7 +156,7 @@ export const skillNodes: SkillNode[] = [
     dependencies: ['http-basics'],
     lessons: ['lesson-21'],
     description: 'REST API a práce s JSON',
-    icon: '📡'
+    icon: '📡',
   },
   {
     id: 'web-frameworks',
@@ -166,9 +166,9 @@ export const skillNodes: SkillNode[] = [
     dependencies: ['api-requests'],
     lessons: ['lesson-22'],
     description: 'Flask, FastAPI základy',
-    icon: '🏗️'
+    icon: '🏗️',
   },
-  
+
   // AI & ML
   {
     id: 'numpy-basics',
@@ -178,7 +178,7 @@ export const skillNodes: SkillNode[] = [
     dependencies: ['lists'],
     lessons: ['lesson-25'],
     description: 'Numerické výpočty s NumPy',
-    icon: '🔢'
+    icon: '🔢',
   },
   {
     id: 'pandas-basics',
@@ -188,7 +188,7 @@ export const skillNodes: SkillNode[] = [
     dependencies: ['numpy-basics', 'dictionaries'],
     lessons: ['lesson-26'],
     description: 'Práce s daty pomocí Pandas',
-    icon: '🐼'
+    icon: '🐼',
   },
   {
     id: 'ml-basics',
@@ -198,7 +198,7 @@ export const skillNodes: SkillNode[] = [
     dependencies: ['pandas-basics'],
     lessons: ['lesson-27'],
     description: 'Supervised a unsupervised učení',
-    icon: '🤖'
+    icon: '🤖',
   },
   {
     id: 'neural-networks',
@@ -208,9 +208,9 @@ export const skillNodes: SkillNode[] = [
     dependencies: ['ml-basics'],
     lessons: ['lesson-28'],
     description: 'Základy deep learning',
-    icon: '🧠'
+    icon: '🧠',
   },
-  
+
   // Databases
   {
     id: 'sql-basics',
@@ -220,7 +220,7 @@ export const skillNodes: SkillNode[] = [
     dependencies: ['dictionaries'],
     lessons: ['lesson-30'],
     description: 'SELECT, INSERT, UPDATE, DELETE',
-    icon: '🗄️'
+    icon: '🗄️',
   },
   {
     id: 'database-design',
@@ -230,15 +230,15 @@ export const skillNodes: SkillNode[] = [
     dependencies: ['sql-basics'],
     lessons: ['lesson-31'],
     description: 'Normalizace, relace, indexy',
-    icon: '📐'
-  }
+    icon: '📐',
+  },
 ]
 
 export const skillLinks: SkillLink[] = skillNodes.reduce((links, node) => {
   const nodeLinks = node.dependencies.map(dep => ({
     source: dep,
     target: node.id,
-    strength: 0.8
+    strength: 0.8,
   }))
   return [...links, ...nodeLinks]
 }, [] as SkillLink[])

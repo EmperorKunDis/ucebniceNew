@@ -1,12 +1,15 @@
 # src/app/arena/ - AI Context
 
 ## 🎯 PURPOSE
+
 "Apex Arena" - Platform section for hackathons and graduate showcases. Users can participate in hackathons, form teams, submit projects, and graduates can showcase their profiles to potential employers.
 
 ## 📦 EXPORTS
+
 No direct exports. Contains arena pages.
 
 ## 🔗 DEPENDENCIES
+
 - `@/lib/prisma` - Database access
 - `next-auth` - User session
 - Arena-related API routes
@@ -14,25 +17,28 @@ No direct exports. Contains arena pages.
 ## 🏗️ PATTERNS
 
 ### Arena Page Structure
+
 ```typescript
 // Main arena page - lists hackathons and graduates
 export default async function ArenaPage() {
   const hackathons = await prisma.hackathon.findMany({
-    orderBy: { startDate: 'desc' }
+    orderBy: { startDate: 'desc' },
   })
   const graduates = await prisma.graduateProfile.findMany({
-    include: { user: true }
+    include: { user: true },
   })
   // ...
 }
 ```
 
 ### Hackathon States
+
 - `upcoming` - Registration open
 - `active` - Competition in progress
 - `completed` - Results available
 
 ### Team Flow
+
 1. User creates team for hackathon
 2. Team members join via invite
 3. Team submits project before deadline
@@ -47,6 +53,7 @@ export default async function ArenaPage() {
 4. **Graduate profile**: Created after completing all chapters
 
 ## 📁 STRUCTURE
+
 ```
 arena/
 ├── layout.tsx              # Arena section layout
@@ -60,6 +67,7 @@ arena/
 ```
 
 ## 🔄 RELATED
+
 - `src/app/api/hackathons/` - Hackathon API endpoints
 - `src/app/api/teams/` - Team management API
 - `src/app/api/graduates/` - Graduate profile API
@@ -67,6 +75,7 @@ arena/
 - `src/types/arena.ts` - TypeScript types
 
 ---
+
 <!-- META: For AI agents -->
 <!-- TRAVERSE: yes -->
 <!-- DEPTH: 2 -->

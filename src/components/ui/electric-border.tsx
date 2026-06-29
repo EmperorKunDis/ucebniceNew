@@ -14,14 +14,14 @@ interface ElectricBorderProps {
   style?: React.CSSProperties
 }
 
-export function ElectricBorder({ 
-  children, 
-  color = '#5227FF', 
-  speed = 1, 
-  chaos = 1, 
-  thickness = 2, 
+export function ElectricBorder({
+  children,
+  color = '#5227FF',
+  speed = 1,
+  chaos = 1,
+  thickness = 2,
   className,
-  style 
+  style,
 }: ElectricBorderProps) {
   const rawId = useId().replace(/[:]/g, '')
   const filterId = `turbulent-displace-${rawId}`
@@ -38,8 +38,14 @@ export function ElectricBorder({
       strokeRef.current.style.filter = `url(#${filterId})`
     }
 
-    const width = Math.max(1, Math.round(host.clientWidth || host.getBoundingClientRect().width || 0))
-    const height = Math.max(1, Math.round(host.clientHeight || host.getBoundingClientRect().height || 0))
+    const width = Math.max(
+      1,
+      Math.round(host.clientWidth || host.getBoundingClientRect().width || 0)
+    )
+    const height = Math.max(
+      1,
+      Math.round(host.clientHeight || host.getBoundingClientRect().height || 0)
+    )
 
     const dyAnims = Array.from(svg.querySelectorAll('feOffset > animate[attributeName="dy"]'))
     if (dyAnims.length >= 2) {
@@ -69,12 +75,14 @@ export function ElectricBorder({
     }
 
     requestAnimationFrame(() => {
-      [...dyAnims, ...dxAnims].forEach(a => {
+      ;[...dyAnims, ...dxAnims].forEach(a => {
         if (typeof (a as any).beginElement === 'function') {
           try {
-            (a as any).beginElement()
+            ;(a as any).beginElement()
           } catch {
-            console.warn('ElectricBorder: beginElement failed, this may be due to a browser limitation.')
+            console.warn(
+              'ElectricBorder: beginElement failed, this may be due to a browser limitation.'
+            )
           }
         }
       })
@@ -97,32 +105,87 @@ export function ElectricBorder({
 
   const vars = {
     ['--electric-border-color' as any]: color,
-    ['--eb-border-width' as any]: `${thickness}px`
+    ['--eb-border-width' as any]: `${thickness}px`,
   }
 
   return (
     <div ref={rootRef} className={cn('electric-border', className)} style={{ ...vars, ...style }}>
       <svg ref={svgRef} className="eb-svg" aria-hidden focusable="false">
         <defs>
-          <filter id={filterId} colorInterpolationFilters="sRGB" x="-20%" y="-20%" width="140%" height="140%">
-            <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise1" seed="1" />
+          <filter
+            id={filterId}
+            colorInterpolationFilters="sRGB"
+            x="-20%"
+            y="-20%"
+            width="140%"
+            height="140%"
+          >
+            <feTurbulence
+              type="turbulence"
+              baseFrequency="0.02"
+              numOctaves="10"
+              result="noise1"
+              seed="1"
+            />
             <feOffset in="noise1" dx="0" dy="0" result="offsetNoise1">
-              <animate attributeName="dy" values="700; 0" dur="6s" repeatCount="indefinite" calcMode="linear" />
+              <animate
+                attributeName="dy"
+                values="700; 0"
+                dur="6s"
+                repeatCount="indefinite"
+                calcMode="linear"
+              />
             </feOffset>
 
-            <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise2" seed="1" />
+            <feTurbulence
+              type="turbulence"
+              baseFrequency="0.02"
+              numOctaves="10"
+              result="noise2"
+              seed="1"
+            />
             <feOffset in="noise2" dx="0" dy="0" result="offsetNoise2">
-              <animate attributeName="dy" values="0; -700" dur="6s" repeatCount="indefinite" calcMode="linear" />
+              <animate
+                attributeName="dy"
+                values="0; -700"
+                dur="6s"
+                repeatCount="indefinite"
+                calcMode="linear"
+              />
             </feOffset>
 
-            <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise1" seed="2" />
+            <feTurbulence
+              type="turbulence"
+              baseFrequency="0.02"
+              numOctaves="10"
+              result="noise1"
+              seed="2"
+            />
             <feOffset in="noise1" dx="0" dy="0" result="offsetNoise3">
-              <animate attributeName="dx" values="490; 0" dur="6s" repeatCount="indefinite" calcMode="linear" />
+              <animate
+                attributeName="dx"
+                values="490; 0"
+                dur="6s"
+                repeatCount="indefinite"
+                calcMode="linear"
+              />
             </feOffset>
 
-            <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise2" seed="2" />
+            <feTurbulence
+              type="turbulence"
+              baseFrequency="0.02"
+              numOctaves="10"
+              result="noise2"
+              seed="2"
+            />
             <feOffset in="noise2" dx="0" dy="0" result="offsetNoise4">
-              <animate attributeName="dx" values="0; -490" dur="6s" repeatCount="indefinite" calcMode="linear" />
+              <animate
+                attributeName="dx"
+                values="0; -490"
+                dur="6s"
+                repeatCount="indefinite"
+                calcMode="linear"
+              />
             </feOffset>
 
             <feComposite in="offsetNoise1" in2="offsetNoise2" result="part1" />

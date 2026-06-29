@@ -6,6 +6,47 @@ import { VALIDATION } from './constants'
  * Provides strong type-safe validation with helpful error messages
  */
 
+export const INAPPROPRIATE_NAME_MESSAGE = 'Název obsahuje nevhodný výraz. Zvol neutrální název.'
+
+const INAPPROPRIATE_NAME_PATTERNS = [
+  /\b(?:fuck|shit|bitch|cunt|dick|asshole)\b/,
+  /\b(?:kurva|pica|picus|kokot|debil|mrdat|hovno|sracka)\b/,
+  /\b(?:nazi|nacista|nacismus|hitler|kkk)\b/,
+  /\b(?:nigger|nigga|negro|cikan|cigan)\b/,
+  /\b(?:faggot|buzerant|teplous|homous)\b/,
+]
+
+function normalizeModeratedText(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[013457@$]/g, char => {
+      const replacements: Record<string, string> = {
+        '0': 'o',
+        '1': 'i',
+        '3': 'e',
+        '4': 'a',
+        '5': 's',
+        '7': 't',
+        '@': 'a',
+        $: 's',
+      }
+      return replacements[char] ?? char
+    })
+}
+
+export function isAppropriateEntityName(value: string): boolean {
+  const normalized = normalizeModeratedText(value)
+  return !INAPPROPRIATE_NAME_PATTERNS.some(pattern => pattern.test(normalized))
+}
+
+function moderatedEntityName(schema: z.ZodString) {
+  return schema.refine(isAppropriateEntityName, {
+    message: INAPPROPRIATE_NAME_MESSAGE,
+  })
+}
+
 // Email validation
 export const emailSchema = z
   .string()
@@ -36,6 +77,9 @@ export const usernameSchema = z
     `Uživatelské jméno může mít maximálně ${VALIDATION.USERNAME.MAX_LENGTH} znaků`
   )
   .regex(VALIDATION.USERNAME.PATTERN, 'Pouze malá písmena a číslice')
+  .refine(isAppropriateEntityName, {
+    message: INAPPROPRIATE_NAME_MESSAGE,
+  })
 
 // Name validation
 export const nameSchema = z
@@ -43,6 +87,9 @@ export const nameSchema = z
   .min(VALIDATION.NAME.MIN_LENGTH, `Jméno musí mít alespoň ${VALIDATION.NAME.MIN_LENGTH} znaky`)
   .max(VALIDATION.NAME.MAX_LENGTH, 'Jméno je příliš dlouhé')
   .regex(VALIDATION.NAME.PATTERN, 'Jméno obsahuje neplatné znaky')
+  .refine(isAppropriateEntityName, {
+    message: INAPPROPRIATE_NAME_MESSAGE,
+  })
 
 // Sign in form schema
 export const signInSchema = z.object({
@@ -285,6 +332,26 @@ export const chapterProgressQuerySchema = z.object({
   chapterId: chapterIdSchema,
 })
 
+export const activeStatusSchema = z.object({
+  isActive: z.boolean({ message: 'isActive must be a boolean' }),
+})
+
+export const markNotificationsReadSchema = z.object({
+  ids: z.union([
+    z.literal('all'),
+    z.array(z.string().min(1, 'ID notifikace je povinné')).min(1, 'Vyber alespoň jednu notifikaci'),
+  ]),
+})
+
+export const claimQuestSchema = z.object({
+  questId: z.string().min(1, 'questId je povinné'),
+})
+
+export const respondFriendRequestSchema = z.object({
+  friendshipId: z.string().min(1, 'friendshipId je povinné'),
+  action: z.enum(['accept', 'reject']),
+})
+
 // ========================================
 // TYPE EXPORTS FOR API ROUTES
 // ========================================
@@ -295,6 +362,10 @@ export type SubmitTestData = z.infer<typeof submitTestSchema>
 export type SubmitProjectData = z.infer<typeof submitProjectSchema>
 export type CompleteOnboardingData = z.infer<typeof completeOnboardingSchema>
 export type ChapterProgressQuery = z.infer<typeof chapterProgressQuerySchema>
+export type ActiveStatusData = z.infer<typeof activeStatusSchema>
+export type MarkNotificationsReadData = z.infer<typeof markNotificationsReadSchema>
+export type ClaimQuestData = z.infer<typeof claimQuestSchema>
+export type RespondFriendRequestData = z.infer<typeof respondFriendRequestSchema>
 
 // ========================================
 // API VALIDATION HELPER
@@ -328,6 +399,7 @@ export async function validateAPIRequest<T>(
         response: new Response(
           JSON.stringify({
             error: 'Validation failed',
+            code: 'VALIDATION_FAILED',
             details: errors,
           }),
           {
@@ -343,6 +415,7 @@ export async function validateAPIRequest<T>(
       response: new Response(
         JSON.stringify({
           error: 'Invalid JSON in request body',
+          code: 'BAD_REQUEST',
         }),
         {
           status: 400,
@@ -379,7 +452,7 @@ export function validateQueryParams<T>(
 // Prize schema for hackathon
 export const prizeSchema = z.object({
   place: z.number().int().min(1),
-  title: z.string().min(1, 'Název ceny je povinný'),
+  title: moderatedEntityName(z.string().min(1, 'Název ceny je povinný')),
   description: z.string().optional().default(''),
   value: z.string().optional().default(''),
 })
@@ -387,9 +460,9 @@ export const prizeSchema = z.object({
 // Judge schema for hackathon
 export const judgeSchema = z.object({
   id: z.string().optional(),
-  name: z.string().min(1, 'Jméno porotce je povinné'),
-  title: z.string().min(1, 'Titul porotce je povinný'),
-  company: z.string().min(1, 'Společnost je povinná'),
+  name: moderatedEntityName(z.string().min(1, 'Jméno porotce je povinné')),
+  title: moderatedEntityName(z.string().min(1, 'Titul porotce je povinný')),
+  company: moderatedEntityName(z.string().min(1, 'Společnost je povinná')),
   bio: z.string().min(1, 'Bio je povinné'),
   avatar: z.string().url().optional().nullable(),
 })
@@ -398,9 +471,11 @@ export const judgeSchema = z.object({
  * POST /api/admin/hackathons - Create hackathon
  */
 export const createHackathonSchema = z.object({
-  title: z.string().min(3, 'Název musí mít alespoň 3 znaky').max(200, 'Název je příliš dlouhý'),
+  title: moderatedEntityName(
+    z.string().min(3, 'Název musí mít alespoň 3 znaky').max(200, 'Název je příliš dlouhý')
+  ),
   description: z.string().min(10, 'Popis musí mít alespoň 10 znaků'),
-  theme: z.string().min(3, 'Téma musí mít alespoň 3 znaky'),
+  theme: moderatedEntityName(z.string().min(3, 'Téma musí mít alespoň 3 znaky')),
   startDate: z.string().datetime({ message: 'Neplatné datum začátku' }),
   endDate: z.string().datetime({ message: 'Neplatné datum konce' }),
   registrationDeadline: z.string().datetime({ message: 'Neplatný deadline registrace' }),
@@ -421,10 +496,9 @@ export const updateHackathonSchema = createHackathonSchema.partial()
  * POST /api/teams - Create team
  */
 export const createTeamSchema = z.object({
-  name: z
-    .string()
-    .min(2, 'Název týmu musí mít alespoň 2 znaky')
-    .max(50, 'Název týmu je příliš dlouhý'),
+  name: moderatedEntityName(
+    z.string().min(2, 'Název týmu musí mít alespoň 2 znaky').max(50, 'Název týmu je příliš dlouhý')
+  ),
   hackathonId: z.string().uuid('Neplatné ID hackathonu'),
 })
 
@@ -432,7 +506,7 @@ export const createTeamSchema = z.object({
  * PUT /api/teams/[id] - Update team
  */
 export const updateTeamSchema = z.object({
-  name: z.string().min(2).max(50).optional(),
+  name: moderatedEntityName(z.string().min(2).max(50)).optional(),
 })
 
 /**
@@ -446,7 +520,7 @@ export const joinTeamSchema = z.object({
  * POST /api/teams/[id]/project - Submit project
  */
 export const submitHackathonProjectSchema = z.object({
-  title: z.string().min(3, 'Název projektu musí mít alespoň 3 znaky').max(200),
+  title: moderatedEntityName(z.string().min(3, 'Název projektu musí mít alespoň 3 znaky').max(200)),
   description: z.string().min(10, 'Popis projektu musí mít alespoň 10 znaků'),
   githubUrl: githubUrlSchema,
   demoUrl: demoUrlSchema.nullable(),
@@ -465,7 +539,7 @@ export const updateGraduateProfileSchema = z.object({
     .array(
       z.object({
         id: z.string().optional(),
-        title: z.string().min(1),
+        title: moderatedEntityName(z.string().min(1)),
         description: z.string(),
         url: z.string().url(),
         type: z.enum(['project', 'article', 'presentation', 'certificate']),
@@ -485,7 +559,9 @@ export const updateGraduateProfileSchema = z.object({
  */
 export const hackathonRegistrationSchema = z.object({
   hackathonId: z.string().uuid('Neplatné ID hackathonu'),
-  fullName: z.string().min(2, 'Jméno musí mít alespoň 2 znaky').max(100, 'Jméno je příliš dlouhé'),
+  fullName: moderatedEntityName(
+    z.string().min(2, 'Jméno musí mít alespoň 2 znaky').max(100, 'Jméno je příliš dlouhé')
+  ),
   email: emailSchema,
   phone: z.string().max(20, 'Telefon je příliš dlouhý').optional().default(''),
   school: z.string().max(150, 'Název školy je příliš dlouhý').optional().default(''),
@@ -499,7 +575,9 @@ export const hackathonRegistrationSchema = z.object({
   preferredRole: z.enum(['frontend', 'backend', 'design', 'pm', 'fullstack']).optional(),
   motivation: z.string().max(500, 'Motivace může mít maximálně 500 znaků').optional().default(''),
   teamPreference: z.enum(['solo', 'have-team', 'looking-for-team']).optional().default('solo'),
-  teamName: z.string().max(50, 'Název týmu je příliš dlouhý').optional().default(''),
+  teamName: moderatedEntityName(z.string().max(50, 'Název týmu je příliš dlouhý'))
+    .optional()
+    .default(''),
   tshirtSize: z.enum(['S', 'M', 'L', 'XL', 'XXL']).optional(),
   dietaryRestrictions: z.string().max(200).optional().default(''),
   specialNeeds: z.string().max(300).optional().default(''),

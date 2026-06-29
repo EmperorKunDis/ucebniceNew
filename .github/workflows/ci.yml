@@ -6,374 +6,133 @@ on:
   pull_request:
     branches: [main, develop]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  lint:
-    name: Lint & Type Check
+  quality:
+    name: Format, Type Check, Lint
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: 'package-lock.json'
+          node-version: '22'
 
       - name: Install dependencies
-        run: npm ci --prefer-offline || npm ci
+        run: npm ci
 
-      - name: Run ESLint
-        run: npm run lint
+      - name: Generate Prisma client
+        run: npx prisma generate
+        env:
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
 
-      - name: Run Prettier check
-        if: false  # Temporarily disabled - re-enable after fixing formatting
+      - name: Format check
         run: npm run format:check
 
       - name: Type check
-        if: false  # Temporarily disabled - re-enable after fixing type errors
         run: npm run type-check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Validate content references
+        run: npm run validate:content
 
   test:
     name: Unit Tests
     runs-on: ubuntu-latest
-    if: false  # Temporarily disabled - re-enable after fixing all tests
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run Jest tests
-        run: npm run test:coverage
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        if: always()
-        with:
-          files: ./coverage/coverage-final.json
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
-
-  e2e:
-    name: E2E Tests
-    runs-on: ubuntu-latest
     timeout-minutes: 15
-    if: false  # Temporarily disabled - re-enable after fixing e2e tests
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: '22'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Playwright browsers
-        run: npx playwright install chromium --with-deps
+      - name: Run Jest
+        run: npm test -- --runInBand --ci
 
-      - name: Run Playwright tests
-        run: npm run test:e2e
+      - name: Generate coverage report
+        run: npm test -- --runInBand --ci --coverage --coverageThreshold='{}'
+        continue-on-error: true
 
-      - name: Upload test results
+      - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: playwright-report
-          path: playwright-report/
+          name: coverage
+          path: coverage/
           retention-days: 7
 
   build:
-    name: Build Check
+    name: Build
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [quality, test]
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: 'package-lock.json'
+          node-version: '22'
 
       - name: Install dependencies
-        run: npm ci --prefer-offline || npm ci
+        run: npm ci
 
-      # Cache Prisma client
-      - name: Cache Prisma Client
-        id: prisma-cache
-        uses: actions/cache@v4
-        with:
-          path: node_modules/.prisma
-          key: prisma-client-${{ hashFiles('prisma/schema.prisma') }}
-          restore-keys: |
-            prisma-client-
-
-      - name: Generate prisma client
-        if: steps.prisma-cache.outputs.cache-hit != 'true'
+      - name: Generate Prisma client
         run: npx prisma generate
         env:
-          DATABASE_URL: "postgresql://placeholder:placeholder@placeholder:5432/placeholder"
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
 
       - name: Build application
         run: npm run build
         env:
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+          NEXTAUTH_SECRET: ci-placeholder-secret
+          NEXTAUTH_URL: http://localhost:3000
           SKIP_ENV_VALIDATION: true
 
-      - name: Prepare artifact
-        run: |
-          mkdir -p dist
-          cp -r .next dist/
-          cp -r public dist/
-
-      # Upload .next as artifact for Docker job
-      - name: Upload Next.js build
+      - name: Upload Next.js build artifact
         uses: actions/upload-artifact@v4
         with:
           name: nextjs-build
-          path: dist/
+          path: .next/
           include-hidden-files: true
-          retention-days: 1
+          retention-days: 3
 
-  docker:
-    name: Build and Push Docker Image
+  compose:
+    name: Docker Compose Config
     runs-on: ubuntu-latest
-    needs: [lint, build]  # When you re-enable test/e2e, add them here: needs: [lint, test, e2e, build]
-    if: false  # Disabled - Harbor registry (harbor.praut.cz) decommissioned; deploy directly to VPS
-    permissions:
-      contents: write  # Need write permission to commit values changes
-      packages: write
+    timeout-minutes: 10
+    needs: [quality]
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Fetch all history for proper tagging
 
-      # Download the .next build from build job
-      - name: Download Next.js build
-        uses: actions/download-artifact@v4
-        with:
-          name: nextjs-build
-          path: .
-
-      # Verify .next exists
-      - name: Verify build artifacts
-        run: |
-          if [ ! -d ".next" ]; then
-            echo "Contents of current directory:"
-            ls -la
-            echo "ERROR: .next directory not found from build job"
-            exit 1
-          fi
-          echo "✅ Build artifacts downloaded successfully"
-          ls -la .next/
-
-      - name: Calculate next version (dry-run)
-        id: calc-version
-        if: github.ref == 'refs/heads/main'
-        uses: anothrNick/github-tag-action@1.67.0
+      - name: Validate Compose config
+        run: docker compose -f docker-compose.yml -f docker-compose.prod.yml config
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          WITH_V: true
-          DEFAULT_BUMP: patch
-          RELEASE_BRANCHES: main
-          INITIAL_VERSION: 1.0.0  # Start from 1.0.0 if no tags exist (WITH_V adds the v)
-          DRY_RUN: true  # Just calculate, don't create tag yet
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Debug - Check secrets
-        run: |
-          echo "Registry: harbor.praut.cz"
-          echo "Username is set: ${{ secrets.HARBOR_USERNAME != '' }}"
-          echo "Password is set: ${{ secrets.HARBOR_PASSWORD != '' }}"
-          echo "Username length: ${#HARBOR_USERNAME}"
-          echo "Password length: ${#HARBOR_PASSWORD}"
-          echo "Username first 20 chars: ${HARBOR_USERNAME:0:20}***"
-          echo "Password last 3 chars: ***${HARBOR_PASSWORD: -3}"
-        env:
-          HARBOR_USERNAME: ${{ secrets.HARBOR_USERNAME }}
-          HARBOR_PASSWORD: ${{ secrets.HARBOR_PASSWORD }}
-
-      - name: Log in to Harbor Registry
-        uses: docker/login-action@v3
-        with:
-          registry: harbor.praut.cz
-          username: ${{ secrets.HARBOR_USERNAME }}
-          password: ${{ secrets.HARBOR_PASSWORD }}
-
-      - name: Determine Docker tags
-        id: docker-tags
-        run: |
-          TAGS=""
-
-          # If on main branch with calculated version
-          if [ "${{ github.ref }}" = "refs/heads/main" ] && [ -n "${{ steps.calc-version.outputs.new_tag }}" ]; then
-            VERSION_TAG="${{ steps.calc-version.outputs.new_tag }}"
-            TAGS="harbor.praut.cz/ucebnice/ucebnice-app:${VERSION_TAG},harbor.praut.cz/ucebnice/ucebnice-app:latest"
-          # If manually pushed tag
-          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            VERSION_TAG="${{ github.ref_name }}"
-            TAGS="harbor.praut.cz/ucebnice/ucebnice-app:${VERSION_TAG},harbor.praut.cz/ucebnice/ucebnice-app:latest"
-          # If develop branch
-          elif [ "${{ github.ref }}" = "refs/heads/develop" ]; then
-            TAGS="harbor.praut.cz/ucebnice/ucebnice-app:develop"
-          # Fallback for other branches
-          else
-            BRANCH=$(echo "${{ github.ref }}" | sed 's/refs\/heads\///')
-            TAGS="harbor.praut.cz/ucebnice/ucebnice-app:${BRANCH}"
-          fi
-
-          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
-          echo "Docker tags: ${TAGS}"
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: ${{ steps.docker-tags.outputs.tags }}
-          # Enhanced caching strategy
-          cache-from: |
-            type=gha
-            type=registry,ref=harbor.praut.cz/ucebnice/ucebnice-app:buildcache
-          cache-to: |
-            type=gha,mode=max
-            type=registry,ref=harbor.praut.cz/ucebnice/ucebnice-app:buildcache,mode=max
-          build-args: |
-            NEXT_PUBLIC_APP_VERSION=${{ github.sha }}
-          # Inline cache for better layer reuse
-          provenance: false
-          sbom: false
-
-      - name: Verify image exists in Harbor (Production)
-        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
-        run: |
-          # Use calculated version from main, or actual tag if manually pushed
-          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            IMAGE_TAG="${{ steps.calc-version.outputs.new_tag }}"
-          else
-            IMAGE_TAG="${{ github.ref_name }}"
-          fi
-
-          IMAGE="harbor.praut.cz/ucebnice/ucebnice-app:${IMAGE_TAG}"
-          MAX_ATTEMPTS=30
-          ATTEMPT=0
-
-          echo "Verifying image: ${IMAGE}"
-
-          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
-            if docker manifest inspect ${IMAGE} > /dev/null 2>&1; then
-              echo "✅ Image found in Harbor!"
-              exit 0
-            fi
-
-            echo "Attempt $((ATTEMPT+1))/$MAX_ATTEMPTS - Image not ready yet, waiting 10s..."
-            sleep 10
-            ATTEMPT=$((ATTEMPT+1))
-          done
-
-          echo "❌ Image not found in Harbor after $((MAX_ATTEMPTS * 10)) seconds"
-          exit 1
-
-      - name: Update Argo CD values (Production)
-        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
-        run: |
-          # Use calculated version from main, or actual tag if manually pushed
-          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            IMAGE_TAG="${{ steps.calc-version.outputs.new_tag }}"
-          else
-            IMAGE_TAG="${{ github.ref_name }}"
-          fi
-
-          echo "Updating production deployment to ${IMAGE_TAG}"
-
-          # Update the image tag in production values
-          sed -i "s|tag: \".*\"|tag: \"${IMAGE_TAG}\"|" argocd/values-production.yaml
-
-          # Commit and push the change
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add argocd/values-production.yaml
-          git commit -m "chore(production): Update image to ${IMAGE_TAG} [skip ci]"
-          git push origin main
-
-          echo "✅ Production values updated. Argo CD will sync automatically."
-
-      - name: Create git tag (after values committed)
-        if: github.ref == 'refs/heads/main'
-        run: |
-          TAG="${{ steps.calc-version.outputs.new_tag }}"
-          echo "Creating git tag: ${TAG}"
-
-          # Pull the latest changes (includes the values commit we just made)
-          git pull origin main
-
-          # Create and push the tag on the latest commit (which includes values update)
-          git tag ${TAG}
-          git push origin ${TAG}
-
-          echo "✅ Tag ${TAG} created and pushed"
-
-      - name: Verify image exists in Harbor (Staging)
-        if: github.ref == 'refs/heads/develop'
-        run: |
-          IMAGE_TAG="develop"
-          IMAGE="harbor.praut.cz/ucebnice/ucebnice-app:${IMAGE_TAG}"
-          MAX_ATTEMPTS=30
-          ATTEMPT=0
-
-          echo "Verifying image: ${IMAGE}"
-
-          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
-            if docker manifest inspect ${IMAGE} > /dev/null 2>&1; then
-              echo "✅ Image found in Harbor!"
-              exit 0
-            fi
-
-            echo "Attempt $((ATTEMPT+1))/$MAX_ATTEMPTS - Image not ready yet, waiting 10s..."
-            sleep 10
-            ATTEMPT=$((ATTEMPT+1))
-          done
-
-          echo "❌ Image not found in Harbor after $((MAX_ATTEMPTS * 10)) seconds"
-          exit 1
-
-      - name: Update Argo CD values (Staging)
-        if: github.ref == 'refs/heads/develop'
-        run: |
-          IMAGE_TAG="develop"
-          echo "Updating staging deployment to ${IMAGE_TAG}"
-
-          # Update the image tag in staging values
-          sed -i "s|tag: \".*\"|tag: \"${IMAGE_TAG}\"|" argocd/values-staging.yaml
-
-          # Commit and push the change
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add argocd/values-staging.yaml
-          git commit -m "chore(staging): Update image to ${IMAGE_TAG} [skip ci]"
-          git push origin develop
-
-          echo "✅ Staging values updated. Argo CD will sync automatically."
+          DOMAIN: example.com
+          ACME_EMAIL: admin@example.com
+          POSTGRES_PASSWORD: ci-postgres-password
+          NEXTAUTH_SECRET: ci-nextauth-secret

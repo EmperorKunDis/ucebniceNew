@@ -28,9 +28,8 @@ const customJestConfig = {
     '<rootDir>/e2e/', // Playwright E2E specs run via `npm run test:e2e`, not Jest
     '<rootDir>/src/lib/__tests__/', // Vitest specs run via vitest, not Jest
   ],
-  transformIgnorePatterns: [
-    'node_modules/(?!(@auth/prisma-adapter)/)',
-  ],
+  modulePathIgnorePatterns: ['<rootDir>/.next/'],
+  transformIgnorePatterns: ['node_modules/(?!(@auth/prisma-adapter)/)'],
   coverageThreshold: {
     global: {
       branches: 30,

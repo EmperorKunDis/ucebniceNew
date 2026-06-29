@@ -8,10 +8,7 @@ import { validateAPIRequest, joinTeamSchema } from '@/lib/validation-schemas'
  * POST /api/teams/[id]/join
  * Join an existing team
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -41,25 +38,16 @@ export async function POST(
 
     // Check hackathon is open for registration
     if (team.hackathon.status === 'completed') {
-      return NextResponse.json(
-        { error: 'Hackathon již skončil' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Hackathon již skončil' }, { status: 400 })
     }
 
     if (new Date() > team.hackathon.registrationDeadline) {
-      return NextResponse.json(
-        { error: 'Registrace již byla uzavřena' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Registrace již byla uzavřena' }, { status: 400 })
     }
 
     // Check team is not full
     if (team.members.length >= team.hackathon.maxTeamSize) {
-      return NextResponse.json(
-        { error: 'Tým je plný' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Tým je plný' }, { status: 400 })
     }
 
     // Check user is not already in a team for this hackathon
@@ -73,10 +61,7 @@ export async function POST(
     })
 
     if (existingMembership) {
-      return NextResponse.json(
-        { error: 'Již jsi členem týmu v tomto hackathonu' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Již jsi členem týmu v tomto hackathonu' }, { status: 400 })
     }
 
     // Add user to team

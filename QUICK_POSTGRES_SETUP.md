@@ -54,11 +54,13 @@ docker exec -it ucebnice-postgres psql -U ucebnice_user -d ucebnice_db
 ## ⚠️ ZMĚŇ HESLO V PRODUKCI!
 
 V souboru `docker-compose.yml` změň:
+
 ```yaml
 POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme123}
 ```
 
 A v `.env`:
+
 ```env
 POSTGRES_PASSWORD="tvoje_silne_heslo"
 DATABASE_URL="postgresql://ucebnice_user:tvoje_silne_heslo@localhost:5432/ucebnice_db"

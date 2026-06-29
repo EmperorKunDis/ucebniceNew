@@ -85,11 +85,15 @@ export function Topbar({ onMenuClick, showMenu, className }: TopbarProps) {
         <Link href="/profile" className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-gray-700 overflow-hidden">
             {session?.user?.image ? (
-              <img
-                src={session.user.image}
-                alt={session.user.name ?? 'User'}
-                className="w-full h-full object-cover"
-              />
+              <>
+                {/* Dynamic user avatars can be arbitrary remote URLs outside next/image config. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={session.user.image}
+                  alt={session.user.name ?? 'User'}
+                  className="w-full h-full object-cover"
+                />
+              </>
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-400">
                 {session?.user?.name?.[0]?.toUpperCase() ?? '?'}

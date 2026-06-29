@@ -9,34 +9,34 @@ interface StackProps extends React.HTMLAttributes<HTMLDivElement> {
    * @default 'col'
    */
   direction?: 'row' | 'col'
-  
+
   /**
    * Mezera mezi prvky (Tailwind spacing scale)
    * @default 0
    */
   gap?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 8 | 10 | 12 | 16 | 20 | 24
-  
+
   /**
    * Zarovnání na hlavní ose
    */
   justify?: 'start' | 'end' | 'center' | 'between' | 'around' | 'evenly'
-  
+
   /**
    * Zarovnání na vedlejší ose
    */
   align?: 'start' | 'end' | 'center' | 'baseline' | 'stretch'
-  
+
   /**
    * Zalamování prvků
    */
   wrap?: boolean
-  
+
   children: React.ReactNode
 }
 
 /**
  * Stack komponenta pro jednoduché vertikální nebo horizontální skládání prvků
- * 
+ *
  * @example
  * <Stack direction="col" gap={4} align="center">
  *   <Button>Tlačítko 1</Button>
@@ -44,16 +44,10 @@ interface StackProps extends React.HTMLAttributes<HTMLDivElement> {
  * </Stack>
  */
 export const Stack = forwardRef<HTMLDivElement, StackProps>(
-  ({ 
-    children, 
-    className,
-    direction = 'col',
-    gap = 0,
-    justify,
-    align,
-    wrap = false,
-    ...props 
-  }, ref) => {
+  (
+    { children, className, direction = 'col', gap = 0, justify, align, wrap = false, ...props },
+    ref
+  ) => {
     return (
       <div
         ref={ref}

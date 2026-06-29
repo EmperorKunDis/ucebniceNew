@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { X, Target, Loader2, ArrowRight } from 'lucide-react'
@@ -28,11 +28,7 @@ export default function PracticePage() {
   const [xpEarned, setXpEarned] = useState(0)
   const [isComplete, setIsComplete] = useState(false)
 
-  useEffect(() => {
-    fetchExercises()
-  }, [chapterId])
-
-  const fetchExercises = async () => {
+  const fetchExercises = useCallback(async () => {
     try {
       // Fetch random exercises for practice
       const res = await fetch(`/api/micro-lessons/${chapterId}?practice=true&limit=10`)
@@ -53,7 +49,11 @@ export default function PracticePage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [chapterId])
+
+  useEffect(() => {
+    fetchExercises()
+  }, [fetchExercises])
 
   const handleExerciseComplete = (isCorrect: boolean, earnedXP: number) => {
     setScore(prev => ({

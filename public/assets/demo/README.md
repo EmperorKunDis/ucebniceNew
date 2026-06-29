@@ -3,6 +3,7 @@
 This directory contains demo images used by the FluidGlass component.
 
 ## Required Files:
+
 - `cs1.webp` - Demo image 1
 - `cs2.webp` - Demo image 2
 - `cs3.webp` - Demo image 3

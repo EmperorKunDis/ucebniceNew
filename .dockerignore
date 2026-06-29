@@ -63,5 +63,5 @@ colab_notebooks
 e2e
 scripts/migration
 
-# Data directory (stored in external PVC)
+# Data directory is mounted at runtime by Docker Compose.
 data/

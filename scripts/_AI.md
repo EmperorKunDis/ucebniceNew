@@ -1,30 +1,33 @@
 # scripts/ - AI Context
 
 ## 🎯 PURPOSE
-Utility scripts for deployment, migration, and maintenance tasks. Includes Kubernetes helpers and database migration tools.
+
+Utility scripts for VPS deployment, migration, and maintenance tasks.
 
 ## 📦 EXPORTS
+
 Shell scripts and TypeScript utilities executed via npm scripts or directly.
 
 ## 🔗 DEPENDENCIES
-- `kubectl` - Kubernetes CLI
-- `helm` - Kubernetes package manager
-- `kubeseal` - Sealed secrets CLI
+
+- `docker compose` - VPS runtime orchestration
+- `ssh`/`curl` - production deploy and health checks
 - `tsx` - TypeScript execution
 - `prisma` - Database migrations
 
 ## 🏗️ PATTERNS
 
-### Kubernetes Scripts
-```bash
-# Deploy to environment
-./scripts/kubernetes/deploy.sh production v1.0.37
+### VPS Deploy
 
-# Create sealed secrets
-./scripts/kubernetes/create-sealed-secrets.sh ucebnice-production
+```bash
+APP_DIR=/opt/ucebnice \
+RELEASE_REF=main \
+HEALTH_URL=https://ucebnice.example.com/api/health \
+./scripts/deploy-vps.sh
 ```
 
 ### Migration Scripts
+
 ```bash
 # Export from SQLite (legacy)
 npm run migrate:export
@@ -38,19 +41,16 @@ npm run migrate:verify
 
 ## ⚠️ GOTCHAS
 
-1. **Makefile preferred**: Use `make deploy-production` instead of direct scripts
-2. **Environment variables**: Scripts expect certain env vars set
+1. **Approval required**: Production deploys and migrations require explicit Martin approval
+2. **Environment variables**: Deploy script expects `APP_DIR`, `RELEASE_REF`, and `HEALTH_URL`
 3. **Migration one-time**: SQLite → PostgreSQL migration already done
-4. **Kubectl context**: Ensure correct cluster context before running
+4. **Rollback**: `deploy-vps.sh` rolls back to `.last-good-release` when health check fails
 
 ## 📁 STRUCTURE
+
 ```
 scripts/
-├── kubernetes/
-│   ├── deploy.sh              # Deployment script
-│   ├── create-secrets.sh      # Plain secrets
-│   ├── create-sealed-secrets.sh # Sealed secrets
-│   └── create-postgres-sealed-secret.sh
+├── deploy-vps.sh              # VPS Docker Compose deploy with healthcheck/rollback
 └── migration/
     ├── export-sqlite-data.ts  # SQLite export (legacy)
     ├── import-postgres-data.ts # PostgreSQL import
@@ -58,13 +58,15 @@ scripts/
 ```
 
 ## 🔄 RELATED
-- `Makefile` - High-level deployment commands
-- `argocd/` - Deployment configurations
-- `helm/` - Helm charts
+
+- `Makefile` - High-level Docker Compose commands
+- `docker-compose.yml` - App/PostgreSQL/media runtime
+- `docker-compose.prod.yml` - Caddy TLS production override
 - `prisma/` - Database schema
 
 ---
+
 <!-- META: For AI agents -->
 <!-- TRAVERSE: no -->
 <!-- DEPTH: all -->
-<!-- CRITICAL: kubernetes/deploy.sh -->
+<!-- CRITICAL: deploy-vps.sh -->

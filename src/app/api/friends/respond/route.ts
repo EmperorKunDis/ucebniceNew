@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { badRequest, forbidden, notFound, serverError, unauthorized } from '@/lib/api-responses'
+import { respondFriendRequestSchema, validateAPIRequest } from '@/lib/validation-schemas'
+
+export const dynamic = 'force-dynamic'
 
 /**
  * POST /api/friends/respond
@@ -12,16 +16,14 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return unauthorized()
     }
 
-    const body = await request.json()
-    const { friendshipId, action } = body // action: 'accept' | 'reject'
+    const validation = await validateAPIRequest(request, respondFriendRequestSchema)
+    if (!validation.success) return validation.response
+
+    const { friendshipId, action } = validation.data
     const userId = session.user.id
-
-    if (!friendshipId || !['accept', 'reject'].includes(action)) {
-      return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
-    }
 
     // Find the friendship request
     const friendship = await prisma.friendship.findUnique({
@@ -34,16 +36,16 @@ export async function POST(request: NextRequest) {
     })
 
     if (!friendship) {
-      return NextResponse.json({ error: 'Žádost nenalezena' }, { status: 404 })
+      return notFound('Žádost nenalezena')
     }
 
     // Only the receiver can respond
     if (friendship.receiverId !== userId) {
-      return NextResponse.json({ error: 'Nemáš oprávnění' }, { status: 403 })
+      return forbidden('Nemáš oprávnění')
     }
 
     if (friendship.status !== 'PENDING') {
-      return NextResponse.json({ error: 'Žádost již byla zpracována' }, { status: 400 })
+      return badRequest('Žádost již byla zpracována')
     }
 
     if (action === 'accept') {
@@ -88,6 +90,6 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error('Error responding to friend request:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return serverError()
   }
 }

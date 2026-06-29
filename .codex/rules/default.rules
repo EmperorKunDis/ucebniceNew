@@ -1,0 +1,38 @@
+# Project-local Codex command rules for UcebniceNew.
+# These rules are intentionally conservative: operational commands should prompt.
+
+prefix_rule(
+    pattern = ["make", ["up-prod", "migrate", "restore"]],
+    decision = "prompt",
+    justification = "Production Compose startup, migrations, and restores can affect running data and require explicit approval.",
+)
+
+prefix_rule(
+    pattern = ["scripts/deploy-vps.sh"],
+    decision = "prompt",
+    justification = "VPS deploy changes production runtime state and requires explicit Martin approval.",
+)
+
+prefix_rule(
+    pattern = ["git", "push", "--force"],
+    decision = "forbidden",
+    justification = "Force-push is forbidden unless Martin explicitly requests a different workflow.",
+)
+
+prefix_rule(
+    pattern = ["git", "push", "--force-with-lease"],
+    decision = "prompt",
+    justification = "Force-with-lease still rewrites remote history and requires explicit approval.",
+)
+
+prefix_rule(
+    pattern = ["git", "reset", "--hard"],
+    decision = "forbidden",
+    justification = "Hard reset can destroy unrelated user changes.",
+)
+
+prefix_rule(
+    pattern = ["npx", "prisma", "migrate", "reset"],
+    decision = "prompt",
+    justification = "Prisma reset deletes local database data and must be intentional.",
+)

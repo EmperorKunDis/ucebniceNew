@@ -517,11 +517,15 @@ export default function LeaderboardPage() {
                             className={`${i === 0 ? 'w-32 h-32 text-4xl' : 'w-28 h-28 text-3xl'} rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shrink-0 transition-all duration-500 overflow-hidden`}
                           >
                             {entry.image ? (
-                              <img
-                                src={entry.image}
-                                alt={entry.name || entry.username}
-                                className="w-full h-full object-cover"
-                              />
+                              <>
+                                {/* Dynamic user avatars can be arbitrary remote URLs outside next/image config. */}
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={entry.image}
+                                  alt={entry.name || entry.username}
+                                  className="w-full h-full object-cover"
+                                />
+                              </>
                             ) : (
                               entry.username.charAt(0).toUpperCase()
                             )}
@@ -609,11 +613,15 @@ export default function LeaderboardPage() {
 
                           <Box className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shrink-0 overflow-hidden">
                             {entry.image ? (
-                              <img
-                                src={entry.image}
-                                alt={entry.name || entry.username}
-                                className="w-full h-full object-cover"
-                              />
+                              <>
+                                {/* Dynamic user avatars can be arbitrary remote URLs outside next/image config. */}
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={entry.image}
+                                  alt={entry.name || entry.username}
+                                  className="w-full h-full object-cover"
+                                />
+                              </>
                             ) : (
                               entry.username.charAt(0).toUpperCase()
                             )}

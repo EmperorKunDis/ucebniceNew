@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { ShoppingBag, Plus, Edit2, Trash2, Loader2, Check, X, Gem, TrendingUp } from 'lucide-react'
+import { ShoppingBag, Loader2, Check, X, Gem, TrendingUp } from 'lucide-react'
 
 interface ShopItem {
   id: string
@@ -24,10 +24,17 @@ interface ShopStats {
   totalRevenue: number
 }
 
+async function readApiError(response: Response): Promise<string> {
+  const data = await response.json().catch(() => null)
+  return typeof data?.error === 'string' ? data.error : 'Nepodařilo se uložit změnu.'
+}
+
 export default function AdminShopPage() {
   const [items, setItems] = useState<ShopItem[]>([])
   const [stats, setStats] = useState<ShopStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     fetchData()
@@ -57,15 +64,37 @@ export default function AdminShopPage() {
   }
 
   const toggleItemActive = async (id: string, isActive: boolean) => {
+    setError(null)
+    setTogglingIds(prev => new Set(prev).add(id))
+
     try {
-      await fetch(`/api/admin/shop/${id}`, {
+      const nextIsActive = !isActive
+      const response = await fetch(`/api/admin/shop/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isActive: !isActive }),
+        body: JSON.stringify({ isActive: nextIsActive }),
       })
-      setItems(prev => prev.map(item => (item.id === id ? { ...item, isActive: !isActive } : item)))
+
+      if (!response.ok) {
+        throw new Error(await readApiError(response))
+      }
+
+      const data = await response.json()
+      const savedIsActive =
+        typeof data.item?.isActive === 'boolean' ? data.item.isActive : nextIsActive
+
+      setItems(prev =>
+        prev.map(item => (item.id === id ? { ...item, isActive: savedIsActive } : item))
+      )
     } catch (error) {
       console.error('Error toggling item:', error)
+      setError(error instanceof Error ? error.message : 'Nepodařilo se uložit změnu.')
+    } finally {
+      setTogglingIds(prev => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
     }
   }
 
@@ -110,11 +139,13 @@ export default function AdminShopPage() {
           </h1>
           <p className="text-gray-400">Položky v obchodě s gemy</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors">
-          <Plus className="w-4 h-4" />
-          Nová položka
-        </button>
       </div>
+
+      {error && (
+        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          {error}
+        </div>
+      )}
 
       {/* Stats */}
       {stats && (
@@ -189,7 +220,6 @@ export default function AdminShopPage() {
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Cena</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Prodáno</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Stav</th>
-                <th className="px-4 py-3 text-right text-sm font-medium text-gray-400">Akce</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
@@ -223,13 +253,16 @@ export default function AdminShopPage() {
                   <td className="px-4 py-3">
                     <button
                       onClick={() => toggleItemActive(item.id, item.isActive)}
-                      className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${
+                      disabled={togglingIds.has(item.id)}
+                      className={`flex min-w-[74px] items-center justify-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${
                         item.isActive
                           ? 'bg-green-500/20 text-green-400'
                           : 'bg-gray-700 text-gray-400'
-                      }`}
+                      } disabled:opacity-60 disabled:cursor-not-allowed`}
                     >
-                      {item.isActive ? (
+                      {togglingIds.has(item.id) ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : item.isActive ? (
                         <>
                           <Check className="w-3 h-3" /> Aktivní
                         </>
@@ -239,16 +272,6 @@ export default function AdminShopPage() {
                         </>
                       )}
                     </button>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button className="p-1.5 text-gray-400 hover:text-white transition-colors">
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button className="p-1.5 text-gray-400 hover:text-red-400 transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
                   </td>
                 </tr>
               ))}

@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { claimQuestReward } from '@/lib/quest-tracker'
+import { badRequest, serverError, unauthorized } from '@/lib/api-responses'
+import { claimQuestSchema, validateAPIRequest } from '@/lib/validation-schemas'
+
+export const dynamic = 'force-dynamic'
 
 /**
  * POST /api/quests/claim
@@ -12,23 +16,16 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return unauthorized()
     }
 
-    const body = await request.json()
-    const { questId } = body
+    const validation = await validateAPIRequest(request, claimQuestSchema)
+    if (!validation.success) return validation.response
 
-    if (!questId) {
-      return NextResponse.json({ error: 'Missing questId' }, { status: 400 })
-    }
-
-    const rewards = await claimQuestReward(session.user.id, questId)
+    const rewards = await claimQuestReward(session.user.id, validation.data.questId)
 
     if (!rewards) {
-      return NextResponse.json(
-        { error: 'Quest nelze claimnout (nedokončen nebo již claimnut)' },
-        { status: 400 }
-      )
+      return badRequest('Quest nelze claimnout (nedokončen nebo již claimnut)')
     }
 
     return NextResponse.json({
@@ -37,6 +34,6 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error claiming quest:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return serverError()
   }
 }

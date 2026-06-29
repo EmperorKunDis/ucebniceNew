@@ -110,17 +110,11 @@ export async function POST(request: NextRequest) {
     }
 
     if (hackathon.status === 'completed') {
-      return NextResponse.json(
-        { error: 'Hackathon již skončil' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Hackathon již skončil' }, { status: 400 })
     }
 
     if (new Date() > hackathon.registrationDeadline) {
-      return NextResponse.json(
-        { error: 'Registrace již byla uzavřena' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Registrace již byla uzavřena' }, { status: 400 })
     }
 
     // Check user is not already in a team for this hackathon
@@ -134,10 +128,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingMembership) {
-      return NextResponse.json(
-        { error: 'Již jsi členem týmu v tomto hackathonu' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Již jsi členem týmu v tomto hackathonu' }, { status: 400 })
     }
 
     // Check team name is unique for this hackathon
@@ -152,10 +143,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingTeam) {
-      return NextResponse.json(
-        { error: 'Tým s tímto názvem již existuje' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Tým s tímto názvem již existuje' }, { status: 400 })
     }
 
     // Create team with user as leader

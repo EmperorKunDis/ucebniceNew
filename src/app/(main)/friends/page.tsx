@@ -203,11 +203,15 @@ export default function FriendsPage() {
                 >
                   <div className="w-10 h-10 rounded-full bg-gray-700 overflow-hidden">
                     {request.user.avatar ? (
-                      <img
-                        src={request.user.avatar}
-                        alt={request.user.username}
-                        className="w-full h-full object-cover"
-                      />
+                      <>
+                        {/* Dynamic user avatars can be arbitrary remote URLs outside next/image config. */}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={request.user.avatar}
+                          alt={request.user.username}
+                          className="w-full h-full object-cover"
+                        />
+                      </>
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-400">
                         {request.user.username[0]?.toUpperCase()}
@@ -262,11 +266,15 @@ export default function FriendsPage() {
                   <div className="relative">
                     <div className="w-12 h-12 rounded-full bg-gray-700 overflow-hidden">
                       {friend.avatar ? (
-                        <img
-                          src={friend.avatar}
-                          alt={friend.username}
-                          className="w-full h-full object-cover"
-                        />
+                        <>
+                          {/* Dynamic user avatars can be arbitrary remote URLs outside next/image config. */}
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={friend.avatar}
+                            alt={friend.username}
+                            className="w-full h-full object-cover"
+                          />
+                        </>
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-400 text-lg">
                           {friend.username[0]?.toUpperCase()}

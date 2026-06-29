@@ -30,36 +30,36 @@ export const SKILL_CATEGORIES: Record<string, SkillCategory> = {
     id: 'fundamentals',
     name: 'Základy',
     color: '#3B82F6', // blue
-    description: 'Základní koncepty programování'
+    description: 'Základní koncepty programování',
   },
   'data-structures': {
     id: 'data-structures',
     name: 'Datové struktury',
     color: '#10B981', // green
-    description: 'Seznamy, slovníky, množiny a další'
+    description: 'Seznamy, slovníky, množiny a další',
   },
   algorithms: {
     id: 'algorithms',
     name: 'Algoritmy',
     color: '#F59E0B', // yellow
-    description: 'Řazení, vyhledávání, optimalizace'
+    description: 'Řazení, vyhledávání, optimalizace',
   },
   web: {
     id: 'web',
     name: 'Web',
     color: '#EF4444', // red
-    description: 'HTTP, API, webové frameworky'
+    description: 'HTTP, API, webové frameworky',
   },
   'ai-ml': {
     id: 'ai-ml',
     name: 'AI & ML',
     color: '#8B5CF6', // purple
-    description: 'Strojové učení a umělá inteligence'
+    description: 'Strojové učení a umělá inteligence',
   },
   databases: {
     id: 'databases',
     name: 'Databáze',
     color: '#EC4899', // pink
-    description: 'SQL, NoSQL, datové modelování'
-  }
+    description: 'SQL, NoSQL, datové modelování',
+  },
 }

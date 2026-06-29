@@ -21,7 +21,7 @@ export function FuzzyText({
   color = '#fff',
   enableHover = true,
   baseIntensity = 0.18,
-  hoverIntensity = 0.5
+  hoverIntensity = 0.5,
 }: FuzzyTextProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -41,7 +41,9 @@ export function FuzzyText({
       if (!ctx) return
 
       const computedFontFamily =
-        fontFamily === 'inherit' ? window.getComputedStyle(canvas).fontFamily || 'sans-serif' : fontFamily
+        fontFamily === 'inherit'
+          ? window.getComputedStyle(canvas).fontFamily || 'sans-serif'
+          : fontFamily
 
       const fontSizeStr = typeof fontSize === 'number' ? `${fontSize}px` : fontSize
       let numericFontSize: number
@@ -102,7 +104,12 @@ export function FuzzyText({
 
       const run = () => {
         if (isCancelled) return
-        ctx.clearRect(-fuzzRange, -fuzzRange, offscreenWidth + 2 * fuzzRange, tightHeight + 2 * fuzzRange)
+        ctx.clearRect(
+          -fuzzRange,
+          -fuzzRange,
+          offscreenWidth + 2 * fuzzRange,
+          tightHeight + 2 * fuzzRange
+        )
         const intensity = isHovering ? hoverIntensity : baseIntensity
         for (let j = 0; j < tightHeight; j++) {
           const dx = Math.floor(intensity * (Math.random() - 0.5) * fuzzRange)
@@ -114,7 +121,12 @@ export function FuzzyText({
       run()
 
       const isInsideTextArea = (x: number, y: number) => {
-        return x >= interactiveLeft && x <= interactiveRight && y >= interactiveTop && y <= interactiveBottom
+        return (
+          x >= interactiveLeft &&
+          x <= interactiveRight &&
+          y >= interactiveTop &&
+          y <= interactiveBottom
+        )
       }
 
       const handleMouseMove = (e: MouseEvent) => {
@@ -174,7 +186,16 @@ export function FuzzyText({
         ;(canvas as any).cleanupFuzzyText()
       }
     }
-  }, [children, fontSize, fontWeight, fontFamily, color, enableHover, baseIntensity, hoverIntensity])
+  }, [
+    children,
+    fontSize,
+    fontWeight,
+    fontFamily,
+    color,
+    enableHover,
+    baseIntensity,
+    hoverIntensity,
+  ])
 
   return <canvas ref={canvasRef} />
 }

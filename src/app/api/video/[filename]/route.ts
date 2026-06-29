@@ -3,11 +3,16 @@ import fs from 'fs'
 import path from 'path'
 import { stat } from 'fs/promises'
 
-export async function GET(request: NextRequest, { params }: { params: { filename: string } }) {
-  const filename = params.filename
+const VIDEO_FILES_DIR = process.env.VIDEO_FILES_DIR ?? path.join(process.cwd(), 'data', 'videa')
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ filename: string }> }
+) {
+  const { filename } = await params
   // Ensure we are only reading from the allowed directory and prevent directory traversal
   const safeFilename = path.basename(filename)
-  const videoPath = path.join('/data/videa', safeFilename)
+  const videoPath = path.join(VIDEO_FILES_DIR, safeFilename)
 
   try {
     const stats = await stat(videoPath)

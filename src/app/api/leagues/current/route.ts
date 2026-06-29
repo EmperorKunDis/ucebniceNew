@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { LeagueTier } from '@prisma/client'
 
+export const dynamic = 'force-dynamic'
+
 // Tier order for promotion/demotion
 const TIER_ORDER: LeagueTier[] = ['BRONZE', 'SILVER', 'GOLD', 'PLATINUM', 'DIAMOND', 'OBSIDIAN']
 

@@ -71,11 +71,15 @@ export function Navigation() {
                 >
                   <Box className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold overflow-hidden shrink-0">
                     {avatar ? (
-                      <img
-                        src={avatar}
-                        alt={username || 'User'}
-                        className="w-full h-full object-cover"
-                      />
+                      <>
+                        {/* Dynamic user avatars can be arbitrary remote URLs outside next/image config. */}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={avatar}
+                          alt={username || 'User'}
+                          className="w-full h-full object-cover"
+                        />
+                      </>
                     ) : (
                       username.charAt(0).toUpperCase()
                     )}
@@ -146,11 +150,15 @@ export function Navigation() {
                     >
                       <Box className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold overflow-hidden">
                         {avatar ? (
-                          <img
-                            src={avatar}
-                            alt={username || 'User'}
-                            className="w-full h-full object-cover"
-                          />
+                          <>
+                            {/* Dynamic user avatars can be arbitrary remote URLs outside next/image config. */}
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={avatar}
+                              alt={username || 'User'}
+                              className="w-full h-full object-cover"
+                            />
+                          </>
                         ) : (
                           username.charAt(0).toUpperCase()
                         )}

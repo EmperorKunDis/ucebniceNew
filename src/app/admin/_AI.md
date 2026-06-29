@@ -1,12 +1,15 @@
 # src/app/admin/ - AI Context
 
 ## 🎯 PURPOSE
+
 Admin dashboard for managing the platform. Requires `isAdmin` flag on user. Provides CRUD operations for chapters, achievements, hackathons, and user management.
 
 ## 📦 EXPORTS
+
 No direct exports. Contains admin pages and layouts.
 
 ## 🔗 DEPENDENCIES
+
 - `@/lib/admin-auth` - Admin authentication helpers
 - `@/lib/prisma` - Database access
 - `next-auth` - Session verification
@@ -14,16 +17,17 @@ No direct exports. Contains admin pages and layouts.
 ## 🏗️ PATTERNS
 
 ### Admin Page Protection
+
 ```typescript
 export default async function AdminPage() {
   const session = await getServerSession(authOptions)
-  
+
   if (!session?.user?.id) {
     redirect('/auth/signin')
   }
 
   const user = await prisma.user.findUnique({
-    where: { id: session.user.id }
+    where: { id: session.user.id },
   })
 
   if (!user?.isAdmin) {
@@ -35,6 +39,7 @@ export default async function AdminPage() {
 ```
 
 ### Admin Layout
+
 The `layout.tsx` provides consistent admin navigation sidebar.
 
 ## ⚠️ GOTCHAS
@@ -45,6 +50,7 @@ The `layout.tsx` provides consistent admin navigation sidebar.
 4. **No role system**: Binary admin/non-admin only
 
 ## 📁 STRUCTURE
+
 ```
 admin/
 ├── layout.tsx         # Admin layout with sidebar
@@ -68,11 +74,13 @@ admin/
 ```
 
 ## 🔄 RELATED
+
 - `src/app/api/admin/` - Admin API endpoints
 - `src/lib/admin-auth.ts` - Admin auth helpers
 - `prisma/schema.prisma` - `User.isAdmin` field
 
 ---
+
 <!-- META: For AI agents -->
 <!-- TRAVERSE: yes -->
 <!-- DEPTH: 1 -->

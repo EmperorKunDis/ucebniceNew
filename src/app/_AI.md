@@ -1,15 +1,19 @@
 # src/app/ - AI Context
 
 ## 🎯 PURPOSE
+
 Next.js 14 App Router directory containing all pages, layouts, and API routes. This is the routing backbone of the application.
 
 ## 📦 EXPORTS
+
 No direct exports. This folder defines:
+
 - Page routes (via `page.tsx` files)
 - Layouts (via `layout.tsx` files)
 - API endpoints (via `route.ts` in `/api/`)
 
 ## 🔗 DEPENDENCIES
+
 - `@/lib/auth` - Authentication
 - `@/lib/prisma` - Database access
 - `@/components/*` - UI components
@@ -18,10 +22,12 @@ No direct exports. This folder defines:
 ## 🏗️ PATTERNS
 
 ### Route Groups
+
 - `(auth)` - Authentication related pages
 - Dynamic routes: `[chapterId]`, `[id]`, `[hackathonId]`
 
 ### Page Structure
+
 ```typescript
 // Server Component page (default)
 export default async function Page() {
@@ -36,6 +42,7 @@ export default async function Page({ params }: { params: { id: string } }) {
 ```
 
 ### Layout Pattern
+
 ```typescript
 export default function Layout({ children }: { children: React.ReactNode }) {
   return <PageLayout>{children}</PageLayout>
@@ -51,6 +58,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 5. **Loading states**: Use `loading.tsx` for Suspense boundaries
 
 ## 📁 STRUCTURE
+
 ```
 app/
 ├── layout.tsx          # Root layout (providers, fonts)
@@ -90,11 +98,13 @@ app/
 ```
 
 ## 🔄 RELATED
+
 - `src/components/` - Components used by pages
 - `src/lib/auth.ts` - Auth configuration
 - `public/` - Static assets for pages
 
 ---
+
 <!-- META: For AI agents -->
 <!-- TRAVERSE: yes -->
 <!-- DEPTH: 1 -->
