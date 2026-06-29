@@ -33,13 +33,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Cache Prisma client
-        uses: actions/cache@v4
-        with:
-          path: node_modules/.prisma
-          key: prisma-client-${{ runner.os }}-${{ hashFiles('prisma/schema.prisma') }}
-          restore-keys: prisma-client-${{ runner.os }}-
-
       - name: Generate Prisma client
         run: npx prisma generate
         env:
@@ -110,13 +103,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Cache Prisma client
-        uses: actions/cache@v4
-        with:
-          path: node_modules/.prisma
-          key: prisma-client-${{ runner.os }}-${{ hashFiles('prisma/schema.prisma') }}
-          restore-keys: prisma-client-${{ runner.os }}-
 
       - name: Generate Prisma client
         run: npx prisma generate
