@@ -86,6 +86,7 @@ export async function POST(request: NextRequest) {
 
     // Calculate gems earned (only if AI approved)
     const gemsEarned = aiReview.approved ? GEMS_FOR_APPROVED_PROJECT : 0
+    const xpEarned = aiReview.approved ? PROJECT_XP_REWARD : 0
 
     // Create new submission with AI review
     await prisma.projectSubmission.create({
@@ -94,7 +95,7 @@ export async function POST(request: NextRequest) {
         chapterId,
         projectUrl,
         description,
-        xpEarned: PROJECT_XP_REWARD,
+        xpEarned,
         gemsEarned,
         aiReviewScore: aiReview.score,
         aiReviewFeedback: aiReview.feedback,
@@ -107,7 +108,7 @@ export async function POST(request: NextRequest) {
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        xp: { increment: PROJECT_XP_REWARD },
+        xp: { increment: xpEarned },
         gems: { increment: gemsEarned },
       },
     })
@@ -125,10 +126,10 @@ export async function POST(request: NextRequest) {
         chapterId,
         completedChapter: false,
         answeredQuestions: false,
-        submittedProject: true,
+        submittedProject: aiReview.approved,
       },
       update: {
-        submittedProject: true,
+        submittedProject: aiReview.approved,
       },
     })
 
@@ -138,10 +139,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       message: aiReview.approved
         ? 'Projekt byl schválen AI a ohodnocen!'
-        : 'Projekt byl odevzdán, ale nedosáhl požadovaného skóre.',
-      xpEarned: PROJECT_XP_REWARD,
+        : 'Projekt byl odevzdán, ale čeká na kontrolu nebo nedosáhl požadovaného skóre.',
+      xpEarned,
       gemsEarned,
-      submittedProject: true,
+      submittedProject: aiReview.approved,
       aiReview: {
         score: aiReview.score,
         feedback: aiReview.feedback,

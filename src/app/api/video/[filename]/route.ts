@@ -7,7 +7,8 @@ export async function GET(request: NextRequest, { params }: { params: { filename
   const filename = params.filename
   // Ensure we are only reading from the allowed directory and prevent directory traversal
   const safeFilename = path.basename(filename)
-  const videoPath = path.join('/data/videa', safeFilename)
+  const videoDir = process.env.VIDEO_FILES_DIR || path.join(process.cwd(), 'data', 'videa')
+  const videoPath = path.join(videoDir, safeFilename)
 
   try {
     const stats = await stat(videoPath)

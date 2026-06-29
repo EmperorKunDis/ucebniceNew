@@ -137,11 +137,11 @@ Buď přísný ale povzbudivý. Pokud kód nesplňuje základní požadavky, dej
  */
 function fallbackReview(): ProjectReviewResult {
   return {
-    score: 75,
-    feedback: 'Projekt byl přijat. Pro detailnější zpětnou vazbu prosím kontaktujte učitele.',
-    strengths: ['Projekt byl odevzdán včas'],
-    improvements: ['Doporučujeme přidat více komentářů do kódu'],
-    approved: true,
+    score: 0,
+    feedback: 'Automatické hodnocení není momentálně dostupné. Projekt musí zkontrolovat učitel.',
+    strengths: [],
+    improvements: ['Počkej na ruční kontrolu projektu nebo zkus odevzdání později.'],
+    approved: false,
   }
 }
 
