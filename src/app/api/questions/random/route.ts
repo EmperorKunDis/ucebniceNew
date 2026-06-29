@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
+export const dynamic = 'force-dynamic'
+
 const QUESTIONS_PER_CHAPTER = 3 // Random 3 out of 10
 
 const querySchema = z.object({

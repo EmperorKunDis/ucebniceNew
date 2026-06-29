@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/admin-auth'
 import { prisma } from '@/lib/prisma'
+import { notFound, serverError } from '@/lib/api-responses'
+import { activeStatusSchema, validateAPIRequest } from '@/lib/validation-schemas'
+
+export const dynamic = 'force-dynamic'
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   const adminCheck = await requireAdmin()
   if (adminCheck) return adminCheck
 
   try {
-    const body = await request.json()
-
-    if (typeof body.isActive !== 'boolean') {
-      return NextResponse.json({ error: 'isActive must be a boolean' }, { status: 400 })
-    }
+    const validation = await validateAPIRequest(request, activeStatusSchema)
+    if (!validation.success) return validation.response
 
     const existingQuest = await prisma.quest.findUnique({
       where: { id: params.id },
@@ -19,17 +20,17 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     })
 
     if (!existingQuest) {
-      return NextResponse.json({ error: 'Quest not found' }, { status: 404 })
+      return notFound('Quest not found')
     }
 
     const quest = await prisma.quest.update({
       where: { id: params.id },
-      data: { isActive: body.isActive },
+      data: { isActive: validation.data.isActive },
     })
 
     return NextResponse.json({ quest })
   } catch (error) {
     console.error('Error updating quest:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return serverError()
   }
 }

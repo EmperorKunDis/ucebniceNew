@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { validateQueryParams, chapterProgressQuerySchema } from '@/lib/validation-schemas'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)

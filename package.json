@@ -25,6 +25,7 @@
     "migrate:export": "tsx scripts/migration/export-sqlite-data.ts",
     "migrate:import": "tsx scripts/migration/import-postgres-data.ts",
     "migrate:verify": "tsx scripts/migration/verify-migration.ts",
+    "validate:content": "tsx scripts/validate-content.ts",
     "db:seed": "tsx prisma/seed.ts"
   },
   "prisma": {
@@ -62,7 +63,7 @@
     "dotenv": "^17.2.3",
     "framer-motion": "^11.3.17",
     "html2canvas": "^1.4.1",
-    "jspdf": "^3.0.3",
+    "jspdf": "^4.2.1",
     "lucide-react": "^0.414.0",
     "matter-js": "^0.20.0",
     "next": "^14.2.33",
