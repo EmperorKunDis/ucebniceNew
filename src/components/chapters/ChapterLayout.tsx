@@ -55,7 +55,11 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
 
   // Custom hooks for data
   const progress = useChapterProgress(chapter.id)
-  const { questions } = useChapterQuestions(chapter.id)
+  const {
+    questions,
+    loading: questionsLoading,
+    error: questionsError,
+  } = useChapterQuestions(chapter.id)
 
   // UI state
   const [expandedSections, setExpandedSections] = useState({
@@ -180,30 +184,41 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
           </Section>
 
           {/* Questions Section */}
-          {questions.length > 0 && (
-            <Section
-              title={`Otázky k procvičení (${questions.length})`}
-              icon={<HelpCircle className="w-5 h-5" />}
-              expanded={expandedSections.questions}
-              onToggle={() => toggleSection('questions')}
-            >
-              <div className="space-y-4">
-                <p className="text-gray-400 mb-6">
-                  Odpověz správně na všechny otázky a získej druhou hvězdičku! 🌟
-                </p>
-                {questions.map((question, index) => (
-                  <MemoizedQuestionCard
-                    key={question.id}
-                    question={question}
-                    questionNumber={index + 1}
-                    onAnswer={progress.answerQuestion}
-                    alreadyAnswered={progress.questionAnswers.get(question.id) === true}
-                    correctAnswer={progress.questionAnswers.get(question.id)}
-                  />
-                ))}
-              </div>
-            </Section>
-          )}
+          <Section
+            title={`Otázky k procvičení${questions.length > 0 ? ` (${questions.length})` : ''}`}
+            icon={<HelpCircle className="w-5 h-5" />}
+            expanded={expandedSections.questions}
+            onToggle={() => toggleSection('questions')}
+          >
+            <div className="space-y-4">
+              {questionsLoading ? (
+                <div className="flex items-center gap-2 text-gray-400">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Načítám otázky...
+                </div>
+              ) : questionsError ? (
+                <p className="text-orange-300">{questionsError}</p>
+              ) : questions.length === 0 ? (
+                <p className="text-orange-300">Otázky pro tuto kapitolu nejsou načtené.</p>
+              ) : (
+                <>
+                  <p className="text-gray-400 mb-6">
+                    Odpověz správně na všechny otázky a získej druhou hvězdičku! 🌟
+                  </p>
+                  {questions.map((question, index) => (
+                    <MemoizedQuestionCard
+                      key={question.id}
+                      question={question}
+                      questionNumber={index + 1}
+                      onAnswer={progress.answerQuestion}
+                      alreadyAnswered={progress.questionAnswers.get(question.id) === true}
+                      correctAnswer={progress.questionAnswers.get(question.id)}
+                    />
+                  ))}
+                </>
+              )}
+            </div>
+          </Section>
 
           {/* Project Section */}
           {progress.isAuthenticated && (
@@ -229,7 +244,6 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
           {progress.isAuthenticated && (
             <CompletionSection
               progress={progress}
-              questions={questions}
               onComplete={handleCompleteChapter}
               onToggleQuestions={() => toggleSection('questions')}
               onToggleProject={() => toggleSection('project')}
@@ -329,7 +343,6 @@ function StarProgress({
 // Completion Section
 interface CompletionSectionProps {
   progress: ReturnType<typeof useChapterProgress>
-  questions: unknown[]
   onComplete: () => void
   onToggleQuestions: () => void
   onToggleProject: () => void
@@ -339,7 +352,6 @@ interface CompletionSectionProps {
 
 function CompletionSection({
   progress,
-  questions,
   onComplete,
   onToggleQuestions,
   onToggleProject,
@@ -401,7 +413,6 @@ function CompletionSection({
             <ActionButtons
               answeredQuestions={answeredQuestions}
               submittedProject={submittedProject}
-              questionsCount={questions.length}
               onNavigateChapters={onNavigateChapters}
               onToggleQuestions={onToggleQuestions}
               onToggleProject={onToggleProject}
@@ -411,7 +422,6 @@ function CompletionSection({
       ) : (
         <CompletedView
           progress={progress}
-          questions={questions}
           onNavigateChapters={onNavigateChapters}
           onNavigateProfile={onNavigateProfile}
           onToggleQuestions={onToggleQuestions}
@@ -426,7 +436,6 @@ function CompletionSection({
 interface ActionButtonsProps {
   answeredQuestions: boolean
   submittedProject: boolean
-  questionsCount: number
   onNavigateChapters: () => void
   onToggleQuestions: () => void
   onToggleProject: () => void
@@ -435,7 +444,6 @@ interface ActionButtonsProps {
 function ActionButtons({
   answeredQuestions,
   submittedProject,
-  questionsCount,
   onNavigateChapters,
   onToggleQuestions,
   onToggleProject,
@@ -445,7 +453,7 @@ function ActionButtons({
       <Button onClick={onNavigateChapters} variant="secondary">
         Zpět na kapitoly
       </Button>
-      {!answeredQuestions && questionsCount > 0 && (
+      {!answeredQuestions && (
         <Button onClick={onToggleQuestions} className="bg-gradient-to-r from-blue-500 to-cyan-500">
           <HelpCircle className="w-5 h-5 mr-2" />
           Zodpovědět otázky
@@ -467,7 +475,6 @@ function ActionButtons({
 // Completed View
 interface CompletedViewProps {
   progress: ReturnType<typeof useChapterProgress>
-  questions: unknown[]
   onNavigateChapters: () => void
   onNavigateProfile: () => void
   onToggleQuestions: () => void
@@ -476,7 +483,6 @@ interface CompletedViewProps {
 
 function CompletedView({
   progress,
-  questions,
   onNavigateChapters,
   onNavigateProfile,
   onToggleQuestions,
@@ -538,7 +544,6 @@ function CompletedView({
       <ActionButtons
         answeredQuestions={answeredQuestions}
         submittedProject={submittedProject}
-        questionsCount={questions.length}
         onNavigateChapters={onNavigateChapters}
         onToggleQuestions={onToggleQuestions}
         onToggleProject={onToggleProject}
