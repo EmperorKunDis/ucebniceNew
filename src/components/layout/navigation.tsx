@@ -171,24 +171,11 @@ export function Navigation() {
                               alt={username || 'User'}
                               className="w-full h-full object-cover"
                             />
-                          </>
-                        ) : (
-                          username.charAt(0).toUpperCase()
-                        )}
-                      </Box>
-                      <span>{username}</span>
-                    </Link>
-                  ) : (
-                    <Stack direction="col" gap={2} className="mx-4">
-                      <Link href="/auth/signin" onClick={() => setMobileMenuOpen(false)}>
-                        <Button variant="ghost" className="w-full">
-                          Přihlásit se
-                        </Button>
-                      </Link>
-                      <Link href="/onboarding" onClick={() => setMobileMenuOpen(false)}>
-                        <Button variant="primary" className="w-full">
-                          Začít zdarma
-                        </Button>
+                          ) : (
+                            username.charAt(0).toUpperCase()
+                          )}
+                        </Box>
+                        <span>{username}</span>
                       </Link>
                     ) : (
                       <Stack direction="col" gap={2} className="mx-4">
