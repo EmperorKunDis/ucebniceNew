@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { applyRateLimit } from '@/lib/api-middleware'
 import { authLimiter } from '@/lib/rate-limit'
 import { signupSchema, validateRequestBody } from '@/lib/validations'
+import { sendVerificationEmail } from '@/lib/email'
 
 /**
  * @swagger
@@ -139,9 +140,16 @@ export async function POST(req: NextRequest) {
       },
     })
 
+    if (!user.email) {
+      return NextResponse.json({ error: 'Při registraci došlo k chybě' }, { status: 500 })
+    }
+
+    const verificationEmailSent = await sendVerificationEmail(user.email, user.name || undefined)
+
     return NextResponse.json(
       {
         message: 'Uživatel byl úspěšně vytvořen',
+        verificationEmailSent,
         user,
       },
       { status: 201 }

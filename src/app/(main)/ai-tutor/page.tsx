@@ -21,6 +21,7 @@ export default function AITutorPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [tutorAvailable, setTutorAvailable] = useState<boolean | null>(null)
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [suggestedQuestions, setSuggestedQuestions] = useState<SuggestedQuestion[]>([
     { text: 'Co je to neuronová síť?' },
@@ -36,9 +37,23 @@ export default function AITutorPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
+  useEffect(() => {
+    async function fetchStatus() {
+      try {
+        const response = await fetch('/api/ai-tutor/status')
+        const data = await response.json()
+        setTutorAvailable(Boolean(data.available))
+      } catch {
+        setTutorAvailable(false)
+      }
+    }
+
+    fetchStatus()
+  }, [])
+
   const handleSend = async (text?: string) => {
     const messageText = text ?? input.trim()
-    if (!messageText || loading) return
+    if (!messageText || loading || tutorAvailable !== true) return
 
     // Add user message
     const userMessage: Message = {
@@ -165,6 +180,35 @@ export default function AITutorPage() {
     )
   }
 
+  if (tutorAvailable === false) {
+    return (
+      <div className="flex h-screen flex-col bg-gray-900">
+        <div className="flex items-center gap-3 border-b border-gray-800 p-4">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500">
+            <Bot className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-lg font-semibold text-white">AI Tutor</h1>
+            <p className="text-sm text-gray-400">Připravujeme pro Učebnici v2</p>
+          </div>
+        </div>
+
+        <div className="flex flex-1 items-center justify-center p-8 text-center">
+          <div className="max-w-md">
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500">
+              <Sparkles className="h-8 w-8 text-white" />
+            </div>
+            <h2 className="mb-3 text-2xl font-semibold text-white">AI Tutor bude brzy dostupný</h2>
+            <p className="text-gray-400">
+              Tuhle část ještě konfigurujeme pro ostrý provoz. Jakmile bude tutor napojený na obsah
+              kurzu a stabilní model, vrátíme ho do aktivního režimu.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col h-screen bg-gray-900">
       {/* Header */}
@@ -223,7 +267,7 @@ export default function AITutorPage() {
               <button
                 key={i}
                 onClick={() => handleSend(q.text)}
-                disabled={loading}
+                disabled={loading || tutorAvailable !== true}
                 className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm rounded-full transition-colors disabled:opacity-50"
               >
                 {q.text}
@@ -242,13 +286,13 @@ export default function AITutorPage() {
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Zeptej se mě na cokoliv o AI..."
-            disabled={loading}
+            disabled={loading || tutorAvailable !== true}
             rows={1}
             className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-400 resize-none focus:outline-none focus:border-purple-500 disabled:opacity-50"
           />
           <button
             onClick={() => handleSend()}
-            disabled={!input.trim() || loading}
+            disabled={!input.trim() || loading || tutorAvailable !== true}
             className="px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}

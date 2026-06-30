@@ -24,7 +24,7 @@ export default function LessonPage() {
   const chapterId = params.chapterId as string
   const lessonId = params.lessonId as string
 
-  const { hearts, loseHeart } = useHearts()
+  const { hearts, refetch: refetchHearts } = useHearts()
 
   const [lesson, setLesson] = useState<LessonData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -33,6 +33,8 @@ export default function LessonPage() {
   const [xpEarned, setXpEarned] = useState(0)
   const [showXPAnimation, setShowXPAnimation] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
+  const [completionError, setCompletionError] = useState<string | null>(null)
+  const [completedExerciseIds, setCompletedExerciseIds] = useState<Set<string>>(() => new Set())
   const [lastAnswer, setLastAnswer] = useState<{
     correct: boolean
     xp: number
@@ -55,20 +57,44 @@ export default function LessonPage() {
     }
   }
 
-  const handleExerciseComplete = (isCorrect: boolean, earnedXP: number) => {
-    setLastAnswer({ correct: isCorrect, xp: earnedXP })
-    setScore(prev => ({
-      correct: prev.correct + (isCorrect ? 1 : 0),
-      total: prev.total + 1,
-    }))
+  const completeLesson = async () => {
+    const response = await fetch(`/api/micro-lessons/lesson/${lessonId}/complete`, {
+      method: 'POST',
+    })
+    const data = await response.json().catch(() => null)
 
-    if (isCorrect) {
-      setXpEarned(prev => prev + earnedXP)
-      setShowXPAnimation(true)
-      setTimeout(() => setShowXPAnimation(false), 1500)
-    } else {
-      loseHeart()
+    if (!response.ok) {
+      throw new Error(data?.error || 'Nepodařilo se uložit dokončení lekce')
     }
+
+    return data as { xpEarned?: number }
+  }
+
+  const handleExerciseComplete = (isCorrect: boolean, earnedXP: number) => {
+    const currentExerciseId = lesson?.exercises[currentIndex]?.id
+    const alreadyCounted = currentExerciseId ? completedExerciseIds.has(currentExerciseId) : false
+
+    setCompletionError(null)
+    setLastAnswer({ correct: isCorrect, xp: earnedXP })
+
+    if (!alreadyCounted) {
+      if (currentExerciseId) {
+        setCompletedExerciseIds(prev => new Set(prev).add(currentExerciseId))
+      }
+
+      setScore(prev => ({
+        correct: prev.correct + (isCorrect ? 1 : 0),
+        total: prev.total + 1,
+      }))
+
+      if (isCorrect) {
+        setXpEarned(prev => prev + earnedXP)
+        setShowXPAnimation(true)
+        setTimeout(() => setShowXPAnimation(false), 1500)
+      }
+    }
+
+    void refetchHearts()
 
     // Move to next exercise after delay
     setTimeout(() => {
@@ -76,7 +102,19 @@ export default function LessonPage() {
       if (lesson && currentIndex < lesson.exercises.length - 1) {
         setCurrentIndex(prev => prev + 1)
       } else {
-        setIsComplete(true)
+        void completeLesson()
+          .then(data => {
+            const lessonXP = data.xpEarned ?? 0
+            if (lessonXP > 0) {
+              setXpEarned(prev => prev + lessonXP)
+            }
+            setIsComplete(true)
+          })
+          .catch(error => {
+            setCompletionError(
+              error instanceof Error ? error.message : 'Nepodařilo se uložit dokončení lekce'
+            )
+          })
       }
     }, 1500)
   }
@@ -213,6 +251,12 @@ export default function LessonPage() {
 
       {/* Exercise */}
       <main className="flex-1 p-4 overflow-y-auto">
+        {completionError && (
+          <div className="mx-auto mb-4 max-w-2xl rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200">
+            {completionError}
+          </div>
+        )}
+
         <AnimatePresence mode="wait">
           <motion.div
             key={currentIndex}
@@ -224,6 +268,7 @@ export default function LessonPage() {
             <ExercisePlayer
               exercise={currentExercise}
               onComplete={handleExerciseComplete}
+              heartsRemaining={hearts}
               showHints={true}
             />
           </motion.div>

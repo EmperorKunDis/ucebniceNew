@@ -81,7 +81,7 @@ export function SkillTreeContainer() {
   // Handle node click
   const handleNodeClick = (node: SkillNodeData) => {
     setSelectedNode(node.id)
-    router.push(`/chapters/${node.id}`)
+    router.push(`/learn/${node.id}`)
   }
 
   if (loading) {
@@ -96,6 +96,20 @@ export function SkillTreeContainer() {
     return (
       <div className="flex items-center justify-center h-96 text-red-400">
         <p>Chyba: {error || 'Data nenalezena'}</p>
+      </div>
+    )
+  }
+
+  if (data.nodes.length === 0) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 p-6">
+        <div className="max-w-md rounded-xl border border-white/10 bg-gray-950/70 p-6 text-center shadow-2xl shadow-purple-950/20">
+          <h2 className="text-xl font-semibold text-white">Postupová cesta není načtená</h2>
+          <p className="mt-3 text-sm leading-6 text-gray-300">
+            Učení je správně napojené na domovskou obrazovku, ale databáze teď nevrátila žádné
+            kapitoly. Po načtení kapitol se tady zobrazí postupová cesta.
+          </p>
+        </div>
       </div>
     )
   }

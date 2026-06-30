@@ -748,7 +748,7 @@ export default function HackathonDetailPage() {
                 <Stack direction="col" align="center" gap={4}>
                   <p className="text-gray-300 text-center">Pro registraci se musíš přihlásit.</p>
                   <Button asChild>
-                    <Link href="/auth/login">Přihlásit se</Link>
+                    <Link href="/auth/signin">Přihlásit se</Link>
                   </Button>
                 </Stack>
               ) : level >= 5 ? (
@@ -820,7 +820,7 @@ export default function HackathonDetailPage() {
                     </p>
                   </Box>
                   <Button asChild>
-                    <Link href="/chapters">Pokračovat v učení</Link>
+                    <Link href="/dashboard">Pokračovat v učení</Link>
                   </Button>
                 </Stack>
               )}

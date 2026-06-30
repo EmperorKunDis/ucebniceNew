@@ -1,21 +1,42 @@
 import { withAuth } from 'next-auth/middleware'
 import { NextResponse } from 'next/server'
 
+const protectedRoutes = [
+  '/dashboard',
+  '/learn',
+  '/shop',
+  '/friends',
+  '/ai-tutor',
+  '/settings',
+  '/certificate',
+  '/quests',
+  '/leagues',
+  '/notifications',
+  '/review',
+  '/profile',
+]
+
 export default withAuth(
-  function middleware(_req) {
-    // Middleware logic zde (pokud je potřeba)
+  function middleware(req) {
+    const token = req.nextauth.token
+    const pathname = req.nextUrl.pathname
+
+    if (token && pathname === '/auth/signin') {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
+    }
+
     return NextResponse.next()
   },
   {
     callbacks: {
       authorized: ({ req, token }) => {
-        // Pokud je uživatel na auth stránce, povolit přístup
-        if (req.nextUrl.pathname.startsWith('/auth')) {
-          return true
-        }
+        const pathname = req.nextUrl.pathname
 
-        // Pro ostatní chráněné cesty vyžadovat přihlášení
-        return !!token
+        if (pathname.startsWith('/auth')) return true
+
+        return protectedRoutes.some(route => pathname === route || pathname.startsWith(`${route}/`))
+          ? !!token
+          : true
       },
     },
     pages: {
@@ -24,12 +45,20 @@ export default withAuth(
   }
 )
 
-// Konfigurovat cesty, které má middleware chránit
 export const config = {
   matcher: [
+    '/auth/signin',
     '/dashboard/:path*',
+    '/learn/:path*',
+    '/shop/:path*',
+    '/friends/:path*',
+    '/ai-tutor/:path*',
+    '/settings/:path*',
     '/certificate/:path*',
-    // Nepoužívat middleware pro tyto cesty:
-    '/((?!api|_next/static|_next/image|favicon.ico|images|prednasky|texty|videa|auth|chapters|arena|onboarding|$).*)',
+    '/quests/:path*',
+    '/leagues/:path*',
+    '/notifications/:path*',
+    '/review/:path*',
+    '/profile/:path*',
   ],
 }

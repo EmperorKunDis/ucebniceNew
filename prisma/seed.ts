@@ -13,6 +13,8 @@ async function main() {
 
   // Seed chapters for all chapters
   for (const chapter of chapters) {
+    const moduleNumber = Math.ceil(chapter.number / 5)
+
     await prisma.chapter.upsert({
       where: {
         chapterId: chapter.id,
@@ -23,6 +25,7 @@ async function main() {
         xpReward: 100,
         difficulty: 'MEDIUM',
         order: chapter.number,
+        module: moduleNumber,
       },
       create: {
         chapterId: chapter.id,
@@ -31,6 +34,7 @@ async function main() {
         xpReward: 100,
         difficulty: 'MEDIUM',
         order: chapter.number,
+        module: moduleNumber,
       },
     })
   }

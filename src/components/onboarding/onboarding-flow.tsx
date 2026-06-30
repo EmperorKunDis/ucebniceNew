@@ -43,7 +43,15 @@ interface OnboardingStep {
   content: React.ReactNode
 }
 
-export function OnboardingFlow() {
+interface OnboardingFlowProps {
+  entryTitle?: string
+  entryDescription?: string
+}
+
+export function OnboardingFlow({
+  entryTitle = 'Vítej v Učebnici AI!',
+  entryDescription = 'Začni svou cestu k mistrovství v programování',
+}: OnboardingFlowProps) {
   const router = useRouter()
   const { setUsername, completeOnboarding } = useUserStore()
   const [currentStep, setCurrentStep] = useState(0)
@@ -61,8 +69,8 @@ export function OnboardingFlow() {
   const steps: OnboardingStep[] = [
     {
       id: 0,
-      title: 'Vítej v Učebnici AI! 🎆',
-      description: 'Začni svou cestu k mistrovství v programování',
+      title: entryTitle,
+      description: entryDescription,
       icon: <Sparkles className="w-8 h-8 text-purple-400" />,
       content: (
         <Stack gap={6} align="center">
@@ -531,9 +539,9 @@ export function OnboardingFlow() {
         // Show success message
         toast.success(`Gratulujeme! +${data.xpEarned} XP a nový odznak!`)
 
-        // Navigate to chapters
+        // Navigate to the primary v2 learning flow.
         setTimeout(() => {
-          router.push('/chapters')
+          router.push('/dashboard')
         }, 1000)
       } catch (error) {
         console.error('Error completing onboarding:', error)

@@ -34,7 +34,7 @@ export function PageLayout({
       {showNavigation && <Navigation />}
       <Box
         as="main"
-        className={cn('relative z-10 pt-[20vh] pb-16 px-4 sm:px-6 lg:px-8', contentClassName)}
+        className={cn('relative z-10 pt-28 pb-14 px-4 sm:px-6 lg:px-8', contentClassName)}
       >
         <Box className="max-w-7xl mx-auto">{children}</Box>
       </Box>

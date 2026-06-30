@@ -197,7 +197,7 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
                     question={question}
                     questionNumber={index + 1}
                     onAnswer={progress.answerQuestion}
-                    alreadyAnswered={progress.questionAnswers.has(question.id)}
+                    alreadyAnswered={progress.questionAnswers.get(question.id) === true}
                     correctAnswer={progress.questionAnswers.get(question.id)}
                   />
                 ))}

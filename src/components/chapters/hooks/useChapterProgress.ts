@@ -140,7 +140,12 @@ export function useChapterProgress(chapterId: string) {
     async (
       questionId: string,
       answerIndex: number
-    ): Promise<{ correct: boolean; explanation: string; xpEarned: number }> => {
+    ): Promise<{
+      correct: boolean
+      explanation: string
+      xpEarned: number
+      correctAnswer?: { index: number; text?: string }
+    }> => {
       if (!session) {
         return { correct: false, explanation: 'Musíš být přihlášen', xpEarned: 0 }
       }

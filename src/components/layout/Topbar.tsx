@@ -25,7 +25,7 @@ export function Topbar({ onMenuClick, showMenu, className }: TopbarProps) {
   return (
     <header
       className={cn(
-        'h-16 bg-gray-900 border-b border-gray-800 px-4 flex items-center justify-between',
+        'h-16 bg-gray-950/95 border-b border-white/10 px-4 flex items-center justify-between backdrop-blur-xl',
         className
       )}
     >
@@ -33,7 +33,8 @@ export function Topbar({ onMenuClick, showMenu, className }: TopbarProps) {
       <div className="flex items-center gap-4">
         <button
           onClick={onMenuClick}
-          className="lg:hidden p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+          className="lg:hidden p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+          aria-label={showMenu ? 'Zavřít navigaci' : 'Otevřít navigaci'}
         >
           {showMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
@@ -71,7 +72,8 @@ export function Topbar({ onMenuClick, showMenu, className }: TopbarProps) {
         {/* Notifications */}
         <Link
           href="/notifications"
-          className="relative p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+          className="relative p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+          aria-label="Notifikace"
         >
           <Bell className="w-5 h-5" />
           {notificationCount > 0 && (
@@ -83,7 +85,7 @@ export function Topbar({ onMenuClick, showMenu, className }: TopbarProps) {
 
         {/* Avatar */}
         <Link href="/profile" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-gray-700 overflow-hidden">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky-500/40 to-purple-500/40 border border-white/10 overflow-hidden">
             {session?.user?.image ? (
               <img
                 src={session.user.image}

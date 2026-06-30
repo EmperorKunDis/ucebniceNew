@@ -51,6 +51,9 @@ export const metadata: Metadata = {
     title: 'Učebnice programování AI',
     description: 'Prémiový vzdělávací ekosystém pro výuku programování s AI asistentem',
   },
+  icons: {
+    icon: '/favicon.ico',
+  },
   twitter: {
     card: 'summary_large_image',
     title: 'Učebnice programování AI',

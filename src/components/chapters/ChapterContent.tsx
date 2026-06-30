@@ -65,53 +65,57 @@ export function ChapterContent({ content, type }: ChapterContentProps) {
   }
 
   return (
-    <Box className="prose prose-invert max-w-none">
+    <Box className="mx-auto max-w-3xl text-[1.02rem]">
       <ReactMarkdown
         components={{
           h1: ({ children }) => (
-            <h1 className="text-3xl font-bold text-gray-100 mb-6">{children}</h1>
+            <h1 className="mb-6 text-3xl font-bold leading-tight text-white">{children}</h1>
           ),
           h2: ({ children }) => (
-            <h2 className="text-2xl font-semibold text-gray-100 mt-8 mb-4">{children}</h2>
+            <h2 className="mb-4 mt-10 text-2xl font-semibold leading-tight text-white">
+              {children}
+            </h2>
           ),
           h3: ({ children }) => (
-            <h3 className="text-xl font-medium text-gray-200 mt-6 mb-3">{children}</h3>
+            <h3 className="mb-3 mt-7 text-xl font-semibold leading-tight text-gray-100">
+              {children}
+            </h3>
           ),
-          p: ({ children }) => <p className="text-gray-300 leading-relaxed mb-4">{children}</p>,
+          p: ({ children }) => <p className="mb-5 leading-8 text-gray-200">{children}</p>,
           ul: ({ children }) => (
-            <ul className="list-disc list-inside space-y-2 mb-4 text-gray-300">{children}</ul>
+            <ul className="mb-5 list-disc space-y-2 pl-6 leading-8 text-gray-200">{children}</ul>
           ),
           ol: ({ children }) => (
-            <ol className="list-decimal list-inside space-y-2 mb-4 text-gray-300">{children}</ol>
+            <ol className="mb-5 list-decimal space-y-2 pl-6 leading-8 text-gray-200">{children}</ol>
           ),
-          li: ({ children }) => <li className="ml-4">{children}</li>,
+          li: ({ children }) => <li className="pl-1">{children}</li>,
           strong: ({ children }) => (
             <strong className="text-gray-100 font-semibold">{children}</strong>
           ),
           em: ({ children }) => <em className="text-gray-200 italic">{children}</em>,
           blockquote: ({ children }) => (
-            <blockquote className="border-l-4 border-purple-500 pl-4 py-2 my-4 bg-gray-800/50 rounded-r">
+            <blockquote className="my-6 rounded-r-lg border-l-4 border-purple-400 bg-purple-500/10 py-3 pl-5 text-gray-100">
               {children}
             </blockquote>
           ),
           code: ({ inline, children }: any) => {
             return inline ? (
-              <code className="bg-gray-800 text-purple-300 px-1 py-0.5 rounded text-sm font-mono">
+              <code className="rounded bg-gray-900 px-1.5 py-0.5 font-mono text-sm text-pink-200">
                 {children}
               </code>
             ) : (
-              <pre className="bg-gray-800 p-4 rounded-lg overflow-x-auto mb-4">
-                <code className="text-gray-300 font-mono text-sm">{children}</code>
+              <pre className="mb-6 overflow-x-auto rounded-lg border border-white/10 bg-gray-950 p-4">
+                <code className="font-mono text-sm leading-6 text-gray-200">{children}</code>
               </pre>
             )
           },
-          hr: () => <hr className="border-gray-700 my-8" />,
+          hr: () => <hr className="my-8 border-white/10" />,
           a: ({ href, children }) => (
             <a
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-purple-400 hover:text-purple-300 underline"
+              className="font-semibold text-sky-300 underline decoration-sky-300/40 underline-offset-4 hover:text-sky-200"
             >
               {children}
             </a>
