@@ -1,13 +1,16 @@
-import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
+import { OnboardingFlow } from '@/components/onboarding/onboarding-flow'
 
 export const metadata: Metadata = {
   title: 'Registrace | Učebnice AI',
-  description: 'Zaregistrujte se a začněte se učit programování s AI asistentem',
+  description: 'Registrace do Učebnice AI a úvodní nastavení studijní cesty',
 }
 
 export default function SignUpPage() {
-  // Server-side redirect to onboarding
-  // Registration is now part of the onboarding flow
-  redirect('/onboarding')
+  return (
+    <OnboardingFlow
+      entryTitle="Registrace do Učebnice AI"
+      entryDescription="Vytvoř si účet a nastav si studijní cestu v několika krátkých krocích"
+    />
+  )
 }

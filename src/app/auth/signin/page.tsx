@@ -10,7 +10,6 @@ import { GlassSurface } from '@/components/ui/glass-surface'
 import { Button } from '@/components/ui/button'
 import { Stack, Box } from '@/components/layout'
 import { Github, Mail, Loader2, ArrowLeft } from 'lucide-react'
-import Image from 'next/image'
 import { signInSchema } from '@/lib/validation-schemas'
 import toast from 'react-hot-toast'
 
@@ -59,7 +58,7 @@ export default function SignInPage() {
         toast.error('Nesprávný email nebo heslo')
       } else {
         toast.success('Přihlášení úspěšné!')
-        router.push('/chapters')
+        router.push('/dashboard')
       }
     } catch (error) {
       setError('Něco se pokazilo. Zkuste to znovu.')
@@ -76,7 +75,7 @@ export default function SignInPage() {
     // OAuth providers require redirect to work - NextAuth handles the full OAuth flow
     // This will redirect to the OAuth provider's authorization page, then back to callback
     signIn(provider, {
-      callbackUrl: '/chapters',
+      callbackUrl: '/dashboard',
       // redirect defaults to true for OAuth - redirects to provider's auth page
     })
 
@@ -138,7 +137,12 @@ export default function SignInPage() {
                       className="w-full justify-center gap-3 bg-white/5 backdrop-blur-sm border border-white/20 hover:bg-white/10"
                       disabled={isLoading}
                     >
-                      <Image src="/images/google-icon.svg" alt="Google" width={20} height={20} />
+                      <span
+                        aria-hidden="true"
+                        className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-sm font-bold text-gray-900"
+                      >
+                        G
+                      </span>
                       Pokračovat s Google
                     </Button>
 
@@ -263,7 +267,7 @@ export default function SignInPage() {
                 >
                   <span className="text-gray-300">Nemáte účet? </span>
                   <Link
-                    href="/onboarding"
+                    href="/auth/signup"
                     className="text-purple-400 hover:text-purple-300 transition-colors"
                   >
                     Zaregistrujte se

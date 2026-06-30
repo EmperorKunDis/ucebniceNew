@@ -190,11 +190,26 @@ export default function ProfilePage() {
 
       {/* Quick Links */}
       <motion.section
-        className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.35 }}
       >
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-4 bg-gray-800 hover:bg-gray-750 rounded-xl p-4 transition-colors group"
+        >
+          <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
+            <BookOpen className="w-6 h-6 text-green-500" />
+          </div>
+          <div>
+            <div className="font-medium text-white group-hover:text-indigo-400 transition-colors">
+              Učení
+            </div>
+            <div className="text-sm text-gray-400">Pokračovat v kurzu</div>
+          </div>
+        </Link>
+
         <Link
           href="/achievements"
           className="flex items-center gap-4 bg-gray-800 hover:bg-gray-750 rounded-xl p-4 transition-colors group"

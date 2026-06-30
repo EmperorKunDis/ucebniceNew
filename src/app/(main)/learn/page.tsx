@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 
 /**
  * /learn redirects to /dashboard (skill tree view)
- * Individual chapters are at /chapters/[id]
+ * Individual v2 chapter overviews are at /learn/[chapterId].
  */
 export default function LearnPage() {
   redirect('/dashboard')

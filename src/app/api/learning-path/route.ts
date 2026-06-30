@@ -198,7 +198,7 @@ export async function GET(_request: NextRequest) {
       currentChapter: nodes[firstIncompleteIndex]?.id ?? null,
       totalStars,
       maxStars: chapters.length * 3,
-      percentage: Math.round((totalCompleted / chapters.length) * 100),
+      percentage: chapters.length > 0 ? Math.round((totalCompleted / chapters.length) * 100) : 0,
     }
 
     return NextResponse.json({

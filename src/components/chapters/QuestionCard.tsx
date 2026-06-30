@@ -17,6 +17,10 @@ interface QuestionCardProps {
     correct: boolean
     explanation: string
     xpEarned: number
+    correctAnswer?: {
+      index: number
+      text?: string
+    }
   }>
   alreadyAnswered?: boolean
   correctAnswer?: boolean
@@ -35,6 +39,10 @@ export const QuestionCard = memo(function QuestionCard({
   const [explanation, setExplanation] = useState<string | null>(null)
   const [xpEarned, setXpEarned] = useState(0)
   const [submitting, setSubmitting] = useState(false)
+  const [serverCorrectAnswer, setServerCorrectAnswer] = useState<{
+    index: number
+    text?: string
+  } | null>(null)
 
   const handleSubmit = async () => {
     if (selectedOption === null) return
@@ -45,12 +53,22 @@ export const QuestionCard = memo(function QuestionCard({
       setIsCorrect(result.correct)
       setExplanation(result.explanation)
       setXpEarned(result.xpEarned)
+      setServerCorrectAnswer(result.correctAnswer ?? null)
       setSubmitted(true)
     } catch (error) {
       console.error('Error submitting answer:', error)
     } finally {
       setSubmitting(false)
     }
+  }
+
+  const handleRetry = () => {
+    setSelectedOption(null)
+    setSubmitted(false)
+    setIsCorrect(null)
+    setExplanation(null)
+    setXpEarned(0)
+    setServerCorrectAnswer(null)
   }
 
   return (
@@ -65,7 +83,10 @@ export const QuestionCard = memo(function QuestionCard({
       <div className="space-y-3 mb-4">
         {question.options.map((option, index) => {
           const isSelected = selectedOption === index
-          const showCorrect = submitted && index === question.correctAnswer
+          const correctIndex =
+            serverCorrectAnswer?.index ??
+            (typeof question.correctAnswer === 'number' ? question.correctAnswer : null)
+          const showCorrect = submitted && correctIndex !== null && index === correctIndex
           const showIncorrect = submitted && isSelected && !isCorrect
 
           return (
@@ -127,7 +148,12 @@ export const QuestionCard = memo(function QuestionCard({
                 >
                   {isCorrect
                     ? 'Správně!'
-                    : 'Správná odpověď: ' + question.options[question.correctAnswer]}
+                    : `Správná odpověď: ${
+                        serverCorrectAnswer?.text ??
+                        (typeof question.correctAnswer === 'number'
+                          ? question.options[question.correctAnswer]
+                          : 'není dostupná')
+                      }`}
                 </p>
                 <p className="text-gray-300 text-sm">{explanation}</p>
               </div>
@@ -137,6 +163,11 @@ export const QuestionCard = memo(function QuestionCard({
                 <Zap className="w-4 h-4 text-yellow-400" />
                 <span className="text-yellow-300 text-sm font-medium">+{xpEarned} XP</span>
               </div>
+            )}
+            {!isCorrect && (
+              <Button onClick={handleRetry} variant="secondary" className="mt-4 w-full">
+                Zkusit znovu
+              </Button>
             )}
           </motion.div>
         )}

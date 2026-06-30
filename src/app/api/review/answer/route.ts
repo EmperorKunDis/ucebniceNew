@@ -150,6 +150,7 @@ export async function POST(request: NextRequest) {
 
       // Update quest progress
       await updateQuestProgress(userId, QuestCategory.REVIEW_SESSIONS, 1)
+      await updateQuestProgress(userId, QuestCategory.XP_EARNED, xpEarned)
     }
 
     return NextResponse.json({

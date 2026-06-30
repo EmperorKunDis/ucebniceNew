@@ -1,5 +1,8 @@
 import swaggerJsdoc from 'swagger-jsdoc'
 
+const getAppUrl = () =>
+  process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000'
+
 const options: swaggerJsdoc.Options = {
   definition: {
     openapi: '3.0.0',
@@ -13,12 +16,9 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: 'http://localhost:3000',
-        description: 'Development server',
-      },
-      {
-        url: 'https://your-production-url.vercel.app',
-        description: 'Production server',
+        url: getAppUrl(),
+        description:
+          process.env.NODE_ENV === 'production' ? 'Production server' : 'Application server',
       },
     ],
     components: {

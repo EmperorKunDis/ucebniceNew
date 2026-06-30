@@ -9,8 +9,17 @@ import { prisma } from './prisma'
 import { randomBytes } from 'crypto'
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY
-const APP_URL = process.env.NEXTAUTH_URL || 'http://localhost:3000'
 const FROM_EMAIL = process.env.EMAIL_FROM || 'Učebnice AI <noreply@ucebnice.ai>'
+
+function getAppUrl(): string {
+  const configuredUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.NEXTAUTH_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined) ||
+    'http://localhost:3000'
+
+  return configuredUrl.replace(/\/$/, '')
+}
 
 interface SendEmailParams {
   to: string
@@ -94,7 +103,7 @@ export async function createVerificationToken(email: string): Promise<string> {
  */
 export async function sendVerificationEmail(email: string, name?: string): Promise<boolean> {
   const token = await createVerificationToken(email)
-  const verificationUrl = `${APP_URL}/verify-email?token=${token}`
+  const verificationUrl = `${getAppUrl()}/verify-email?token=${token}`
 
   const html = `
 <!DOCTYPE html>

@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server'
 import swaggerJsdoc from 'swagger-jsdoc'
 
-const options: swaggerJsdoc.Options = {
+export const dynamic = 'force-dynamic'
+
+const getAppUrl = () =>
+  process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000'
+
+const createOptions = (): swaggerJsdoc.Options => ({
   definition: {
     openapi: '3.0.0',
     info: {
@@ -14,12 +19,9 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: 'http://localhost:3000',
-        description: 'Development server',
-      },
-      {
-        url: 'https://your-production-url.vercel.app',
-        description: 'Production server',
+        url: getAppUrl(),
+        description:
+          process.env.NODE_ENV === 'production' ? 'Production server' : 'Application server',
       },
     ],
     components: {
@@ -144,9 +146,9 @@ const options: swaggerJsdoc.Options = {
     ],
   },
   apis: ['./src/app/api/**/*.ts'],
-}
+})
 
 export async function GET() {
-  const swaggerSpec = swaggerJsdoc(options)
+  const swaggerSpec = swaggerJsdoc(createOptions())
   return NextResponse.json(swaggerSpec)
 }

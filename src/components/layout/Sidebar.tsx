@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
-  Home,
   BookOpen,
   Trophy,
   Target,
@@ -16,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Award,
+  Home,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
@@ -28,8 +28,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { href: '/dashboard', icon: Home, label: 'Domů' },
-  { href: '/learn', icon: BookOpen, label: 'Učení' },
+  { href: '/dashboard', icon: BookOpen, label: 'Učení' },
   { href: '/leagues', icon: Trophy, label: 'Ligy' },
   { href: '/quests', icon: Target, label: 'Úkoly' },
   { href: '/friends', icon: Users, label: 'Přátelé' },
@@ -61,7 +60,9 @@ export function Sidebar({ className }: SidebarProps) {
         href={item.href}
         className={cn(
           'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all relative group',
-          isActive ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800'
+          isActive
+            ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-950/30'
+            : 'text-gray-400 hover:text-white hover:bg-white/10'
         )}
       >
         {isActive && (
@@ -77,7 +78,7 @@ export function Sidebar({ className }: SidebarProps) {
           <span
             className={cn(
               'ml-auto px-2 py-0.5 text-xs font-bold rounded-full',
-              isActive ? 'bg-white/20 text-white' : 'bg-indigo-600 text-white'
+              isActive ? 'bg-white/20 text-white' : 'bg-purple-600 text-white'
             )}
           >
             {item.badge}
@@ -90,24 +91,35 @@ export function Sidebar({ className }: SidebarProps) {
   return (
     <aside
       className={cn(
-        'flex flex-col h-full bg-gray-900 border-r border-gray-800 transition-all duration-300',
+        'flex flex-col h-full bg-gray-950/95 border-r border-white/10 transition-all duration-300 shadow-2xl shadow-purple-950/20',
         collapsed ? 'w-16' : 'w-64',
         className
       )}
     >
       {/* Logo */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-800">
+      <div className="flex items-center justify-between gap-2 p-4 border-b border-white/10">
         {!collapsed && (
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-              <span className="text-white font-bold text-sm">AI</span>
-            </div>
-            <span className="text-white font-semibold">Učebnice AI</span>
-          </Link>
+          <div className="flex min-w-0 items-center gap-2">
+            <Link href="/dashboard" className="flex min-w-0 items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-sky-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
+                <span className="text-white font-bold text-sm">AI</span>
+              </div>
+              <span className="truncate text-white font-semibold">Učebnice AI</span>
+            </Link>
+            <Link
+              href="/"
+              className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+              aria-label="Domů na hlavní stránku"
+              title="Domů na hlavní stránku"
+            >
+              <Home className="w-5 h-5" />
+            </Link>
+          </div>
         )}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+          className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+          aria-label={collapsed ? 'Rozbalit postranní navigaci' : 'Sbalit postranní navigaci'}
         >
           {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
         </button>
@@ -117,7 +129,7 @@ export function Sidebar({ className }: SidebarProps) {
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">{navItems.map(renderNavItem)}</nav>
 
       {/* Bottom navigation */}
-      <div className="p-3 border-t border-gray-800 space-y-1">{bottomItems.map(renderNavItem)}</div>
+      <div className="p-3 border-t border-white/10 space-y-1">{bottomItems.map(renderNavItem)}</div>
     </aside>
   )
 }

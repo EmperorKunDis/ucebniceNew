@@ -5,7 +5,6 @@ import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { X, Target, Loader2, ArrowRight } from 'lucide-react'
 import { ExercisePlayer, type Exercise } from '@/components/learning/exercise'
-import { useHearts } from '@/components/gamification/hearts'
 import { Confetti } from '@/components/gamification/celebrations'
 
 interface PracticeData {
@@ -18,8 +17,6 @@ export default function PracticePage() {
   const params = useParams()
   const router = useRouter()
   const chapterId = params.chapterId as string
-
-  const { loseHeart } = useHearts()
 
   const [data, setData] = useState<PracticeData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -63,8 +60,6 @@ export default function PracticePage() {
 
     if (isCorrect) {
       setXpEarned(prev => prev + earnedXP)
-    } else {
-      loseHeart()
     }
 
     setTimeout(() => {

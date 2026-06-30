@@ -17,7 +17,7 @@ export function MainLayout({ children, className }: MainLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="flex h-screen bg-gray-900 overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-gray-950 text-gray-100">
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
         <Sidebar />
@@ -29,7 +29,7 @@ export function MainLayout({ children, className }: MainLayoutProps) {
           <>
             {/* Backdrop */}
             <motion.div
-              className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+              className="fixed inset-0 bg-gray-950/85 z-40 lg:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -56,7 +56,12 @@ export function MainLayout({ children, className }: MainLayoutProps) {
         <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} showMenu={sidebarOpen} />
 
         {/* Page Content */}
-        <main className={cn('flex-1 overflow-y-auto pb-20 lg:pb-0', className)}>
+        <main
+          className={cn(
+            'flex-1 overflow-y-auto bg-[radial-gradient(circle_at_top_left,rgba(124,58,237,0.12),transparent_32rem),linear-gradient(180deg,#060914_0%,#0b1020_100%)] pb-20 lg:pb-0',
+            className
+          )}
+        >
           <ErrorBoundary>{children}</ErrorBoundary>
         </main>
       </div>

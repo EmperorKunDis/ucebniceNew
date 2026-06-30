@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { checkAndAwardAchievements } from '@/lib/achievement-checker'
 import { validateAPIRequest, answerQuestionSchema } from '@/lib/validation-schemas'
+import { QuestCategory } from '@prisma/client'
+import { updateQuestProgress } from '@/lib/quest-tracker'
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,7 +32,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Check if already answered
+    // Check if already answered correctly. Wrong answers remain retryable.
     const existingAnswer = await prisma.questionAnswer.findUnique({
       where: {
         userId_chapterId_questionId: {
@@ -41,9 +43,9 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    if (existingAnswer) {
+    if (existingAnswer?.correct) {
       return NextResponse.json({
-        correct: existingAnswer.correct,
+        correct: true,
         explanation: 'Tuto otázku jsi již zodpověděl.',
         xpEarned: 0,
         alreadyAnswered: true,
@@ -60,27 +62,55 @@ export async function POST(request: NextRequest) {
     }
 
     const correct = question.correctAnswer === answerIndex
-    const xpReward = correct ? question.xpReward : 0
+    const xpReward = correct && !existingAnswer?.correct ? question.xpReward : 0
     const explanation = question.explanation || (correct ? 'Správně!' : 'Zkus to znovu.')
 
-    // Save answer to database
-    await prisma.questionAnswer.create({
-      data: {
-        userId: user.id,
-        chapterId,
-        questionId,
-        answer: answerIndex.toString(),
-        correct,
-        xpEarned: xpReward,
-      },
-    })
+    // Save answer to database. Existing wrong answers are updated so users can recover.
+    if (existingAnswer) {
+      await prisma.questionAnswer.update({
+        where: { id: existingAnswer.id },
+        data: {
+          answer: answerIndex.toString(),
+          correct,
+          xpEarned: xpReward,
+        },
+      })
+    } else {
+      await prisma.questionAnswer.create({
+        data: {
+          userId: user.id,
+          chapterId,
+          questionId,
+          answer: answerIndex.toString(),
+          correct,
+          xpEarned: xpReward,
+        },
+      })
+    }
 
-    // Award XP if correct
     if (correct && xpReward > 0) {
       await prisma.user.update({
         where: { id: user.id },
         data: {
           xp: { increment: xpReward },
+          dailyXP: { increment: xpReward },
+        },
+      })
+
+      await updateQuestProgress(user.id, QuestCategory.XP_EARNED, xpReward)
+    }
+
+    if (!correct) {
+      return NextResponse.json({
+        correct,
+        explanation,
+        xpEarned: 0,
+        allQuestionsCompleted: false,
+        correctAnswer: {
+          index: question.correctAnswer,
+          text: Array.isArray(question.options)
+            ? question.options[question.correctAnswer]
+            : undefined,
         },
       })
     }
@@ -132,6 +162,12 @@ export async function POST(request: NextRequest) {
       xpEarned: xpReward,
       allQuestionsCompleted: allCorrect,
       newAchievements,
+      correctAnswer: {
+        index: question.correctAnswer,
+        text: Array.isArray(question.options)
+          ? question.options[question.correctAnswer]
+          : undefined,
+      },
     })
   } catch (error) {
     console.error('Error answering question:', error)
