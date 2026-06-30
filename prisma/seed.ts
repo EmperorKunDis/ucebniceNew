@@ -41,16 +41,16 @@ async function main() {
 
   console.log(`Seeded ${chapters.length} chapters`)
 
-  const quests = [
+  const activeQuests = [
     {
       type: QuestType.DAILY,
-      category: QuestCategory.LESSONS_COMPLETED,
-      title: 'Pilný student',
-      description: 'Dokonči 3 lekce',
+      category: QuestCategory.CHAPTERS_COMPLETED,
+      title: 'Denní kapitoly',
+      description: 'Dokonči 3 kapitoly',
       targetValue: 3,
       xpReward: 20,
       gemReward: 5,
-      icon: '📚',
+      icon: '🗺️',
     },
     {
       type: QuestType.DAILY,
@@ -61,26 +61,6 @@ async function main() {
       xpReward: 30,
       gemReward: 10,
       icon: '⭐',
-    },
-    {
-      type: QuestType.DAILY,
-      category: QuestCategory.EXERCISES_PERFECT,
-      title: 'Bezchybný',
-      description: '10 správných odpovědí v řadě',
-      targetValue: 10,
-      xpReward: 50,
-      gemReward: 15,
-      icon: '🎯',
-    },
-    {
-      type: QuestType.DAILY,
-      category: QuestCategory.HEARTS_PRESERVED,
-      title: 'Opatrný student',
-      description: 'Dokonči 5 cvičení bez ztráty srdce',
-      targetValue: 5,
-      xpReward: 40,
-      gemReward: 10,
-      icon: '❤️',
     },
     {
       type: QuestType.WEEKLY,
@@ -104,26 +84,6 @@ async function main() {
     },
     {
       type: QuestType.WEEKLY,
-      category: QuestCategory.STREAK_MAINTAINED,
-      title: 'Věrný student',
-      description: 'Udrž streak 7 dní v řadě',
-      targetValue: 7,
-      xpReward: 100,
-      gemReward: 30,
-      icon: '🔥',
-    },
-    {
-      type: QuestType.WEEKLY,
-      category: QuestCategory.FRIENDS_ENCOURAGED,
-      title: 'Sociální motivátor',
-      description: 'Povzbuď 3 přátele',
-      targetValue: 3,
-      xpReward: 50,
-      gemReward: 20,
-      icon: '💪',
-    },
-    {
-      type: QuestType.WEEKLY,
       category: QuestCategory.REVIEW_SESSIONS,
       title: 'Opakování',
       description: 'Dokonči 5 opakování',
@@ -136,33 +96,56 @@ async function main() {
       type: QuestType.WEEKLY,
       category: QuestCategory.CHAPTERS_COMPLETED,
       title: 'Průzkumník',
-      description: 'Dokonči 3 kapitoly',
-      targetValue: 3,
+      description: 'Dokonči 10 kapitol',
+      targetValue: 10,
       xpReward: 250,
       gemReward: 100,
       icon: '🗺️',
     },
   ]
 
-  for (const quest of quests) {
-    const existingQuest = await prisma.quest.findFirst({
+  for (const quest of activeQuests) {
+    const existingQuests = await prisma.quest.findMany({
       where: {
         type: quest.type,
         category: quest.category,
       },
+      orderBy: { createdAt: 'asc' },
     })
+
+    const [existingQuest, ...duplicateQuests] = existingQuests
 
     if (existingQuest) {
       await prisma.quest.update({
         where: { id: existingQuest.id },
         data: { ...quest, isActive: true },
       })
+
+      if (duplicateQuests.length > 0) {
+        await prisma.quest.updateMany({
+          where: { id: { in: duplicateQuests.map(q => q.id) } },
+          data: { isActive: false },
+        })
+      }
     } else {
       await prisma.quest.create({ data: quest })
     }
   }
 
-  console.log(`Seeded ${quests.length} quests`)
+  await prisma.quest.updateMany({
+    where: {
+      OR: [
+        { type: QuestType.DAILY, category: QuestCategory.LESSONS_COMPLETED },
+        { category: QuestCategory.STREAK_MAINTAINED },
+        { category: QuestCategory.FRIENDS_ENCOURAGED },
+        { category: QuestCategory.EXERCISES_PERFECT },
+        { category: QuestCategory.HEARTS_PRESERVED },
+      ],
+    },
+    data: { isActive: false },
+  })
+
+  console.log(`Seeded ${activeQuests.length} active quests`)
 }
 
 main()
