@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 
 interface Hackathon {
@@ -26,7 +26,7 @@ export default function HackathonsManagement() {
   const [statusFilter, setStatusFilter] = useState('')
   const [search, setSearch] = useState('')
 
-  const fetchHackathons = async () => {
+  const fetchHackathons = useCallback(async () => {
     setLoading(true)
     try {
       const params = new URLSearchParams({
@@ -44,11 +44,11 @@ export default function HackathonsManagement() {
       console.error('Error fetching hackathons:', error)
     }
     setLoading(false)
-  }
+  }, [page, search, statusFilter])
 
   useEffect(() => {
     fetchHackathons()
-  }, [page, statusFilter])
+  }, [fetchHackathons])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()

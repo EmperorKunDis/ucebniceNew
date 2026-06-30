@@ -13,7 +13,7 @@ Interaktivní webová aplikace pro výuku programování s využitím AI, gamifi
 - **Testování**: Jest, Testing Library, Playwright
 - **Error Tracking**: Sentry
 - **Rate Limiting**: Upstash Redis
-- **CI/CD**: GitHub Actions, Vercel
+- **CI/CD**: GitHub Actions, VPS Docker Compose
 
 ## Prerekvizity
 
@@ -40,22 +40,25 @@ npm install
 
 Vytvořte `.env` soubor na základě `.env.example`:
 
+Lokální `docker-compose.yml` mapuje PostgreSQL na `localhost:5433`, proto výchozí
+`DATABASE_URL` v `.env.example` používá port 5433.
+
+Povinné proměnné pro lokální běh:
+
 ```env
-# Database
-DATABASE_URL="postgresql://user:password@localhost:5432/ucebnice"
-
-# NextAuth
-NEXTAUTH_SECRET="your-secret-key"
+DATABASE_URL="postgresql://ucebnice_user:changeme123@localhost:5433/ucebnice_db"
+NEXTAUTH_SECRET="generate-secret-with: openssl rand -base64 32"
 NEXTAUTH_URL="http://localhost:3000"
-
-# Upstash Redis (rate limiting)
-UPSTASH_REDIS_REST_URL="your-upstash-url"
-UPSTASH_REDIS_REST_TOKEN="your-upstash-token"
-
-# Sentry (optional)
-SENTRY_DSN="your-sentry-dsn"
-SENTRY_AUTH_TOKEN="your-sentry-auth-token"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
+
+Volitelné integrace:
+
+- `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` - rate limiting
+- `SENTRY_DSN`, `SENTRY_AUTH_TOKEN` - monitoring a release tracking
+- `VIDEO_FILES_DIR` - absolutní cesta k runtime videím, default je `data/videa`
+- `GEMINI_API_KEY`, `GEMINI_REVIEW_MODEL` - kontrola projektů
+- `OPENAI_API_KEY`, `AI_TUTOR_MODEL` - AI Tutor
 
 4. **Inicializace databáze**
 
@@ -101,6 +104,7 @@ Aplikace poběží na `http://localhost:3000`
 ### Analýza
 
 - `npm run analyze` - Analyzuje bundle size
+- `npm run validate:content` - Ověří metadata kapitol, přednášky a video soubory
 
 ## Architektura
 
@@ -236,10 +240,11 @@ Testy pokrývají:
 - E2E Tests
 - Build Check
 
-**Deployment** (`.github/workflows/deploy.yml`):
+**Deployment** (`.github/workflows/deploy-vps.yml`):
 
-- Automatický deploy na Vercel při push do main
-- PR preview deployments
+- Ruční deploy na VPS přes Docker Compose
+- SSH spuštění `scripts/deploy-vps.sh`
+- Health check `/api/health` a rollback na poslední known-good commit
 
 ### Pre-commit Hooks
 
@@ -247,25 +252,29 @@ Testy pokrývají:
 - Prettier formatting
 - Type checking (manuálně)
 
-## Deployment na Vercel
+## Deployment na VPS
 
-1. **Připojte GitHub repozitář** k Vercel
-2. **Nastavte environment variables**:
-   - `DATABASE_URL`
-   - `NEXTAUTH_SECRET`
-   - `NEXTAUTH_URL`
-   - `UPSTASH_REDIS_REST_URL`
-   - `UPSTASH_REDIS_REST_TOKEN`
-   - `SENTRY_DSN` (optional)
+Produkční směr je VPS + Docker Compose + Caddy. Detailní postup a checklist jsou v
+[`docs/VPS_DOCKER_DEPLOYMENT.md`](docs/VPS_DOCKER_DEPLOYMENT.md).
 
-3. **Deploy**:
+Minimální produkční `.env` na VPS:
+
+```env
+DOMAIN=ucebnice.example.com
+ACME_EMAIL=admin@example.com
+POSTGRES_USER=ucebnice_user
+POSTGRES_PASSWORD=replace-with-strong-password
+POSTGRES_DB=ucebnice_db
+NEXTAUTH_URL=https://ucebnice.example.com
+NEXTAUTH_SECRET=replace-with-random-secret
+VIDEO_FILES_DIR=/data/videa
+```
+
+Před deployem ověřte:
 
 ```bash
-# Automaticky při push do main
-git push origin main
-
-# Nebo manuálně
-npx vercel --prod
+npm run validate:content
+docker compose -f docker-compose.yml -f docker-compose.prod.yml config
 ```
 
 ## Troubleshooting

@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { validateAPIRequest, updateGraduateProfileSchema } from '@/lib/validation-schemas'
 
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/user/graduate-profile
  * Get current user's graduate profile

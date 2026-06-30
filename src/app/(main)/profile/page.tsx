@@ -38,11 +38,15 @@ export default function ProfilePage() {
           <div className="relative">
             <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center overflow-hidden">
               {user?.image ? (
-                <img
-                  src={user.image}
-                  alt={user.name ?? 'User'}
-                  className="w-full h-full object-cover"
-                />
+                <>
+                  {/* Dynamic user avatars can be arbitrary remote URLs outside next/image config. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={user.image}
+                    alt={user.name ?? 'User'}
+                    className="w-full h-full object-cover"
+                  />
+                </>
               ) : (
                 <User className="w-12 h-12 text-white" />
               )}

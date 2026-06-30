@@ -12,6 +12,13 @@ Služby:
 - `media_data` - persistentní volume mountované do `/data/videa`.
 
 Video endpoint používá `VIDEO_FILES_DIR`; v Compose je nastavený na `/data/videa`.
+Lokální fallback mimo Compose je `data/videa` v repozitáři.
+
+Pozor: Docker image kopíruje repo `data/` kvůli smoke testům a fallbacku, ale
+produkční Compose mountuje persistentní volume do `/data/videa`. Pokud je volume
+prázdné, přepíše obsah z image a endpoint bude pro videa vracet 404. Před
+produkčním spuštěním musí být volume naplněné aktuálními MP4 soubory nebo
+nahrazené bind mountem/object storage strategií.
 
 ## Required VPS files
 
@@ -35,6 +42,39 @@ NEXTAUTH_SECRET=replace-with-random-secret
 VIDEO_FILES_DIR=/data/videa
 ```
 
+Volitelné `.env`:
+
+```env
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
+SENTRY_DSN=
+SENTRY_AUTH_TOKEN=
+SENTRY_ORG=
+SENTRY_PROJECT=
+GEMINI_API_KEY=
+GEMINI_REVIEW_MODEL=gemini-1.5-flash
+OPENAI_API_KEY=
+AI_TUTOR_MODEL=gpt-4o-mini
+```
+
+Nepoužívej vývojové hodnoty v produkci. `NEXTAUTH_SECRET` vygeneruj například:
+
+```bash
+openssl rand -base64 32
+```
+
+## Pre-deploy checklist
+
+- DNS `DOMAIN` míří na VPS a porty `80`/`443` jsou otevřené.
+- VPS `.env` obsahuje všechny required proměnné z výše uvedeného minima.
+- Secrets jsou jen na VPS nebo v GitHub environment secrets, ne v repozitáři.
+- PostgreSQL volume `postgres_data` existuje nebo je připravený restore plán.
+- Media volume `/data/videa` obsahuje všechna videa referencovaná v kapitolách.
+- Lokálně nebo v CI proběhlo `npm run validate:content`.
+- Compose konfigurace projde `docker compose -f docker-compose.yml -f docker-compose.prod.yml config`.
+- GitHub environment `production` má approval pravidlo pro ruční deploy.
+- Po deployi projde `/api/health` a kontrolní video endpoint, například `/api/video/Hodina1.mp4`.
+
 ## Commands
 
 ```bash
@@ -42,6 +82,7 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml config
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 docker compose -f docker-compose.yml -f docker-compose.prod.yml exec app npx prisma migrate deploy
 curl -fsS https://ucebnice.example.com/api/health
+curl -fsSI https://ucebnice.example.com/api/video/Hodina1.mp4
 ```
 
 ## Automated deploy

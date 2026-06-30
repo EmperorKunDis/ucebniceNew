@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { serverError, unauthorized } from '@/lib/api-responses'
+import { markNotificationsReadSchema, validateAPIRequest } from '@/lib/validation-schemas'
+
+export const dynamic = 'force-dynamic'
 
 /**
  * POST /api/notifications/read
@@ -12,11 +16,13 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return unauthorized()
     }
 
-    const body = await request.json()
-    const { ids } = body // string[] | "all"
+    const validation = await validateAPIRequest(request, markNotificationsReadSchema)
+    if (!validation.success) return validation.response
+
+    const { ids } = validation.data
     const userId = session.user.id
 
     if (ids === 'all') {
@@ -30,10 +36,6 @@ export async function POST(request: NextRequest) {
         success: true,
         markedRead: result.count,
       })
-    }
-
-    if (!Array.isArray(ids) || ids.length === 0) {
-      return NextResponse.json({ error: 'Invalid ids' }, { status: 400 })
     }
 
     // Mark specific notifications as read
@@ -52,6 +54,6 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error marking notifications read:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return serverError()
   }
 }

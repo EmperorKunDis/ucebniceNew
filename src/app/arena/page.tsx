@@ -422,11 +422,15 @@ export default function ArenaPage() {
                     <Stack direction="col" gap={4}>
                       <Stack direction="col" align="center">
                         {graduate.user.image ? (
-                          <img
-                            src={graduate.user.image}
-                            alt={name}
-                            className="w-24 h-24 mb-3 rounded-full object-cover"
-                          />
+                          <>
+                            {/* Dynamic user avatars can be arbitrary remote URLs outside next/image config. */}
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={graduate.user.image}
+                              alt={name}
+                              className="w-24 h-24 mb-3 rounded-full object-cover"
+                            />
+                          </>
                         ) : (
                           <Box className="w-24 h-24 mb-3 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-3xl font-bold text-white">
                             {initials}

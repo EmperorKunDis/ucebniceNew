@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Target, Plus, Edit2, Trash2, Loader2, Check, X, Star, Gem } from 'lucide-react'
+import { Target, Loader2, Check, X, Star, Gem } from 'lucide-react'
 
 interface Quest {
   id: string
@@ -20,10 +20,17 @@ interface Quest {
   }
 }
 
+async function readApiError(response: Response): Promise<string> {
+  const data = await response.json().catch(() => null)
+  return typeof data?.error === 'string' ? data.error : 'Nepodařilo se uložit změnu.'
+}
+
 export default function AdminQuestsPage() {
   const [quests, setQuests] = useState<Quest[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'DAILY' | 'WEEKLY'>('all')
+  const [error, setError] = useState<string | null>(null)
+  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     fetchQuests()
@@ -44,15 +51,35 @@ export default function AdminQuestsPage() {
   }
 
   const toggleQuestActive = async (id: string, isActive: boolean) => {
+    setError(null)
+    setTogglingIds(prev => new Set(prev).add(id))
+
     try {
-      await fetch(`/api/admin/quests/${id}`, {
+      const nextIsActive = !isActive
+      const response = await fetch(`/api/admin/quests/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isActive: !isActive }),
+        body: JSON.stringify({ isActive: nextIsActive }),
       })
-      setQuests(prev => prev.map(q => (q.id === id ? { ...q, isActive: !isActive } : q)))
+
+      if (!response.ok) {
+        throw new Error(await readApiError(response))
+      }
+
+      const data = await response.json()
+      const savedIsActive =
+        typeof data.quest?.isActive === 'boolean' ? data.quest.isActive : nextIsActive
+
+      setQuests(prev => prev.map(q => (q.id === id ? { ...q, isActive: savedIsActive } : q)))
     } catch (error) {
       console.error('Error toggling quest:', error)
+      setError(error instanceof Error ? error.message : 'Nepodařilo se uložit změnu.')
+    } finally {
+      setTogglingIds(prev => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
     }
   }
 
@@ -77,11 +104,13 @@ export default function AdminQuestsPage() {
           </h1>
           <p className="text-gray-400">Denní a týdenní úkoly pro hráče</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors">
-          <Plus className="w-4 h-4" />
-          Nový úkol
-        </button>
       </div>
+
+      {error && (
+        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          {error}
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -163,11 +192,18 @@ export default function AdminQuestsPage() {
               </div>
               <button
                 onClick={() => toggleQuestActive(quest.id, quest.isActive)}
+                disabled={togglingIds.has(quest.id)}
                 className={`p-1.5 rounded-lg transition-colors ${
                   quest.isActive ? 'bg-green-500/20 text-green-500' : 'bg-gray-700 text-gray-400'
-                }`}
+                } disabled:opacity-60 disabled:cursor-not-allowed`}
               >
-                {quest.isActive ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
+                {togglingIds.has(quest.id) ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : quest.isActive ? (
+                  <Check className="w-4 h-4" />
+                ) : (
+                  <X className="w-4 h-4" />
+                )}
               </button>
             </div>
 
@@ -192,14 +228,6 @@ export default function AdminQuestsPage() {
 
             <div className="mt-3 pt-3 border-t border-gray-700 flex items-center justify-between">
               <span className="text-xs text-gray-500">{quest._count.userQuests} přiřazeno</span>
-              <div className="flex gap-2">
-                <button className="p-1.5 text-gray-400 hover:text-white transition-colors">
-                  <Edit2 className="w-4 h-4" />
-                </button>
-                <button className="p-1.5 text-gray-400 hover:text-red-400 transition-colors">
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
             </div>
           </motion.div>
         ))}
