@@ -166,29 +166,20 @@ export function Navigation() {
                       >
                         <Box className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold overflow-hidden">
                           {avatar ? (
-                            <img
-                              src={avatar}
-                              alt={username || 'User'}
-                              className="w-full h-full object-cover"
-                            />
-                          </>
-                        ) : (
-                          username.charAt(0).toUpperCase()
-                        )}
-                      </Box>
-                      <span>{username}</span>
-                    </Link>
-                  ) : (
-                    <Stack direction="col" gap={2} className="mx-4">
-                      <Link href="/auth/signin" onClick={() => setMobileMenuOpen(false)}>
-                        <Button variant="ghost" className="w-full">
-                          Přihlásit se
-                        </Button>
-                      </Link>
-                      <Link href="/onboarding" onClick={() => setMobileMenuOpen(false)}>
-                        <Button variant="primary" className="w-full">
-                          Začít zdarma
-                        </Button>
+                            <>
+                              {/* Dynamic user avatars can be arbitrary remote URLs outside next/image config. */}
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={avatar}
+                                alt={username || 'User'}
+                                className="w-full h-full object-cover"
+                              />
+                            </>
+                          ) : (
+                            username.charAt(0).toUpperCase()
+                          )}
+                        </Box>
+                        <span>{username}</span>
                       </Link>
                     ) : (
                       <Stack direction="col" gap={2} className="mx-4">

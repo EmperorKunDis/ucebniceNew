@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { QuestType } from '@prisma/client'
+import { syncUserQuestProgress } from '@/lib/quest-tracker'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,6 +21,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const type = searchParams.get('type') as QuestType | null
+    await syncUserQuestProgress(session.user.id)
 
     // Calculate reset times
     const now = new Date()
