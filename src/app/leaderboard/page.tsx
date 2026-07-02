@@ -692,7 +692,7 @@ export default function LeaderboardPage() {
             : 'Chcete se dostat do žebříčku?'}
         </p>
         <Button variant="primary" size="lg" asChild>
-          <Link href="/chapters" aria-label="Pokračovat v učení - přejít na kapitoly">
+          <Link href="/dashboard" aria-label="Pokračovat v učení - přejít na v2 dashboard">
             Pokračovat v učení
             <ChevronRight className="w-5 h-5 ml-2" aria-hidden="true" />
           </Link>

@@ -20,7 +20,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: 'Domů', href: '/' },
-  { label: 'Kapitoly', href: '/chapters' },
+  { label: 'Učení', href: '/dashboard' },
   { label: 'Apex Aréna', href: '/arena' },
   { label: 'Žebříček', href: '/leaderboard' },
 ]

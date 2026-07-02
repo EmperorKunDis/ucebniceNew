@@ -58,10 +58,7 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/node_modules ./node_modules
 
 # Runtime media is mounted by Docker Compose. Keep the directory present for
 # local smoke checks and for deployments that mount an empty volume first.
@@ -82,4 +79,4 @@ ENV VIDEO_FILES_DIR="/data/videa"
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-CMD ["node", "server.js"]
+CMD ["sh", "-c", "if [ -d /app/data/videa ] && [ -z \"$(ls -A /data/videa 2>/dev/null)\" ]; then cp -a /app/data/videa/. /data/videa/; fi; exec node server.js"]
