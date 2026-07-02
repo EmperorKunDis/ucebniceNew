@@ -1,6 +1,23 @@
 import { claimQuestReward } from '@/lib/quest-tracker'
 import { prisma } from '@/lib/prisma'
 
+jest.mock('@prisma/client', () => ({
+  QuestCategory: {
+    CHAPTERS_COMPLETED: 'CHAPTERS_COMPLETED',
+    EXERCISES_PERFECT: 'EXERCISES_PERFECT',
+    FRIENDS_ENCOURAGED: 'FRIENDS_ENCOURAGED',
+    HEARTS_PRESERVED: 'HEARTS_PRESERVED',
+    LESSONS_COMPLETED: 'LESSONS_COMPLETED',
+    REVIEW_SESSIONS: 'REVIEW_SESSIONS',
+    STREAK_MAINTAINED: 'STREAK_MAINTAINED',
+    XP_EARNED: 'XP_EARNED',
+  },
+  QuestType: {
+    DAILY: 'DAILY',
+    WEEKLY: 'WEEKLY',
+  },
+}))
+
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     $transaction: jest.fn(),
