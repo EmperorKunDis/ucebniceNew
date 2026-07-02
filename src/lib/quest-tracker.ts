@@ -327,37 +327,45 @@ export async function claimQuestReward(
   userId: string,
   questId: string
 ): Promise<{ xp: number; gems: number } | null> {
-  const userQuest = await prisma.userQuest.findUnique({
-    where: {
-      userId_questId: { userId, questId },
-    },
-    include: { quest: true },
+  return prisma.$transaction(async tx => {
+    const userQuest = await tx.userQuest.findUnique({
+      where: {
+        userId_questId: { userId, questId },
+      },
+      include: { quest: true },
+    })
+
+    if (!userQuest || !userQuest.completed || userQuest.claimed) {
+      return null
+    }
+
+    const claimed = await tx.userQuest.updateMany({
+      where: {
+        id: userQuest.id,
+        claimed: false,
+        completed: true,
+      },
+      data: {
+        claimed: true,
+        claimedAt: new Date(),
+      },
+    })
+
+    if (claimed.count !== 1) {
+      return null
+    }
+
+    const { xpReward, gemReward } = userQuest.quest
+    await tx.user.update({
+      where: { id: userId },
+      data: {
+        xp: { increment: xpReward },
+        gems: { increment: gemReward },
+      },
+    })
+
+    return { xp: xpReward, gems: gemReward }
   })
-
-  if (!userQuest || !userQuest.completed || userQuest.claimed) {
-    return null
-  }
-
-  // Update user quest as claimed
-  await prisma.userQuest.update({
-    where: { id: userQuest.id },
-    data: {
-      claimed: true,
-      claimedAt: new Date(),
-    },
-  })
-
-  // Award rewards
-  const { xpReward, gemReward } = userQuest.quest
-  await prisma.user.update({
-    where: { id: userId },
-    data: {
-      xp: { increment: xpReward },
-      gems: { increment: gemReward },
-    },
-  })
-
-  return { xp: xpReward, gems: gemReward }
 }
 
 /**

@@ -34,20 +34,7 @@ export async function GET(_request: NextRequest) {
       },
     })
 
-    // Fetch user's chapter completions
-    const completions = await prisma.chapterCompletion.findMany({
-      where: { userId },
-      select: {
-        chapterId: true,
-        completedChapter: true,
-        answeredQuestions: true,
-        submittedProject: true,
-        stars: true,
-        bestScore: true,
-      },
-    })
-
-    // Fetch user's chapter progress
+    // Fetch user's gamified lesson progress.
     const progressData = await prisma.chapterProgress.findMany({
       where: { userId },
       select: {
@@ -62,8 +49,8 @@ export async function GET(_request: NextRequest) {
     // Note: Review cards due count can be fetched here when concepts are implemented
     // const reviewDueCounts = await prisma.reviewCard.groupBy({...})
 
-    // Map completions and progress to quick lookup
-    const completionMap = new Map(completions.map(c => [c.chapterId, c]))
+    // Map gamified progress by DB Chapter.id. Static ChapterCompletion intentionally
+    // stays out of the dashboard contract so /chapters and /learn cannot complete each other.
     const progressMap = new Map(progressData.map(p => [p.chapterId, p]))
 
     // Calculate position for each node (snake pattern)
@@ -75,8 +62,8 @@ export async function GET(_request: NextRequest) {
 
     // Determine which chapter is the current active one
     let firstIncompleteIndex = chapters.findIndex(ch => {
-      const completion = completionMap.get(ch.chapterId)
-      return !completion?.completedChapter
+      const progress = progressMap.get(ch.id)
+      return (progress?.progress ?? 0) < 100
     })
 
     if (firstIncompleteIndex === -1) {
@@ -85,18 +72,16 @@ export async function GET(_request: NextRequest) {
 
     // Build nodes
     const nodes = chapters.map((chapter, index) => {
-      const completion = completionMap.get(chapter.chapterId)
       const progress = progressMap.get(chapter.id)
+      const progressPercentage = progress?.progress ?? 0
+      const isCompleted = progressPercentage >= 100
 
-      // Calculate stars (0-3)
-      let stars = 0
-      if (completion?.completedChapter) stars++
-      if (completion?.answeredQuestions) stars++
-      if (completion?.submittedProject) stars++
+      // Gamified stars reflect lesson progress only. Static textbook stars live in /chapters.
+      const stars = isCompleted ? 3 : progressPercentage >= 67 ? 2 : progressPercentage > 0 ? 1 : 0
 
       // Determine status
       let status: 'completed' | 'active' | 'locked'
-      if (completion?.completedChapter) {
+      if (isCompleted) {
         status = 'completed'
       } else if (index === firstIncompleteIndex) {
         status = 'active'
@@ -137,7 +122,7 @@ export async function GET(_request: NextRequest) {
           y,
         },
         prerequisites: index > 0 ? [chapters[index - 1]!.chapterId] : [],
-        progress: progress?.progress ?? 0,
+        progress: progressPercentage,
         lessonsCompleted: progress?.lessonsCompleted ?? 0,
         exercisesCorrect: progress?.exercisesCorrect ?? 0,
         exercisesTotal: progress?.exercisesTotal ?? 0,
@@ -183,13 +168,12 @@ export async function GET(_request: NextRequest) {
     }))
 
     // User progress summary
-    const totalCompleted = completions.filter(c => c.completedChapter).length
-    const totalStars = completions.reduce((sum, c) => {
-      let s = 0
-      if (c.completedChapter) s++
-      if (c.answeredQuestions) s++
-      if (c.submittedProject) s++
-      return sum + s
+    const totalCompleted = progressData.filter(p => p.progress >= 100).length
+    const totalStars = progressData.reduce((sum, p) => {
+      if (p.progress >= 100) return sum + 3
+      if (p.progress >= 67) return sum + 2
+      if (p.progress > 0) return sum + 1
+      return sum
     }, 0)
 
     const userProgress = {
