@@ -273,6 +273,7 @@ export async function POST(request: NextRequest) {
         },
         update: {
           completedChapter: true,
+          completedAt: new Date(),
         },
       })
 

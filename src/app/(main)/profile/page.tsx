@@ -15,6 +15,7 @@ import {
   BookOpen,
   Edit2,
   Award,
+  Home,
 } from 'lucide-react'
 import { LevelBadge, XPProgressBar } from '@/components/gamification/xp'
 import { VerificationBadge, VerificationBadgeSmall } from '@/components/ui/VerificationBadge'
@@ -75,13 +76,22 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Settings Link */}
-          <Link
-            href="/settings"
-            className="p-3 bg-gray-700 hover:bg-gray-600 rounded-xl transition-colors"
-          >
-            <Settings className="w-5 h-5 text-gray-300" />
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/dashboard"
+              aria-label="Domů"
+              className="p-3 bg-gray-700 hover:bg-gray-600 rounded-xl transition-colors"
+            >
+              <Home className="w-5 h-5 text-gray-300" />
+            </Link>
+            <Link
+              href="/settings"
+              aria-label="Nastavení"
+              className="p-3 bg-gray-700 hover:bg-gray-600 rounded-xl transition-colors"
+            >
+              <Settings className="w-5 h-5 text-gray-300" />
+            </Link>
+          </div>
         </div>
       </motion.section>
 

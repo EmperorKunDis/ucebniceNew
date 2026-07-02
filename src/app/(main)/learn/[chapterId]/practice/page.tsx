@@ -32,13 +32,16 @@ export default function PracticePage() {
       if (!res.ok) throw new Error('Failed to fetch')
       const json = await res.json()
 
-      // Flatten exercises from all lessons
       const exercises =
-        json.data?.lessons?.flatMap((l: { exercises?: Exercise[] }) => l.exercises ?? []) ?? []
+        json.data?.exercises ??
+        json.data?.lessons?.flatMap(
+          (lesson: { exercises?: Exercise[] }) => lesson.exercises ?? []
+        ) ??
+        []
 
       setData({
         chapterId,
-        chapterTitle: json.data?.title ?? 'Procvičování',
+        chapterTitle: json.data?.chapterTitle ?? json.data?.title ?? 'Procvičování',
         exercises: exercises.slice(0, 10),
       })
     } catch (error) {
