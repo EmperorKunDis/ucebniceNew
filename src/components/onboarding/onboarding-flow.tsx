@@ -55,6 +55,7 @@ export function OnboardingFlow({
   const router = useRouter()
   const { setUsername, completeOnboarding } = useUserStore()
   const [currentStep, setCurrentStep] = useState(0)
+  const [furthestStep, setFurthestStep] = useState(0)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -177,8 +178,11 @@ export function OnboardingFlow({
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    placeholder="Minimálně 6 znaků"
+                    onChange={e => {
+                      setPassword(e.target.value)
+                      if (registrationError) setRegistrationError('')
+                    }}
+                    placeholder="Alespoň 8 znaků"
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 transition-all pr-12"
                   />
                   <button
@@ -189,6 +193,9 @@ export function OnboardingFlow({
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </Box>
+                <Box as="p" className="text-xs text-gray-400">
+                  *Heslo musí mít alespoň 8 znaků, obsahovat velké písmeno a číslo.
+                </Box>
               </Stack>
               <Stack gap={2}>
                 <Box as="label" className="block text-sm font-medium text-gray-400">
@@ -198,7 +205,10 @@ export function OnboardingFlow({
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
                     value={confirmPassword}
-                    onChange={e => setConfirmPassword(e.target.value)}
+                    onChange={e => {
+                      setConfirmPassword(e.target.value)
+                      if (registrationError) setRegistrationError('')
+                    }}
                     placeholder="Zadej heslo znovu"
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 transition-all pr-12"
                   />
@@ -214,6 +224,11 @@ export function OnboardingFlow({
                     )}
                   </button>
                 </Box>
+                {confirmPassword && password !== confirmPassword && (
+                  <Box as="p" className="text-xs text-red-300">
+                    *Hesla se neshodují
+                  </Box>
+                )}
               </Stack>
             </Stack>
             <Box as="p" className="text-sm text-gray-400 text-center">
@@ -445,6 +460,16 @@ export function OnboardingFlow({
     }
   }
 
+  const goToStep = (stepIndex: number) => {
+    if (stepIndex === currentStep || stepIndex > furthestStep || isAnimating) return
+
+    setIsAnimating(true)
+    setTimeout(() => {
+      setCurrentStep(stepIndex)
+      setIsAnimating(false)
+    }, 300)
+  }
+
   const handleNext = async () => {
     if (!canProceed()) return
 
@@ -499,7 +524,9 @@ export function OnboardingFlow({
 
         // Continue to next step
         setTimeout(() => {
-          setCurrentStep(currentStep + 1)
+          const nextStep = currentStep + 1
+          setCurrentStep(nextStep)
+          setFurthestStep(prev => Math.max(prev, nextStep))
           setIsAnimating(false)
         }, 300)
       } catch (error) {
@@ -550,7 +577,9 @@ export function OnboardingFlow({
       }
     } else {
       setTimeout(() => {
-        setCurrentStep(currentStep + 1)
+        const nextStep = currentStep + 1
+        setCurrentStep(nextStep)
+        setFurthestStep(prev => Math.max(prev, nextStep))
         setIsAnimating(false)
       }, 300)
     }
@@ -578,40 +607,61 @@ export function OnboardingFlow({
         {/* Progress bar */}
         <Box>
           <Stack direction="horizontal" justify="between" align="center" className="mb-2">
-            {steps.map((step, index) => (
-              <Stack
-                key={step.id}
-                direction="horizontal"
-                align="center"
-                className={index === steps.length - 1 ? '' : 'flex-1'}
-              >
-                <Box
-                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                    index <= currentStep ? 'bg-purple-500 text-white' : 'bg-gray-700 text-gray-400'
-                  }`}
+            {steps.map((step, index) => {
+              const isReachable = index <= furthestStep
+              const isCurrent = index === currentStep
+
+              return (
+                <Stack
+                  key={step.id}
+                  direction="horizontal"
+                  align="center"
+                  className={index === steps.length - 1 ? '' : 'flex-1'}
                 >
-                  {index < currentStep ? (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  ) : (
-                    index + 1
-                  )}
-                </Box>
-                {index < steps.length - 1 && (
-                  <Box
-                    className={`flex-1 h-1 mx-2 transition-all ${
-                      index < currentStep ? 'bg-purple-500' : 'bg-gray-700'
+                  <button
+                    type="button"
+                    onClick={() => goToStep(index)}
+                    disabled={!isReachable || isAnimating}
+                    aria-current={isCurrent ? 'step' : undefined}
+                    aria-label={`Přejít na krok ${index + 1}: ${step.title}`}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                      index <= furthestStep
+                        ? 'bg-purple-500 text-white'
+                        : 'bg-gray-700 text-gray-400'
+                    } ${isCurrent ? 'ring-2 ring-purple-200' : ''} ${
+                      isReachable
+                        ? 'cursor-pointer hover:ring-2 hover:ring-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-300'
+                        : 'cursor-not-allowed opacity-70'
                     }`}
-                  />
-                )}
-              </Stack>
-            ))}
+                  >
+                    {index < currentStep ? (
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    ) : (
+                      index + 1
+                    )}
+                  </button>
+                  {index < steps.length - 1 && (
+                    <Box
+                      className={`flex-1 h-1 mx-2 transition-all ${
+                        index < furthestStep ? 'bg-purple-500' : 'bg-gray-700'
+                      }`}
+                    />
+                  )}
+                </Stack>
+              )
+            })}
           </Stack>
         </Box>
 
