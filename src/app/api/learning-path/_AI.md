@@ -21,7 +21,7 @@ Provides skill tree data for the Duolingo-style learning path visualization. Ret
 
 ```typescript
 // Status determination
-if (completion?.completedChapter) → "completed"
+if (chapterProgress?.progress >= 100) → "completed"
 else if (index === firstIncompleteIndex) → "active"
 else if (index < firstIncompleteIndex) → "active" // Previous incomplete
 else → "locked"
@@ -70,9 +70,9 @@ const xPositions = [
 
 ```typescript
 let stars = 0
-if (completion?.completedChapter) stars++ // ⭐ Chapter done
-if (completion?.answeredQuestions) stars++ // ⭐ Quiz done
-if (completion?.submittedProject) stars++ // ⭐ Project submitted
+if (chapterProgress.progress >= 100) stars = 3
+else if (chapterProgress.progress >= 67) stars = 2
+else if (chapterProgress.progress > 0) stars = 1
 ```
 
 ## ⚠️ GOTCHAS
@@ -81,6 +81,7 @@ if (completion?.submittedProject) stars++ // ⭐ Project submitted
 2. **Module names**: Hardcoded array, should match DB modules
 3. **Review cards**: Concept-based review counts prepared but not yet populated
 4. **Prerequisites**: Linear (each chapter requires previous)
+5. **v2 source of truth**: Dashboard/gamified status uses `ChapterProgress` only. Static `ChapterCompletion` belongs to `/chapters`.
 
 ## 📁 STRUCTURE
 

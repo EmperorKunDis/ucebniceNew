@@ -29,7 +29,7 @@ export async function GET(_request: NextRequest) {
     weekEnd.setDate(weekEnd.getDate() + 7)
 
     // Find user's current league
-    const membership = await prisma.leagueMembership.findFirst({
+    let membership = await prisma.leagueMembership.findFirst({
       where: {
         userId,
         league: {
@@ -43,13 +43,31 @@ export async function GET(_request: NextRequest) {
     })
 
     if (!membership) {
-      return NextResponse.json(
-        {
-          error: 'Nejsi v žádné lize',
-          needsJoin: true,
+      const league = await prisma.league.upsert({
+        where: {
+          tier_weekStart: {
+            tier: 'BRONZE',
+            weekStart,
+          },
         },
-        { status: 404 }
-      )
+        create: {
+          tier: 'BRONZE',
+          weekStart,
+          weekEnd,
+        },
+        update: {},
+      })
+
+      membership = await prisma.leagueMembership.create({
+        data: {
+          userId,
+          leagueId: league.id,
+          weeklyXP: 0,
+        },
+        include: {
+          league: true,
+        },
+      })
     }
 
     // Get all members with user info

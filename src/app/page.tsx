@@ -33,7 +33,7 @@ export default function HomePage() {
       {/* Hero section */}
       <Box
         as="section"
-        className="relative z-10 min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8"
+        className="relative z-10 flex min-h-[calc(100vh-7rem)] items-center justify-center px-4 sm:px-6 lg:px-8"
       >
         <Grid columns={1} lg={2} gap={8} className="max-w-7xl mx-auto items-center">
           {/* Left content */}
@@ -60,7 +60,7 @@ export default function HomePage() {
 
               <Stack direction="row" gap={4} wrap>
                 <Link
-                  href={username ? '/chapters' : '/onboarding'}
+                  href={username ? '/dashboard' : '/auth/signup'}
                   className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:shadow-xl transition-all"
                 >
                   {username ? 'Pokračovat v učení' : 'Začít učení'}
@@ -157,7 +157,7 @@ export default function HomePage() {
                 Přidej se k tisícům studentů, kteří už mění svůj život díky programování.
               </p>
               <Link
-                href={username ? '/chapters' : '/onboarding'}
+                href={username ? '/dashboard' : '/auth/signup'}
                 className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg text-lg font-semibold hover:shadow-xl transition-all"
               >
                 {username ? 'Pokračovat v kurzu' : 'Zaregistrovat se zdarma'}

@@ -1965,7 +1965,7 @@ d) Žádný rozdíl
 
 ### Otázka 10
 
-**IDA* (Iterative Deepening A*) je varianta A\* která:**
+_*IDA* (Iterative Deepening A_) je varianta A\* která:\*\*
 
 a) Je vždy rychlejší než A\*
 b) Má lineární paměťové nároky díky iterativnímu prohlubování s f-cost limitem
@@ -2117,7 +2117,7 @@ d) Programovací jazyk
 
 ### Otázka 10
 
-**D* (Dynamic A*) je varianta A\* určená pro:**
+_*D* (Dynamic A_) je varianta A\* určená pro:\*\*
 
 a) Statická prostředí
 b) Dynamická prostředí, kde se mapa může měnit během navigace

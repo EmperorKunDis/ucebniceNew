@@ -26,7 +26,8 @@
     "migrate:import": "tsx scripts/migration/import-postgres-data.ts",
     "migrate:verify": "tsx scripts/migration/verify-migration.ts",
     "validate:content": "tsx scripts/validate-content.ts",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "db:backfill-quests": "tsx scripts/backfill-quest-progress.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

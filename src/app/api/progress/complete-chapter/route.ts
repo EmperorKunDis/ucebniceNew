@@ -273,6 +273,7 @@ export async function POST(request: NextRequest) {
         },
         update: {
           completedChapter: true,
+          completedAt: new Date(),
         },
       })
 
@@ -318,6 +319,7 @@ export async function POST(request: NextRequest) {
         where: { id: session.user.id },
         data: {
           xp: newXP + achievementXP,
+          dailyXP: { increment: XP_PER_CHAPTER + achievementXP },
           level: calculateLevel(newXP + achievementXP),
           gems: { increment: GEMS_FOR_CHAPTER_COMPLETION },
           currentStreak: newStreak,
@@ -344,6 +346,17 @@ export async function POST(request: NextRequest) {
 
     // Check for additional achievements using the centralized checker
     const additionalAchievements = await checkAndAwardAchievements(session.user.id)
+
+    const chapterQuestProgress = await updateQuestProgress(
+      session.user.id,
+      QuestCategory.CHAPTERS_COMPLETED,
+      1
+    )
+    const xpQuestProgress = await updateQuestProgress(
+      session.user.id,
+      QuestCategory.XP_EARNED,
+      XP_PER_CHAPTER
+    )
 
     // Merge all new achievements (from old system + centralized checker)
     const allNewBadges = [...result.newBadges, ...additionalAchievements]
@@ -372,6 +385,7 @@ export async function POST(request: NextRequest) {
       completedChapter: true,
       answeredQuestions: result.chapterCompletion.answeredQuestions,
       submittedProject: result.chapterCompletion.submittedProject,
+      questProgress: [...chapterQuestProgress, ...xpQuestProgress],
     })
   } catch (error) {
     console.error('Error completing chapter:', error)

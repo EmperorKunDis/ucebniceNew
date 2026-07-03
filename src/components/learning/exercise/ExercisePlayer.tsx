@@ -42,23 +42,60 @@ export function ExercisePlayer({
   const [isCorrect, setIsCorrect] = useState(false)
   const [hintsUsed, setHintsUsed] = useState(0)
   const [showExplanation, setShowExplanation] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [attemptKey, setAttemptKey] = useState(0)
+  const [xpEarned, setXpEarned] = useState(0)
 
-  const handleAnswer = (correct: boolean) => {
-    setAnswered(true)
-    setIsCorrect(correct)
+  const submitAnswer = async (answer: unknown, fallbackCorrect: boolean) => {
+    setIsSubmitting(true)
+    setSubmitError(null)
 
-    if (!correct && onHeartLost) {
-      onHeartLost()
+    try {
+      const response = await fetch(`/api/exercises/${exercise.id}/answer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          answer,
+          hintsUsed,
+        }),
+      })
+
+      const data = await response.json().catch(() => null)
+
+      if (!response.ok) {
+        throw new Error(data?.error || 'Nepodařilo se uložit odpověď')
+      }
+
+      const serverCorrect = Boolean(data?.correct)
+      setAnswered(true)
+      setIsCorrect(serverCorrect)
+      setXpEarned(typeof data?.xpEarned === 'number' ? data.xpEarned : 0)
+
+      if (!serverCorrect && data?.heartLost && onHeartLost) {
+        onHeartLost()
+      }
+
+      // Show explanation after a short delay
+      setTimeout(() => setShowExplanation(true), 500)
+    } catch (error) {
+      setAnswered(false)
+      setIsCorrect(false)
+      setXpEarned(0)
+      setShowExplanation(false)
+      setAttemptKey(prev => prev + 1)
+      setSubmitError(error instanceof Error ? error.message : 'Nepodařilo se uložit odpověď')
+
+      // Keep the old local answer result only as a fallback for unexpected response shape.
+      if (fallbackCorrect) {
+        console.warn('Exercise answer looked correct locally but was not persisted.')
+      }
+    } finally {
+      setIsSubmitting(false)
     }
-
-    // Show explanation after a short delay
-    setTimeout(() => setShowExplanation(true), 500)
   }
 
   const handleContinue = () => {
-    // Calculate XP (reduced by hints used)
-    const hintPenalty = hintsUsed * 2
-    const xpEarned = isCorrect ? Math.max(1, exercise.xpReward - hintPenalty) : 0
     onComplete(isCorrect, xpEarned)
   }
 
@@ -75,54 +112,61 @@ export function ExercisePlayer({
       case 'MULTIPLE_CHOICE':
         return (
           <MultipleChoice
+            key={`${exercise.id}-${attemptKey}`}
             question={exercise.question}
             options={data.options as string[]}
             correctIndex={data.correctIndex as number}
-            onAnswer={(_, correct) => handleAnswer(correct)}
-            disabled={answered}
+            onAnswer={(selected, correct) => submitAnswer(selected, correct)}
+            disabled={answered || isSubmitting}
           />
         )
 
       case 'FILL_IN_BLANK':
         return (
           <FillInBlank
+            key={`${exercise.id}-${attemptKey}`}
             text={data.text as string}
             answers={data.answers as string[]}
             alternatives={data.alternatives as string[][] | undefined}
-            onAnswer={(_, correct) => handleAnswer(correct)}
-            disabled={answered}
+            onAnswer={(answers, correct) => submitAnswer(answers, correct)}
+            disabled={answered || isSubmitting}
           />
         )
 
       case 'TRUE_FALSE':
         return (
           <TrueFalse
+            key={`${exercise.id}-${attemptKey}`}
             statement={exercise.question}
             isTrue={data.isTrue as boolean}
-            onAnswer={(_, correct) => handleAnswer(correct)}
-            disabled={answered}
+            onAnswer={(selected, correct) => submitAnswer(selected, correct)}
+            disabled={answered || isSubmitting}
           />
         )
 
       case 'CODE_OUTPUT':
         return (
           <CodeOutput
+            key={`${exercise.id}-${attemptKey}`}
             code={data.code as string}
             language={data.language as string}
             question={exercise.question}
             options={data.options as string[]}
             correctIndex={data.correctIndex as number}
-            onAnswer={(_, correct) => handleAnswer(correct)}
-            disabled={answered}
+            onAnswer={(selected, correct) => submitAnswer(selected, correct)}
+            disabled={answered || isSubmitting}
           />
         )
 
       case 'MATCH_PAIRS':
         return (
           <MatchPairs
+            key={`${exercise.id}-${attemptKey}`}
             pairs={data.pairs as { left: string; right: string }[]}
-            onAnswer={(_, correct) => handleAnswer(correct)}
-            disabled={answered}
+            onAnswer={(matches, correct) =>
+              submitAnswer(Object.fromEntries(matches.entries()), correct)
+            }
+            disabled={answered || isSubmitting}
           />
         )
 
@@ -186,6 +230,18 @@ export function ExercisePlayer({
       {/* Exercise content */}
       {renderExercise()}
 
+      {isSubmitting && (
+        <div className="mt-4 rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-3 text-sm text-indigo-200">
+          Ukládám odpověď...
+        </div>
+      )}
+
+      {submitError && (
+        <div className="mt-4 rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-200">
+          {submitError}
+        </div>
+      )}
+
       {/* Feedback section */}
       <AnimatePresence>
         {answered && showExplanation && (
@@ -226,11 +282,7 @@ export function ExercisePlayer({
                   <p className="text-gray-400 text-sm">Neboj, z chyb se člověk učí!</p>
                 )}
               </div>
-              {isCorrect && (
-                <div className="ml-auto text-yellow-400 font-bold">
-                  +{Math.max(1, exercise.xpReward - hintsUsed * 2)} XP
-                </div>
-              )}
+              {isCorrect && <div className="ml-auto text-yellow-400 font-bold">+{xpEarned} XP</div>}
             </div>
 
             {/* Explanation */}

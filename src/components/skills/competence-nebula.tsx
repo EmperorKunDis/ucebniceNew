@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
 import * as d3 from 'd3'
 import { motion } from 'framer-motion'
 import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react'
@@ -428,13 +429,13 @@ export function CompetenceNebula({
                   <h3 className="font-semibold text-white mb-2">Související lekce</h3>
                   <div className="flex flex-wrap gap-2">
                     {selectedNode.lessons.map(lessonId => (
-                      <a
+                      <Link
                         key={lessonId}
-                        href={`/lessons/${lessonId}`}
+                        href={`/learn/${lessonId}`}
                         className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-sm hover:bg-purple-500/30 transition-all"
                       >
                         {lessonId}
-                      </a>
+                      </Link>
                     ))}
                   </div>
                 </div>

@@ -37,16 +37,14 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-
-    // Uncomment to test on more browsers
-    // {
-    //   name: 'firefox',
-    //   use: { ...devices['Desktop Firefox'] },
-    // },
-    // {
-    //   name: 'webkit',
-    //   use: { ...devices['Desktop Safari'] },
-    // },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+    },
 
     /* Test against mobile viewports. */
     {
@@ -56,6 +54,30 @@ export default defineConfig({
     {
       name: 'Mobile Safari',
       use: { ...devices['iPhone 12'] },
+    },
+    {
+      name: 'small-mobile',
+      use: { ...devices['Pixel 5'], viewport: { width: 360, height: 800 } },
+    },
+    {
+      name: 'tablet-portrait',
+      use: { ...devices['iPad Pro 11'], viewport: { width: 768, height: 1024 } },
+    },
+    {
+      name: 'tablet-landscape',
+      use: { ...devices['iPad Pro 11 landscape'], viewport: { width: 1024, height: 768 } },
+    },
+    {
+      name: 'desktop-1366',
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1366, height: 768 } },
+    },
+    {
+      name: 'desktop-1440',
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } },
+    },
+    {
+      name: 'desktop-1080p',
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1920, height: 1080 } },
     },
   ],
 

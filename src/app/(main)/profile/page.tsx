@@ -15,6 +15,7 @@ import {
   BookOpen,
   Edit2,
   Award,
+  Home,
 } from 'lucide-react'
 import { LevelBadge, XPProgressBar } from '@/components/gamification/xp'
 import { VerificationBadge, VerificationBadgeSmall } from '@/components/ui/VerificationBadge'
@@ -75,13 +76,22 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Settings Link */}
-          <Link
-            href="/settings"
-            className="p-3 bg-gray-700 hover:bg-gray-600 rounded-xl transition-colors"
-          >
-            <Settings className="w-5 h-5 text-gray-300" />
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/dashboard"
+              aria-label="Domů"
+              className="p-3 bg-gray-700 hover:bg-gray-600 rounded-xl transition-colors"
+            >
+              <Home className="w-5 h-5 text-gray-300" />
+            </Link>
+            <Link
+              href="/settings"
+              aria-label="Nastavení"
+              className="p-3 bg-gray-700 hover:bg-gray-600 rounded-xl transition-colors"
+            >
+              <Settings className="w-5 h-5 text-gray-300" />
+            </Link>
+          </div>
         </div>
       </motion.section>
 
@@ -190,11 +200,26 @@ export default function ProfilePage() {
 
       {/* Quick Links */}
       <motion.section
-        className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.35 }}
       >
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-4 bg-gray-800 hover:bg-gray-750 rounded-xl p-4 transition-colors group"
+        >
+          <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
+            <BookOpen className="w-6 h-6 text-green-500" />
+          </div>
+          <div>
+            <div className="font-medium text-white group-hover:text-indigo-400 transition-colors">
+              Učení
+            </div>
+            <div className="text-sm text-gray-400">Pokračovat v kurzu</div>
+          </div>
+        </Link>
+
         <Link
           href="/achievements"
           className="flex items-center gap-4 bg-gray-800 hover:bg-gray-750 rounded-xl p-4 transition-colors group"

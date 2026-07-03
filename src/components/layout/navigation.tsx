@@ -40,7 +40,10 @@ export function Navigation() {
   return (
     <Box as="nav" className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 lg:px-8 py-4">
       <Box className="max-w-7xl mx-auto">
-        <GreySurface className="px-6 py-4" borderRadius={16}>
+        <GreySurface
+          className="px-4 py-3 sm:px-6 sm:py-4 bg-gray-950/90 border-white/15 shadow-2xl shadow-purple-950/30"
+          borderRadius={16}
+        >
           <Stack direction="row" justify="between" align="center">
             <Link
               href="/"
@@ -94,7 +97,7 @@ export function Navigation() {
                     <Link href="/auth/signin">Přihlásit se</Link>
                   </Button>
                   <Button variant="primary" asChild>
-                    <Link href="/onboarding">Začít zdarma</Link>
+                    <Link href="/auth/signup">Začít zdarma</Link>
                   </Button>
                 </Stack>
               )}
@@ -105,6 +108,9 @@ export function Navigation() {
               variant="ghost"
               size="sm"
               className="lg:hidden"
+              aria-label={mobileMenuOpen ? 'Zavřít hlavní menu' : 'Otevřít hlavní menu'}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="public-mobile-menu"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -115,73 +121,84 @@ export function Navigation() {
         {/* Mobile menu */}
         <AnimatePresence>
           {mobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.2 }}
-            >
-              <GreySurface className="mt-2 p-4 lg:hidden">
-                <Stack direction="col" gap={2}>
-                  {filteredNavItems.map(item => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={`px-4 py-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors ${
-                        pathname === item.href ? 'text-white bg-white/10 font-medium' : ''
-                      }`}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-
-                  <Box className="h-px bg-gray-700 my-2" />
-
-                  {isAuthenticated ? (
-                    <Link
-                      href="/profile"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
-                        pathname === '/profile'
-                          ? 'text-white bg-white/10 font-medium'
-                          : 'text-gray-300 hover:text-white hover:bg-white/10'
-                      }`}
-                    >
-                      <Box className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold overflow-hidden">
-                        {avatar ? (
-                          <>
-                            {/* Dynamic user avatars can be arbitrary remote URLs outside next/image config. */}
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={avatar}
-                              alt={username || 'User'}
-                              className="w-full h-full object-cover"
-                            />
-                          </>
-                        ) : (
-                          username.charAt(0).toUpperCase()
-                        )}
-                      </Box>
-                      <span>{username}</span>
-                    </Link>
-                  ) : (
-                    <Stack direction="col" gap={2} className="mx-4">
-                      <Link href="/auth/signin" onClick={() => setMobileMenuOpen(false)}>
-                        <Button variant="ghost" className="w-full">
-                          Přihlásit se
-                        </Button>
+            <>
+              <motion.div
+                className="fixed inset-0 z-40 bg-gray-950/80 lg:hidden"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setMobileMenuOpen(false)}
+              />
+              <motion.div
+                id="public-mobile-menu"
+                initial={{ opacity: 0, y: -12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.2 }}
+                className="relative z-50 lg:hidden"
+              >
+                <div className="mt-3 rounded-2xl border border-white/15 bg-gray-950 p-4 shadow-2xl shadow-purple-950/40">
+                  <Stack direction="col" gap={2}>
+                    {filteredNavItems.map(item => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`px-4 py-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors ${
+                          pathname === item.href ? 'text-white bg-white/10 font-medium' : ''
+                        }`}
+                      >
+                        {item.label}
                       </Link>
-                      <Link href="/onboarding" onClick={() => setMobileMenuOpen(false)}>
-                        <Button variant="primary" className="w-full">
-                          Začít zdarma
-                        </Button>
+                    ))}
+
+                    <Box className="h-px bg-gray-700 my-2" />
+
+                    {isAuthenticated ? (
+                      <Link
+                        href="/profile"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+                          pathname === '/profile'
+                            ? 'text-white bg-white/10 font-medium'
+                            : 'text-gray-300 hover:text-white hover:bg-white/10'
+                        }`}
+                      >
+                        <Box className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold overflow-hidden">
+                          {avatar ? (
+                            <>
+                              {/* Dynamic user avatars can be arbitrary remote URLs outside next/image config. */}
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={avatar}
+                                alt={username || 'User'}
+                                className="w-full h-full object-cover"
+                              />
+                            </>
+                          ) : (
+                            username.charAt(0).toUpperCase()
+                          )}
+                        </Box>
+                        <span>{username}</span>
                       </Link>
-                    </Stack>
-                  )}
-                </Stack>
-              </GreySurface>
-            </motion.div>
+                    ) : (
+                      <Stack direction="col" gap={2} className="mx-4">
+                        <Link href="/auth/signin" onClick={() => setMobileMenuOpen(false)}>
+                          <Button variant="ghost" className="w-full">
+                            Přihlásit se
+                          </Button>
+                        </Link>
+                        <Link href="/auth/signup" onClick={() => setMobileMenuOpen(false)}>
+                          <Button variant="primary" className="w-full">
+                            Začít zdarma
+                          </Button>
+                        </Link>
+                      </Stack>
+                    )}
+                  </Stack>
+                </div>
+              </motion.div>
+            </>
           )}
         </AnimatePresence>
       </Box>

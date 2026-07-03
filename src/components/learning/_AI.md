@@ -51,7 +51,7 @@ SkillTreeContainer
 ### Data Flow
 
 ```
-/api/learning-path → SkillTreeContainer → SkillNode clicks → /chapters/[id]
+/api/learning-path → SkillTreeContainer → SkillNode clicks → /learn/[id]
 ```
 
 ## ⚠️ GOTCHAS

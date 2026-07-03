@@ -140,9 +140,14 @@ export async function POST(req: NextRequest) {
       },
     })
 
+    if (!user.email) {
+      return NextResponse.json({ error: 'Při registraci došlo k chybě' }, { status: 500 })
+    }
+
     // Send verification email (do not fail registration if email delivery fails)
+    let verificationEmailSent = false
     try {
-      await sendVerificationEmail(email, name ?? undefined)
+      verificationEmailSent = await sendVerificationEmail(user.email, user.name || undefined)
     } catch (emailError) {
       console.error('Failed to send verification email:', emailError)
     }
@@ -150,6 +155,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         message: 'Uživatel byl úspěšně vytvořen',
+        verificationEmailSent,
         user,
       },
       { status: 201 }

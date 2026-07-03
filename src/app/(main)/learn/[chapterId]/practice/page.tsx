@@ -5,7 +5,6 @@ import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { X, Target, Loader2, ArrowRight } from 'lucide-react'
 import { ExercisePlayer, type Exercise } from '@/components/learning/exercise'
-import { useHearts } from '@/components/gamification/hearts'
 import { Confetti } from '@/components/gamification/celebrations'
 
 interface PracticeData {
@@ -18,8 +17,6 @@ export default function PracticePage() {
   const params = useParams()
   const router = useRouter()
   const chapterId = params.chapterId as string
-
-  const { loseHeart } = useHearts()
 
   const [data, setData] = useState<PracticeData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -35,13 +32,16 @@ export default function PracticePage() {
       if (!res.ok) throw new Error('Failed to fetch')
       const json = await res.json()
 
-      // Flatten exercises from all lessons
       const exercises =
-        json.data?.lessons?.flatMap((l: { exercises?: Exercise[] }) => l.exercises ?? []) ?? []
+        json.data?.exercises ??
+        json.data?.lessons?.flatMap(
+          (lesson: { exercises?: Exercise[] }) => lesson.exercises ?? []
+        ) ??
+        []
 
       setData({
         chapterId,
-        chapterTitle: json.data?.title ?? 'Procvičování',
+        chapterTitle: json.data?.chapterTitle ?? json.data?.title ?? 'Procvičování',
         exercises: exercises.slice(0, 10),
       })
     } catch (error) {
@@ -63,8 +63,6 @@ export default function PracticePage() {
 
     if (isCorrect) {
       setXpEarned(prev => prev + earnedXP)
-    } else {
-      loseHeart()
     }
 
     setTimeout(() => {

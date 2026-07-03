@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { updateQuestProgress } from '@/lib/quest-tracker'
-import { QuestCategory } from '@prisma/client'
 import { z } from 'zod'
 
 const GEMS_FOR_QUESTIONS = 50
@@ -100,9 +98,6 @@ export async function POST(request: NextRequest) {
 
       return { completion, user }
     })
-
-    // Update quest progress for lessons completed
-    await updateQuestProgress(userId, QuestCategory.LESSONS_COMPLETED, 1)
 
     return NextResponse.json({
       success: true,
