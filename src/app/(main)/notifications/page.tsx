@@ -65,11 +65,12 @@ export default function NotificationsPage() {
 
   const markAsRead = async (id: string) => {
     try {
-      await fetch('/api/notifications/read', {
+      const res = await fetch('/api/notifications/read', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notificationIds: [id] }),
+        body: JSON.stringify({ ids: [id] }),
       })
+      if (!res.ok) throw new Error('Failed to mark notification as read')
       setNotifications(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)))
     } catch (error) {
       console.error('Error marking as read:', error)
@@ -79,14 +80,14 @@ export default function NotificationsPage() {
   const markAllAsRead = async () => {
     setMarkingAll(true)
     try {
-      const unreadIds = notifications.filter(n => !n.read).map(n => n.id)
-      if (unreadIds.length === 0) return
+      if (unreadCount === 0) return
 
-      await fetch('/api/notifications/read', {
+      const res = await fetch('/api/notifications/read', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notificationIds: unreadIds }),
+        body: JSON.stringify({ ids: 'all' }),
       })
+      if (!res.ok) throw new Error('Failed to mark all notifications as read')
       setNotifications(prev => prev.map(n => ({ ...n, read: true })))
     } catch (error) {
       console.error('Error marking all as read:', error)

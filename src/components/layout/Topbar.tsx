@@ -21,7 +21,7 @@ export function Topbar({ onMenuClick, showMenu, className }: TopbarProps) {
   const { data: session } = useSession()
   const { hearts, maxHearts, nextRegenAt, unlimitedUntil } = useHearts()
   const { gems } = useGems()
-  const [notificationCount] = useState(3) // TODO: Fetch from API
+  const [notificationCount, setNotificationCount] = useState<number | null>(null)
   const pathname = usePathname()
 
   // Live XP/level/streak from the DB so the HUD updates after earning XP
@@ -45,17 +45,36 @@ export function Topbar({ onMenuClick, showMenu, className }: TopbarProps) {
     }
   }, [])
 
+  const fetchNotificationCount = useCallback(async () => {
+    try {
+      const res = await fetch('/api/notifications?limit=1')
+      if (!res.ok) {
+        setNotificationCount(null)
+        return
+      }
+
+      const data = await res.json()
+      setNotificationCount(data?.data?.unreadCount ?? 0)
+    } catch {
+      setNotificationCount(null)
+    }
+  }, [])
+
   // Refetch on mount and whenever the route changes (e.g. after finishing a lesson)
   useEffect(() => {
     fetchStats()
-  }, [fetchStats, pathname])
+    fetchNotificationCount()
+  }, [fetchStats, fetchNotificationCount, pathname])
 
   // Refetch when the tab regains focus
   useEffect(() => {
-    const onFocus = () => fetchStats()
+    const onFocus = () => {
+      fetchStats()
+      fetchNotificationCount()
+    }
     window.addEventListener('focus', onFocus)
     return () => window.removeEventListener('focus', onFocus)
-  }, [fetchStats])
+  }, [fetchStats, fetchNotificationCount])
 
   const displayXp = liveXp ?? session?.user?.xp ?? 0
   const displayLevel = liveLevel ?? session?.user?.level ?? 1
@@ -115,7 +134,7 @@ export function Topbar({ onMenuClick, showMenu, className }: TopbarProps) {
           aria-label="Notifikace"
         >
           <Bell className="w-5 h-5" />
-          {notificationCount > 0 && (
+          {notificationCount !== null && notificationCount > 0 && (
             <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">
               {notificationCount > 9 ? '9+' : notificationCount}
             </span>
