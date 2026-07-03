@@ -50,11 +50,18 @@ export function Topbar({ onMenuClick, showMenu, className }: TopbarProps) {
     fetchStats()
   }, [fetchStats, pathname])
 
-  // Refetch when the tab regains focus
+  // Refetch when the tab regains focus or another UI flow mutates user stats.
   useEffect(() => {
     const onFocus = () => fetchStats()
+    const onUserStatsUpdated = () => fetchStats()
+
     window.addEventListener('focus', onFocus)
-    return () => window.removeEventListener('focus', onFocus)
+    window.addEventListener('user-stats-updated', onUserStatsUpdated)
+
+    return () => {
+      window.removeEventListener('focus', onFocus)
+      window.removeEventListener('user-stats-updated', onUserStatsUpdated)
+    }
   }, [fetchStats])
 
   const displayXp = liveXp ?? session?.user?.xp ?? 0

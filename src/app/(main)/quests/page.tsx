@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Target, Clock, Star, Gem, Check, Loader2 } from 'lucide-react'
+import { useSession } from 'next-auth/react'
 import { cn } from '@/lib/utils'
 
 interface Quest {
@@ -40,6 +41,7 @@ interface QuestsData {
 }
 
 export default function QuestsPage() {
+  const { update } = useSession()
   const [data, setData] = useState<QuestsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [claiming, setClaiming] = useState<string | null>(null)
@@ -78,8 +80,8 @@ export default function QuestsPage() {
         return
       }
 
-      // Refetch quests
-      fetchQuests()
+      await Promise.all([fetchQuests(), update()])
+      window.dispatchEvent(new Event('user-stats-updated'))
     } catch (error) {
       console.error('Error claiming quest:', error)
     } finally {
