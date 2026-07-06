@@ -68,7 +68,7 @@ export default function HomePage() {
                 </Link>
 
                 <Button variant="secondary" size="lg" asChild>
-                  <Link href="/demo">Vyzkoušet demo</Link>
+                  <Link href="/chapters">Prohlédnout kapitoly</Link>
                 </Button>
               </Stack>
             </Stack>

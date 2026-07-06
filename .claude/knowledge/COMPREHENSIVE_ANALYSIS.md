@@ -64,7 +64,7 @@ Landing page showcasing the platform's value proposition with dynamic routing ba
 1. **PageLayout** - Main layout wrapper
 2. **GlassSurface** - 3x instances for visual cards
 3. **ElectricBorder** - 3x instances for CTAs
-4. **Button** - 1x "Vyzkoušet demo" button
+4. **Button** - 1x secondary CTA button
 5. **ProfileCard** - Dynamically loaded (lazy)
 6. **Motion components** - 4x from Framer Motion
 
@@ -73,7 +73,7 @@ Landing page showcasing the platform's value proposition with dynamic routing ba
 | Button                                               | Line    | Function                                                | Status       | Issues                               |
 | ---------------------------------------------------- | ------- | ------------------------------------------------------- | ------------ | ------------------------------------ |
 | **"Začít učení" / "Pokračovat v učení"**             | 69-76   | Redirects to /chapters or /onboarding based on username | ✅ Good      | Conditional text based on auth state |
-| **"Vyzkoušet demo"**                                 | 78-80   | Links to /demo page                                     | ✅ Good      | None                                 |
+| **"Prohlédnout kapitoly"**                           | 78-80   | Links to /chapters page                                 | ✅ Good      | None                                 |
 | **"Zaregistrovat se zdarma" / "Pokračovat v kurzu"** | 168-175 | Duplicate CTA at bottom                                 | ⚠️ Redundant | Same functionality as hero CTA       |
 
 #### **Functions:**

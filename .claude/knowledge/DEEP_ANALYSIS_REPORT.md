@@ -337,7 +337,6 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 
 **Files to Review/Remove:**
 
-- `src/app/examples/layout-example/page.tsx` - Example file
 - Various test files without corresponding features
 
 **Estimated Fix Time:** 15 minutes
