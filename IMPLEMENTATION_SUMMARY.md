@@ -20,7 +20,7 @@
    - `src/app/api/progress/complete-chapter/route.ts`
    - `src/app/api/user/stats/route.ts`
 
-4. ✅ Archived legacy database: `prisma/dev.db` → `old_deprecated/dev.db.backup`
+4. ✅ Removed legacy SQLite database archive from the repository
 
 ### Phase 2: Admin Backend System ✅
 
@@ -142,11 +142,9 @@ src/app/api/progress/complete-chapter/route.ts (renamed model references)
 src/app/api/user/stats/route.ts (renamed model references)
 ```
 
-### Archived Files (1 file):
+### Legacy Cleanup:
 
-```
-prisma/dev.db → old_deprecated/dev.db.backup
-```
+Legacy SQLite database archive removed from the repository.
 
 ## API Endpoints Summary
 

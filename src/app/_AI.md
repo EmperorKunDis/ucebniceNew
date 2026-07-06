@@ -93,7 +93,6 @@ app/
 ├── achievements/      # Badge showcase
 ├── certificate/       # Completion certificate
 ├── onboarding/        # New user onboarding
-├── demo/              # Demo/showcase page
 └── api-docs/          # Swagger API documentation
 ```
 

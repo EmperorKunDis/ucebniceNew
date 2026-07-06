@@ -177,7 +177,6 @@ ucebniceNew/
 | `/`            | `app/page.tsx`             | Homepage s hero sekcí, features a CTA |
 | `/auth/signin` | `app/auth/signin/page.tsx` | Přihlášení                            |
 | `/auth/signup` | `app/auth/signup/page.tsx` | Registrace                            |
-| `/demo`        | `app/demo/page.tsx`        | Demo aplikace                         |
 
 ### Chráněné stránky (vyžadují autentifikaci)
 

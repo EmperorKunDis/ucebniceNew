@@ -24,9 +24,9 @@ This guide explains the database refactoring and admin system that has been impl
 - `src/app/api/progress/complete-chapter/route.ts` - Updated database calls
 - `src/app/api/user/stats/route.ts` - Updated database calls
 
-**Legacy Files Archived**:
+**Legacy Files Removed**:
 
-- `prisma/dev.db` → `old_deprecated/dev.db.backup`
+- SQLite `prisma/dev.db` archive was removed from the repository during production cleanup.
 
 ### 2. Admin System Implementation
 
@@ -264,12 +264,6 @@ Each migration folder contains SQL commands that modify the database schema.
 **Purpose**: Populate database with initial data
 
 Run with: `npm run db:seed`
-
-### `prisma/dev.db` (if using SQLite)
-
-**Purpose**: Local development database file
-
-This is the actual database (archived to old_deprecated/ in your case).
 
 ## Viewing Database Data
 

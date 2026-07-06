@@ -59,6 +59,5 @@ external: next@14, react@18, prisma@7, next-auth@4, zustand@4, @tanstack/react-q
 - Rate limiting requires Upstash Redis — gracefully disabled without it
 - 40 chapters of AI education content — static data in src/data/
 - Production runtime videos are mounted through VIDEO_FILES_DIR
-- old_deprecated/ contains legacy code — do not use
 - sentry configs (client/server/edge) at root level
 ---
