@@ -31,6 +31,7 @@ import {
   Upload,
   Star,
   Lock,
+  VideoOff,
 } from 'lucide-react'
 
 interface ChapterLayoutProps {
@@ -162,16 +163,18 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
           <NotebookLinks chapter={chapter} />
 
           {/* Video Section */}
-          {chapter.videoFile && (
-            <Section
-              title="Video přednáška"
-              icon={<PlayCircle className="w-5 h-5" />}
-              expanded={expandedSections.video}
-              onToggle={() => toggleSection('video')}
-            >
+          <Section
+            title="Video přednáška"
+            icon={<PlayCircle className="w-5 h-5" />}
+            expanded={expandedSections.video}
+            onToggle={() => toggleSection('video')}
+          >
+            {chapter.videoFile ? (
               <MemoizedVideoPlayer videoFile={chapter.videoFile} />
-            </Section>
-          )}
+            ) : (
+              <VideoUnavailableMessage />
+            )}
+          </Section>
 
           {/* Lecture Section */}
           <Section
@@ -256,6 +259,21 @@ export function ChapterLayout({ chapter }: ChapterLayoutProps) {
         </Stack>
       </Box>
     </PageLayout>
+  )
+}
+
+function VideoUnavailableMessage() {
+  return (
+    <div className="flex flex-col gap-3 rounded-lg border border-gray-700/60 bg-gray-900/40 p-5 text-gray-300 sm:flex-row sm:items-start">
+      <VideoOff className="mt-0.5 h-5 w-5 flex-shrink-0 text-orange-300" />
+      <div className="space-y-1">
+        <p className="font-medium text-white">Tato kapitola nemá samostatné video.</p>
+        <p className="text-sm leading-6 text-gray-400">
+          Pokračuj přes kompletní přednášku a navazující materiály níže. Absence videa je u této
+          kapitoly záměrná, nejde o chybu načítání.
+        </p>
+      </div>
+    </div>
   )
 }
 
