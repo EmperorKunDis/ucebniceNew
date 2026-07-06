@@ -42,6 +42,7 @@ test.describe('Quest Flow', () => {
     await claimButton.click()
 
     await expect(claimButton).toBeHidden({ timeout: 10000 })
+    await expect(page.getByTestId('topbar-xp')).toContainText('30', { timeout: 10000 })
 
     const userAfterClaim = await db.user.findUniqueOrThrow({
       where: { id: user.id },
@@ -49,5 +50,8 @@ test.describe('Quest Flow', () => {
     })
     expect(userAfterClaim.xp).toBe(30)
     expect(userAfterClaim.gems).toBe(110)
+
+    await page.goto('/profile')
+    await expect(page.getByTestId('profile-total-xp')).toHaveText('30', { timeout: 10000 })
   })
 })

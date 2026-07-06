@@ -20,10 +20,23 @@ import {
 import { LevelBadge, XPProgressBar } from '@/components/gamification/xp'
 import { VerificationBadge, VerificationBadgeSmall } from '@/components/ui/VerificationBadge'
 import { useEmailVerification } from '@/hooks/useEmailVerification'
+import { useUserStats } from '@/hooks/useUserStats'
 
 export default function ProfilePage() {
   const { data: session } = useSession()
-  const user = session?.user
+  const { data: userStats } = useUserStats()
+  const sessionUser = session?.user
+  const statsUser = userStats?.user
+  const user = {
+    name: statsUser?.name ?? sessionUser?.name,
+    email: statsUser?.email ?? sessionUser?.email,
+    username: statsUser?.username ?? sessionUser?.username,
+    image: statsUser?.image ?? sessionUser?.image,
+    xp: statsUser?.xp ?? sessionUser?.xp ?? 0,
+    level: statsUser?.level ?? sessionUser?.level ?? 1,
+    currentStreak: statsUser?.currentStreak ?? sessionUser?.currentStreak ?? 0,
+    longestStreak: statsUser?.longestStreak ?? sessionUser?.longestStreak ?? 0,
+  }
   const { isVerified, resendVerification } = useEmailVerification()
 
   return (
@@ -60,19 +73,19 @@ export default function ProfilePage() {
           {/* User Info */}
           <div className="flex-1 text-center sm:text-left">
             <div className="flex items-center justify-center sm:justify-start gap-3 mb-2">
-              <h1 className="text-2xl font-bold text-white">{user?.name ?? 'Uživatel'}</h1>
-              <LevelBadge level={user?.level ?? 1} size="md" />
+              <h1 className="text-2xl font-bold text-white">{user.name ?? 'Uživatel'}</h1>
+              <LevelBadge level={user.level} size="md" />
             </div>
             <div className="flex items-center justify-center sm:justify-start gap-2 mb-4">
               <p className="text-gray-400">
-                @{user?.username ?? user?.email?.split('@')[0] ?? 'username'}
+                @{user.username ?? user.email?.split('@')[0] ?? 'username'}
               </p>
               <VerificationBadgeSmall isVerified={isVerified} />
             </div>
 
             {/* XP Progress */}
             <div className="max-w-xs mx-auto sm:mx-0">
-              <XPProgressBar currentXP={user?.xp ?? 0} level={user?.level ?? 1} showLabels />
+              <XPProgressBar currentXP={user.xp} level={user.level} showLabels />
             </div>
           </div>
 
@@ -106,7 +119,7 @@ export default function ProfilePage() {
           <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-orange-500/20 flex items-center justify-center">
             <Flame className="w-6 h-6 text-orange-500" />
           </div>
-          <div className="text-2xl font-bold text-white">{user?.currentStreak ?? 0}</div>
+          <div className="text-2xl font-bold text-white">{user.currentStreak}</div>
           <div className="text-sm text-gray-400">Aktuální streak</div>
         </motion.div>
 
@@ -119,7 +132,9 @@ export default function ProfilePage() {
           <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-yellow-500/20 flex items-center justify-center">
             <Star className="w-6 h-6 text-yellow-500" />
           </div>
-          <div className="text-2xl font-bold text-white">{user?.xp ?? 0}</div>
+          <div className="text-2xl font-bold text-white" data-testid="profile-total-xp">
+            {user.xp}
+          </div>
           <div className="text-sm text-gray-400">Celkem XP</div>
         </motion.div>
 
@@ -132,7 +147,7 @@ export default function ProfilePage() {
           <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-purple-500/20 flex items-center justify-center">
             <Trophy className="w-6 h-6 text-purple-500" />
           </div>
-          <div className="text-2xl font-bold text-white">{user?.longestStreak ?? 0}</div>
+          <div className="text-2xl font-bold text-white">{user.longestStreak}</div>
           <div className="text-sm text-gray-400">Nejdelší streak</div>
         </motion.div>
 
@@ -145,7 +160,7 @@ export default function ProfilePage() {
           <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-green-500/20 flex items-center justify-center">
             <BookOpen className="w-6 h-6 text-green-500" />
           </div>
-          <div className="text-2xl font-bold text-white">{user?.level ?? 1}</div>
+          <div className="text-2xl font-bold text-white">{user.level}</div>
           <div className="text-sm text-gray-400">Level</div>
         </motion.div>
       </div>

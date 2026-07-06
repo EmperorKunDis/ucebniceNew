@@ -1,9 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { Target, Clock, Star, Gem, Check, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { userStatsQueryKey } from '@/hooks/useUserStats'
 
 interface Quest {
   id: string
@@ -40,6 +42,7 @@ interface QuestsData {
 }
 
 export default function QuestsPage() {
+  const queryClient = useQueryClient()
   const [data, setData] = useState<QuestsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [claiming, setClaiming] = useState<string | null>(null)
@@ -78,8 +81,10 @@ export default function QuestsPage() {
         return
       }
 
-      // Refetch quests
-      fetchQuests()
+      await Promise.all([
+        fetchQuests(),
+        queryClient.invalidateQueries({ queryKey: userStatsQueryKey }),
+      ])
     } catch (error) {
       console.error('Error claiming quest:', error)
     } finally {
