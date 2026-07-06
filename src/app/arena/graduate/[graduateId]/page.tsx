@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import {
@@ -17,78 +17,12 @@ import {
   Code,
   BookOpen,
   Video,
+  Loader2,
 } from 'lucide-react'
 
 import { Lightning } from '@/components/ui/lightning'
 import { GlassSurface } from '@/components/ui/glass-surface'
-import { Graduate } from '@/types/arena'
-
-// Mock data - in real app would fetch from API
-const mockGraduate: Graduate = {
-  id: 'grad-1',
-  username: 'CodeMaster',
-  fullName: 'Jan Novák',
-  email: 'jan@example.com',
-  bio: 'Passionate full-stack developer specializující se na AI a machine learning. Miluji řešení složitých problémů a vytváření inovativních aplikací. Mám zkušenosti s vývojem webových aplikací, mobilních aplikací a AI modelů.',
-  graduatedAt: new Date('2023-12-15'),
-  certificateId: 'CERT-2023-001',
-  skills: [
-    'Python',
-    'TensorFlow',
-    'React',
-    'Node.js',
-    'Docker',
-    'TypeScript',
-    'PostgreSQL',
-    'AWS',
-    'FastAPI',
-    'Next.js',
-  ],
-  portfolio: [
-    {
-      id: 'port-1',
-      title: 'AI Chatbot pro zákaznickou podporu',
-      description:
-        'Inteligentní chatbot využívající NLP pro automatizaci zákaznické podpory. Snížil dobu odpovědi o 70%.',
-      url: 'https://github.com/user/ai-chatbot',
-      type: 'project',
-      thumbnail: '/project1.jpg',
-      technologies: ['Python', 'TensorFlow', 'FastAPI', 'React'],
-    },
-    {
-      id: 'port-2',
-      title: 'Real-time Analytics Dashboard',
-      description:
-        'Webová aplikace pro vizualizaci dat v reálném čase s pokročilými grafy a filtrovaní.',
-      url: 'https://github.com/user/analytics-dashboard',
-      type: 'project',
-      thumbnail: '/project2.jpg',
-      technologies: ['Next.js', 'D3.js', 'WebSocket', 'PostgreSQL'],
-    },
-    {
-      id: 'port-3',
-      title: 'Machine Learning v praxi',
-      description: 'Článek o implementaci ML modelů v produkčním prostředí',
-      url: 'https://medium.com/@user/ml-production',
-      type: 'article',
-      technologies: ['Machine Learning', 'MLOps', 'Python'],
-    },
-    {
-      id: 'port-4',
-      title: 'TensorFlow Developer Certificate',
-      description: 'Oficiální certifikace od Google pro TensorFlow development',
-      url: '/certificates/tensorflow.pdf',
-      type: 'certificate',
-      technologies: ['TensorFlow', 'Deep Learning'],
-    },
-  ],
-  hackathonWins: 2,
-  github: 'https://github.com/codemaster',
-  linkedIn: 'https://linkedin.com/in/codemaster',
-  website: 'https://jannovák.dev',
-  lookingForWork: true,
-  preferredRoles: ['ML Engineer', 'Full-Stack Developer', 'AI Researcher'],
-}
+import { Graduate, PortfolioItem } from '@/types/arena'
 
 const skillCategories = {
   Languages: ['Python', 'TypeScript', 'JavaScript'],
@@ -98,18 +32,150 @@ const skillCategories = {
   DevOps: ['Docker', 'Kubernetes', 'AWS', 'CI/CD'],
 }
 
+interface GraduateApiResponse {
+  graduate: {
+    id: string
+    user?: {
+      name?: string | null
+      username?: string | null
+      image?: string | null
+    }
+    bio?: string | null
+    graduatedAt: string
+    certificateId: string
+    skills?: string[]
+    portfolio?: unknown
+    linkedIn?: string | null
+    github?: string | null
+    website?: string | null
+    lookingForWork?: boolean
+    preferredRoles?: string[]
+    hackathonWins?: number
+  }
+}
+
+function isPortfolioItem(item: unknown): item is PortfolioItem {
+  if (!item || typeof item !== 'object') return false
+
+  const value = item as Partial<PortfolioItem>
+  return (
+    typeof value.id === 'string' &&
+    typeof value.title === 'string' &&
+    typeof value.description === 'string' &&
+    typeof value.url === 'string' &&
+    ['project', 'article', 'presentation', 'certificate'].includes(value.type ?? '') &&
+    Array.isArray(value.technologies)
+  )
+}
+
+function mapGraduate(data: GraduateApiResponse['graduate']): Graduate {
+  const username = data.user?.username ?? 'absolvent'
+  const fullName = data.user?.name ?? username
+  const portfolio = Array.isArray(data.portfolio) ? data.portfolio.filter(isPortfolioItem) : []
+
+  return {
+    id: data.id,
+    username,
+    fullName,
+    email: '',
+    avatar: data.user?.image ?? undefined,
+    bio: data.bio ?? 'Tento absolvent zatím nemá vyplněné bio.',
+    graduatedAt: new Date(data.graduatedAt),
+    certificateId: data.certificateId,
+    skills: data.skills ?? [],
+    portfolio,
+    hackathonWins: data.hackathonWins ?? 0,
+    linkedIn: data.linkedIn ?? undefined,
+    github: data.github ?? undefined,
+    website: data.website ?? undefined,
+    lookingForWork: data.lookingForWork ?? false,
+    preferredRoles: data.preferredRoles ?? [],
+  }
+}
+
 export default function GraduateDetailPage() {
-  // const params = useParams()
+  const params = useParams()
   const router = useRouter()
   const [selectedCategory, setSelectedCategory] = useState<
     'all' | 'project' | 'article' | 'certificate'
   >('all')
+  const [graduate, setGraduate] = useState<Graduate | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  // const graduateId = params?.graduateId as string
-  const graduate = mockGraduate // In real app: fetch based on graduateId (params.graduateId)
+  const graduateId = typeof params?.graduateId === 'string' ? params.graduateId : null
 
-  if (!graduate) {
-    return <div>Absolvent nenalezen</div>
+  useEffect(() => {
+    const fetchGraduate = async () => {
+      if (!graduateId) {
+        setError('Neplatný detail absolventa')
+        setLoading(false)
+        return
+      }
+
+      try {
+        setLoading(true)
+        setError(null)
+        const res = await fetch(`/api/graduates/${graduateId}`)
+
+        if (res.status === 404) {
+          setGraduate(null)
+          setError('Absolvent nebyl nalezen')
+          return
+        }
+
+        if (!res.ok) throw new Error('Failed to fetch graduate')
+
+        const data = (await res.json()) as GraduateApiResponse
+        setGraduate(mapGraduate(data.graduate))
+      } catch (err) {
+        console.error('Error fetching graduate:', err)
+        setGraduate(null)
+        setError('Profil absolventa se nepodařilo načíst')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchGraduate()
+  }, [graduateId])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen relative">
+        <Lightning />
+        <main className="relative z-10 min-h-screen flex items-center justify-center px-4">
+          <GlassSurface className="p-8 text-center">
+            <Loader2 className="w-8 h-8 mx-auto mb-4 text-purple-400 animate-spin" />
+            <p className="text-gray-300">Načítání profilu absolventa...</p>
+          </GlassSurface>
+        </main>
+      </div>
+    )
+  }
+
+  if (error || !graduate) {
+    return (
+      <div className="min-h-screen relative">
+        <Lightning />
+        <main className="relative z-10 min-h-screen flex items-center justify-center px-4">
+          <GlassSurface className="p-8 text-center max-w-md">
+            <Award className="w-12 h-12 mx-auto mb-4 text-gray-500" />
+            <h1 className="text-2xl font-bold text-white mb-2">Absolvent nenalezen</h1>
+            <p className="text-gray-400 mb-6">
+              {error ?? 'Profil absolventa pro toto ID neexistuje.'}
+            </p>
+            <Link
+              href="/arena"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-500 text-white hover:bg-purple-600 transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Zpět do Arény
+            </Link>
+          </GlassSurface>
+        </main>
+      </div>
+    )
   }
 
   const filteredPortfolio = graduate.portfolio.filter(
@@ -211,10 +277,24 @@ export default function GraduateDetailPage() {
             <div className="lg:col-span-1 space-y-6">
               <GlassSurface className="p-6 text-center">
                 <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-4xl font-bold text-white">
-                  {graduate.fullName
-                    .split(' ')
-                    .map(n => n[0])
-                    .join('')}
+                  {graduate.avatar ? (
+                    <>
+                      {/* Dynamic user avatars can be arbitrary remote URLs outside next/image config. */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={graduate.avatar}
+                        alt={graduate.fullName}
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    </>
+                  ) : (
+                    graduate.fullName
+                      .split(' ')
+                      .filter(Boolean)
+                      .map(n => n[0])
+                      .join('')
+                      .toUpperCase()
+                  )}
                 </div>
                 <h1 className="text-2xl font-bold text-white mb-1">{graduate.fullName}</h1>
                 <p className="text-gray-400 mb-4">@{graduate.username}</p>
@@ -260,13 +340,15 @@ export default function GraduateDetailPage() {
                       Portfolio
                     </a>
                   )}
-                  <a
-                    href={`mailto:${graduate.email}`}
-                    className="w-full py-2 px-4 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-all flex items-center justify-center gap-2"
-                  >
-                    <Mail className="w-4 h-4" />
-                    Kontakt
-                  </a>
+                  {graduate.email && (
+                    <a
+                      href={`mailto:${graduate.email}`}
+                      className="w-full py-2 px-4 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-all flex items-center justify-center gap-2"
+                    >
+                      <Mail className="w-4 h-4" />
+                      Kontakt
+                    </a>
+                  )}
                 </div>
 
                 {/* Stats */}

@@ -3,18 +3,7 @@
 import { useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { motion } from 'framer-motion'
-import {
-  User,
-  Bell,
-  Shield,
-  Moon,
-  Volume2,
-  Globe,
-  LogOut,
-  ChevronRight,
-  Save,
-  Loader2,
-} from 'lucide-react'
+import { User, Bell, Shield, Moon, Volume2, Globe, LogOut, ChevronRight, Save } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface SettingItemProps {
@@ -61,7 +50,6 @@ function Toggle({ enabled, onChange }: { enabled: boolean; onChange: (v: boolean
 
 export default function SettingsPage() {
   const { data: session } = useSession()
-  const [saving, setSaving] = useState(false)
 
   // Settings state
   const [settings, setSettings] = useState({
@@ -72,19 +60,6 @@ export default function SettingsPage() {
     weeklyReport: true,
     language: 'cs',
   })
-
-  const handleSave = async () => {
-    setSaving(true)
-    try {
-      // TODO: Save settings to API
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      // Show success toast
-    } catch (error) {
-      console.error('Error saving settings:', error)
-    } finally {
-      setSaving(false)
-    }
-  }
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
@@ -264,17 +239,23 @@ export default function SettingsPage() {
       </motion.section>
 
       {/* Save Button */}
-      <motion.button
-        onClick={handleSave}
-        disabled={saving}
-        className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-600/50 text-white rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors"
+      <motion.div
+        className="space-y-3"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
-        {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-        {saving ? 'Ukládám...' : 'Uložit změny'}
-      </motion.button>
+        <p className="text-sm text-gray-400 text-center">
+          Ukládání nastavení zatím není dostupné. Změny na této stránce jsou pouze lokální.
+        </p>
+        <button
+          disabled
+          className="w-full py-3 bg-gray-700/70 text-gray-400 rounded-xl font-semibold flex items-center justify-center gap-2 cursor-not-allowed"
+        >
+          <Save className="w-5 h-5" />
+          Ukládání není dostupné
+        </button>
+      </motion.div>
     </div>
   )
 }
