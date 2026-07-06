@@ -54,6 +54,10 @@ export function OnboardingFlow({
 }: OnboardingFlowProps) {
   const router = useRouter()
   const { setUsername, completeOnboarding } = useUserStore()
+  const nameInputId = 'onboarding-name'
+  const emailInputId = 'onboarding-email'
+  const passwordInputId = 'onboarding-password'
+  const confirmPasswordInputId = 'onboarding-confirm-password'
   const [currentStep, setCurrentStep] = useState(0)
   const [furthestStep, setFurthestStep] = useState(0)
   const [name, setName] = useState('')
@@ -118,10 +122,12 @@ export function OnboardingFlow({
             </Box>
           </Stack>
           <Stack gap={2}>
-            <Box as="label" className="block text-sm font-medium text-gray-400">
+            <label htmlFor={nameInputId} className="block text-sm font-medium text-gray-400">
               Tvé jméno nebo přezdívka
-            </Box>
+            </label>
             <input
+              id={nameInputId}
+              name="name"
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
@@ -159,23 +165,33 @@ export function OnboardingFlow({
             )}
             <Stack gap={4}>
               <Stack gap={2}>
-                <Box as="label" className="block text-sm font-medium text-gray-400">
+                <label htmlFor={emailInputId} className="block text-sm font-medium text-gray-400">
                   Email
-                </Box>
+                </label>
                 <input
+                  id={emailInputId}
+                  name="email"
                   type="email"
                   value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  onChange={e => {
+                    setEmail(e.target.value)
+                    if (registrationError) setRegistrationError('')
+                  }}
                   placeholder="tvuj@email.cz"
                   className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 transition-all"
                 />
               </Stack>
               <Stack gap={2}>
-                <Box as="label" className="block text-sm font-medium text-gray-400">
+                <label
+                  htmlFor={passwordInputId}
+                  className="block text-sm font-medium text-gray-400"
+                >
                   Heslo
-                </Box>
+                </label>
                 <Box className="relative">
                   <input
+                    id={passwordInputId}
+                    name="password"
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={e => {
@@ -198,11 +214,16 @@ export function OnboardingFlow({
                 </Box>
               </Stack>
               <Stack gap={2}>
-                <Box as="label" className="block text-sm font-medium text-gray-400">
+                <label
+                  htmlFor={confirmPasswordInputId}
+                  className="block text-sm font-medium text-gray-400"
+                >
                   Potvrzení hesla
-                </Box>
+                </label>
                 <Box className="relative">
                   <input
+                    id={confirmPasswordInputId}
+                    name="confirmPassword"
                     type={showConfirmPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={e => {
