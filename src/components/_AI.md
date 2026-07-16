@@ -100,22 +100,14 @@ components/
 │   └── ...               # More UI components
 ├── chapters/              # Chapter feature
 │   ├── ChapterCard.tsx   # Chapter list item
-│   ├── ChapterContent.tsx # Chapter detail view
-│   ├── ChapterLayout.tsx # Chapter page layout
-│   ├── ChapterHeader.tsx # Chapter heading
 │   ├── VideoPlayer.tsx   # Video playback
-│   ├── QuestionCard.tsx  # Quiz question UI
-│   ├── ProjectSubmission.tsx # Project form
-│   ├── ChapterNavigation.tsx # Nav between chapters
-│   └── NotebookLinks.tsx # Colab/NotebookLM links
+│   └── ProjectSubmission.tsx # Project form
 ├── layout/                # Layout components
-│   ├── navigation.tsx    # Global nav
-│   ├── page-layout.tsx   # Page wrapper
-│   └── unified-page-layout.tsx # Consistent layout
+│   ├── MainLayout.tsx    # Authenticated app shell
+│   ├── PublicShell.tsx   # Public shell with partner footer
+│   └── AdminShell.tsx    # Admin navigation shell
 ├── certificate/           # Certificate generation
 │   └── certificate-generator.tsx # PDF export
-├── tests/                 # Module tests
-│   └── ModuleTestModal.tsx # Test UI
 ├── cognitive-glitch/      # Random quizzes
 │   └── cognitive-glitch-modal.tsx
 ├── profile/               # User profile

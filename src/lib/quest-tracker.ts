@@ -1,5 +1,8 @@
 import { prisma } from './prisma'
-import { QuestCategory, QuestType } from '@prisma/client'
+import { Prisma, QuestCategory, QuestType } from '@prisma/client'
+import { canonicalChapterIdsThrough } from './canonical-content-keys'
+
+type PrismaClientLike = Prisma.TransactionClient | typeof prisma
 
 const ACTIVE_QUEST_DEFINITIONS = [
   {
@@ -126,42 +129,23 @@ async function upsertProgressFromSource(
 }
 
 async function getCompletedChapterCountForPeriod(userId: string, periodStart: Date) {
-  const [chapterCompletions, legacyCompletions] = await Promise.all([
-    prisma.chapterCompletion.findMany({
-      where: {
-        userId,
-        completedChapter: true,
-        completedAt: { gte: periodStart },
-      },
-      select: { chapterId: true },
-    }),
-    prisma.completedChapter.findMany({
-      where: {
-        userId,
-        completedAt: { gte: periodStart },
-      },
-      include: {
-        chapter: {
-          select: { chapterId: true },
-        },
-      },
-    }),
-  ])
-
-  const completedChapterIds = new Set<string>()
-  chapterCompletions.forEach(completion => completedChapterIds.add(completion.chapterId))
-  legacyCompletions.forEach(completion => completedChapterIds.add(completion.chapter.chapterId))
-
-  return completedChapterIds.size
+  return prisma.chapterProgress.count({
+    where: {
+      userId,
+      contentCompleted: true,
+      contentCompletedAt: { gte: periodStart },
+      chapter: { chapterId: { in: canonicalChapterIdsThrough() } },
+    },
+  })
 }
 
 /**
  * Ensure production has the quest definitions that runtime events expect.
  * This is intentionally idempotent so a missed seed does not leave quests impossible to update.
  */
-export async function ensureDefaultQuests() {
+export async function ensureDefaultQuests(client: PrismaClientLike = prisma) {
   for (const quest of ACTIVE_QUEST_DEFINITIONS) {
-    const existingQuests = await prisma.quest.findMany({
+    const existingQuests = await client.quest.findMany({
       where: {
         type: quest.type,
         category: quest.category,
@@ -172,23 +156,23 @@ export async function ensureDefaultQuests() {
     const [existingQuest, ...duplicateQuests] = existingQuests
 
     if (existingQuest) {
-      await prisma.quest.update({
+      await client.quest.update({
         where: { id: existingQuest.id },
         data: { ...quest, isActive: true },
       })
 
       if (duplicateQuests.length > 0) {
-        await prisma.quest.updateMany({
+        await client.quest.updateMany({
           where: { id: { in: duplicateQuests.map(q => q.id) } },
           data: { isActive: false },
         })
       }
     } else {
-      await prisma.quest.create({ data: quest })
+      await client.quest.create({ data: quest })
     }
   }
 
-  await prisma.quest.updateMany({
+  await client.quest.updateMany({
     where: {
       OR: DISABLED_QUEST_FILTERS,
     },
@@ -244,12 +228,13 @@ export async function syncUserQuestProgress(userId: string) {
 export async function updateQuestProgress(
   userId: string,
   category: QuestCategory,
-  increment: number = 1
+  increment: number = 1,
+  client: PrismaClientLike = prisma
 ): Promise<{ questId: string; newProgress: number; completed: boolean }[]> {
-  await ensureDefaultQuests()
+  await ensureDefaultQuests(client)
 
   // Get active quests for this category that user hasn't completed
-  const activeQuests = await prisma.quest.findMany({
+  const activeQuests = await client.quest.findMany({
     where: {
       category,
       isActive: true,
@@ -262,14 +247,14 @@ export async function updateQuestProgress(
 
   for (const quest of activeQuests) {
     // Get or create user quest
-    let userQuest = await prisma.userQuest.findUnique({
+    let userQuest = await client.userQuest.findUnique({
       where: {
         userId_questId: { userId, questId: quest.id },
       },
     })
 
     if (!userQuest) {
-      userQuest = await prisma.userQuest.create({
+      userQuest = await client.userQuest.create({
         data: {
           userId,
           questId: quest.id,
@@ -285,7 +270,7 @@ export async function updateQuestProgress(
     const newProgress = Math.min(userQuest.progress + increment, quest.targetValue)
     const completed = newProgress >= quest.targetValue
 
-    await prisma.userQuest.update({
+    await client.userQuest.update({
       where: { id: userQuest.id },
       data: {
         progress: newProgress,
@@ -302,7 +287,7 @@ export async function updateQuestProgress(
 
     // Create notification if quest completed
     if (completed) {
-      await prisma.notification.create({
+      await client.notification.create({
         data: {
           userId,
           type: 'QUEST_COMPLETED',

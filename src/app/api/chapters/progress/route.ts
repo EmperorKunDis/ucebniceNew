@@ -36,15 +36,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Get chapter completion
-    const chapterCompletion = await prisma.chapterCompletion.findUnique({
-      where: {
-        userId_chapterId: {
-          userId: user.id,
-          chapterId,
-        },
-      },
+    const chapter = await prisma.chapter.findUnique({
+      where: { chapterId },
+      select: { id: true },
     })
+    const chapterProgress = chapter
+      ? await prisma.chapterProgress.findUnique({
+          where: {
+            userId_chapterId: {
+              userId: user.id,
+              chapterId: chapter.id,
+            },
+          },
+        })
+      : null
 
     // Get all question answers for this chapter
     const questionAnswers = await prisma.questionAnswer.findMany({
@@ -65,12 +70,11 @@ export async function GET(request: NextRequest) {
     })
 
     return NextResponse.json({
-      completedChapter: chapterCompletion?.completedChapter || false,
-      answeredQuestions: chapterCompletion?.answeredQuestions || false,
-      submittedProject: chapterCompletion?.submittedProject || false,
-      // BUG FIX: completed should only be true if chapter was actually completed (Star 1)
-      // NOT just if a ChapterCompletion record exists
-      completed: chapterCompletion?.completedChapter || false,
+      completedChapter: chapterProgress?.contentCompleted ?? false,
+      answeredQuestions: chapterProgress?.exercisesCompleted ?? false,
+      submittedProject: chapterProgress?.projectApproved ?? false,
+      completed: chapterProgress?.contentCompleted ?? false,
+      stars: chapterProgress?.stars ?? 0,
       questionAnswers: questionAnswers.map(qa => ({
         questionId: qa.questionId,
         correct: qa.correct,

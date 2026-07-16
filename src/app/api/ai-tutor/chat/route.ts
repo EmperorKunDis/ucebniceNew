@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { isCanonicalChapterId } from '@/lib/canonical-content-keys'
 import { prisma } from '@/lib/prisma'
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY
@@ -49,6 +50,9 @@ export async function POST(request: NextRequest) {
 
     if (!message || typeof message !== 'string' || message.length > 2000) {
       return NextResponse.json({ error: 'Neplatná zpráva (max 2000 znaků)' }, { status: 400 })
+    }
+    if (chapterId && (typeof chapterId !== 'string' || !isCanonicalChapterId(chapterId))) {
+      return NextResponse.json({ error: 'Kapitola nenalezena' }, { status: 404 })
     }
 
     // Rate limit: max 30 messages per hour

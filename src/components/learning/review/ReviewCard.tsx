@@ -18,6 +18,7 @@ interface ReviewCardProps {
   hasExercise: boolean
   onPractice: () => void
   onRate: (rating: 'AGAIN' | 'HARD' | 'GOOD' | 'EASY') => void
+  disabled?: boolean
 }
 
 export function ReviewCard({
@@ -28,6 +29,7 @@ export function ReviewCard({
   hasExercise,
   onPractice,
   onRate,
+  disabled = false,
 }: ReviewCardProps) {
   const [revealed, setRevealed] = useState(false)
 
@@ -110,10 +112,12 @@ export function ReviewCard({
               {ratingButtons.map(btn => (
                 <button
                   key={btn.rating}
+                  disabled={disabled}
                   onClick={() => onRate(btn.rating)}
                   className={cn(
                     'py-3 rounded-lg text-white font-medium transition-colors',
-                    btn.color
+                    btn.color,
+                    'disabled:cursor-not-allowed disabled:opacity-50'
                   )}
                 >
                   <div>{btn.label}</div>

@@ -1,16 +1,18 @@
 ---
 @META
 dir: .github/workflows
-updated: 2026-03-18
-files: 1
+updated: 2026-07-15
+files: 3
 stack: GitHub Actions
 
 @EXPORTS
-ci.yml: CI — lint + type-check + test + build pipeline on push/PR
+ci.yml: CI — quality, Jest, Vitest, Storybook, Chromium smoke, build, and Compose gates
+security.yml: Security — npm audit, dependency review, CodeQL, Gitleaks, and Scorecard
+deploy-vps.yml: Deploy VPS — manually dispatched production deployment
 
 @PROCESSES
-CI: checkout → setup Node.js → install deps → lint → type-check → test → build
+CI: checkout → setup Node.js 22 with npm cache → npm ci → independent quality/test/build gates
 
 @DEPENDENCIES
-external: actions/checkout, actions/setup-node, Node.js 20
+external: actions/checkout, actions/setup-node, Node.js 22, npm
 ---

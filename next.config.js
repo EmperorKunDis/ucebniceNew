@@ -5,6 +5,9 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  // Keep SWC/Jest/build tracing scoped to this isolated project even when the
+  // developer machine has an unrelated package-lock.json in a parent folder.
+  outputFileTracingRoot: __dirname,
   reactStrictMode: true,
   compiler: {
     removeConsole:

@@ -1,13 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { checkAndAwardAchievements } from '@/lib/achievement-checker'
 import { prisma } from '@/lib/prisma'
 import { reviewMilestoneProject } from '@/lib/gemini'
+import { awardCanonicalReward, runLearningTransaction } from '@/lib/learning-service'
+import { QuestCategory } from '@prisma/client'
 import { z } from 'zod'
+import {
+  canonicalChapterIdsInRange,
+  canonicalChapterIdsThrough,
+} from '@/lib/canonical-content-keys'
 
 const QUESTIONS_PER_MILESTONE = 20
 const MILESTONES = [10, 20, 30, 40] // 40 is special final test
 const GEMS_FOR_PASSING = 200
+
+type MilestoneAssessment = {
+  startChapter: number
+  chapters: Array<{
+    id: string
+    chapterId: string
+    title: string
+    description: string | null
+  }>
+  questions: Array<{
+    id: string
+    questionText: string
+    options: unknown
+    correctAnswer: number
+    chapterId: string
+    chapterTitle: string
+    chapterSlug: string
+  }>
+}
 
 const submitTestSchema = z.object({
   milestone: z.number().refine(m => MILESTONES.includes(m)),
@@ -15,9 +41,56 @@ const submitTestSchema = z.object({
   projectCode: z.string().optional(),
 })
 
+async function getMilestoneAssessment(milestone: number): Promise<MilestoneAssessment> {
+  const startChapter = milestone - 9
+  const chapterIds = canonicalChapterIdsInRange(startChapter, milestone)
+  const chapters = await prisma.chapter.findMany({
+    where: { chapterId: { in: chapterIds } },
+    orderBy: { order: 'asc' },
+    select: {
+      id: true,
+      chapterId: true,
+      title: true,
+      description: true,
+      questions: {
+        orderBy: [{ questionNumber: 'asc' }, { id: 'asc' }],
+        take: 2,
+        select: {
+          id: true,
+          questionText: true,
+          options: true,
+          correctAnswer: true,
+        },
+      },
+    },
+  })
+
+  if (chapters.length !== 10 || chapters.some(chapter => chapter.questions.length !== 2)) {
+    throw new Error(`Milestone ${milestone} assessment is incomplete`)
+  }
+
+  return {
+    startChapter,
+    chapters: chapters.map(chapter => ({
+      id: chapter.id,
+      chapterId: chapter.chapterId,
+      title: chapter.title,
+      description: chapter.description,
+    })),
+    questions: chapters.flatMap(chapter =>
+      chapter.questions.map(question => ({
+        ...question,
+        chapterId: chapter.id,
+        chapterTitle: chapter.title,
+        chapterSlug: chapter.chapterId,
+      }))
+    ),
+  }
+}
+
 /**
  * GET /api/milestone-test?milestone=10
- * Get milestone test questions (20 random from previous 10 chapters)
+ * Get the deterministic milestone question set (two per chapter)
  */
 export async function GET(request: NextRequest) {
   try {
@@ -41,10 +114,11 @@ export async function GET(request: NextRequest) {
     const milestone = milestoneParam
 
     // Check if user has completed required chapters
-    const completedChapters = await prisma.chapterCompletion.count({
+    const completedChapters = await prisma.chapterProgress.count({
       where: {
         userId,
-        completedChapter: true,
+        contentCompleted: true,
+        chapter: { chapterId: { in: canonicalChapterIdsThrough(milestone) } },
       },
     })
 
@@ -77,48 +151,25 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Get chapters for this milestone range
-    const startChapter = milestone === 10 ? 1 : milestone - 9
-    const endChapter = milestone
-    const chapterIds = Array.from({ length: 10 }, (_, i) =>
-      String(startChapter + i).padStart(2, '0')
-    )
+    const assessment = await getMilestoneAssessment(milestone)
 
-    // Get chapters by chapterId
-    const chapters = await prisma.chapter.findMany({
-      where: { chapterId: { in: chapterIds } },
-      select: { id: true, title: true, chapterId: true, description: true },
-    })
-
-    // Get all questions from these chapters
-    const allQuestions = await prisma.question.findMany({
-      where: {
-        chapterId: { in: chapters.map(c => c.id) },
-      },
-    })
-
-    // Randomly select 20 questions (2 per chapter ideally)
-    const shuffled = [...allQuestions].sort(() => Math.random() - 0.5)
-    const selectedQuestions = shuffled.slice(0, QUESTIONS_PER_MILESTONE)
-
-    // Format questions
-    const questions = selectedQuestions.map((q, index) => {
-      const chapter = chapters.find(c => c.id === q.chapterId)
+    // Only public question fields are returned. correctAnswer remains server-side.
+    const questions = assessment.questions.map((question, index) => {
       return {
-        id: q.id,
+        id: question.id,
         order: index + 1,
         type: 'MULTIPLE_CHOICE',
-        question: q.questionText,
-        options: q.options as string[],
-        chapterTitle: chapter?.title || '',
-        chapterId: chapter?.chapterId || '',
+        question: question.questionText,
+        options: question.options as string[],
+        chapterTitle: question.chapterTitle,
+        chapterId: question.chapterSlug,
       }
     })
 
     // Project description
-    const projectDescription = `Vytvoř kombinovaný projekt který demonstruje znalosti z kapitol ${startChapter}-${endChapter}:
+    const projectDescription = `Vytvoř kombinovaný projekt který demonstruje znalosti z kapitol ${assessment.startChapter}-${milestone}:
 
-${chapters.map(c => `- ${c.chapterId}: ${c.title}`).join('\n')}
+${assessment.chapters.map(c => `- ${c.chapterId}: ${c.title}`).join('\n')}
 
 Projekt by měl obsahovat praktické použití konceptů ze všech těchto kapitol.`
 
@@ -127,7 +178,7 @@ Projekt by měl obsahovat praktické použití konceptů ze všech těchto kapit
       questions,
       totalQuestions: questions.length,
       projectDescription,
-      chapters: chapters.map(c => ({ id: c.chapterId, title: c.title })),
+      chapters: assessment.chapters.map(c => ({ id: c.chapterId, title: c.title })),
     })
   } catch (error) {
     console.error('Error fetching milestone test:', error)
@@ -160,6 +211,20 @@ export async function POST(request: NextRequest) {
     const { milestone, answers, projectCode } = validation.data
     const userId = session.user.id
 
+    const completedChapters = await prisma.chapterProgress.count({
+      where: {
+        userId,
+        contentCompleted: true,
+        chapter: { chapterId: { in: canonicalChapterIdsThrough(milestone) } },
+      },
+    })
+    if (completedChapters < milestone) {
+      return NextResponse.json(
+        { error: `Musíš dokončit prvních ${milestone} kapitol`, completed: completedChapters },
+        { status: 403 }
+      )
+    }
+
     // Check if already passed
     const existingTest = await prisma.milestoneTest.findUnique({
       where: {
@@ -171,23 +236,37 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingTest?.passed) {
+      return NextResponse.json({
+        alreadyPassed: true,
+        replayed: true,
+        passed: true,
+        score: existingTest.score,
+        questionsCorrect: existingTest.questionsCorrect,
+        questionsTotal: existingTest.questionsTotal,
+        projectScore: existingTest.projectScore,
+        projectFeedback: existingTest.projectFeedback,
+        gemsEarned: 0,
+        xpEarned: 0,
+      })
+    }
+
+    const assessment = await getMilestoneAssessment(milestone)
+
+    // Grade only the exact deterministic server-side question set.
+    const questionIds = Object.keys(answers)
+    const expectedQuestionIds = new Set(assessment.questions.map(question => question.id))
+    if (
+      questionIds.length !== QUESTIONS_PER_MILESTONE ||
+      questionIds.some(questionId => !expectedQuestionIds.has(questionId))
+    ) {
       return NextResponse.json(
-        {
-          error: 'Test už byl úspěšně složen',
-          alreadyPassed: true,
-        },
+        { error: `Test musí obsahovat přesně serverovou sadu ${QUESTIONS_PER_MILESTONE} otázek` },
         { status: 400 }
       )
     }
 
-    // Grade questions
-    const questionIds = Object.keys(answers)
-    const questions = await prisma.question.findMany({
-      where: { id: { in: questionIds } },
-    })
-
     let correctCount = 0
-    for (const question of questions) {
+    for (const question of assessment.questions) {
       const userAnswer = answers[question.id]
       // Simple grading - check if answer matches correctAnswer index
       if (userAnswer === question.correctAnswer) {
@@ -196,15 +275,16 @@ export async function POST(request: NextRequest) {
     }
 
     const questionsScore =
-      questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0
+      assessment.questions.length > 0
+        ? Math.round((correctCount / assessment.questions.length) * 100)
+        : 0
 
     // Review project with AI
     let projectScore = 0
     let projectFeedback = ''
 
     if (projectCode) {
-      const startChapter = milestone === 10 ? 1 : milestone - 9
-      const chaptersSummary = `Kapitoly ${startChapter}-${milestone}`
+      const chaptersSummary = `Kapitoly ${assessment.startChapter}-${milestone}`
 
       const aiReview = await reviewMilestoneProject(projectCode, milestone, chaptersSummary)
       projectScore = aiReview.score
@@ -217,65 +297,105 @@ export async function POST(request: NextRequest) {
       : questionsScore
 
     const passed = finalScore >= 70
-    const gemsEarned = passed ? GEMS_FOR_PASSING : 0
-    const xpEarned = passed ? 500 : 100
-
-    // Save or update test result
-    await prisma.milestoneTest.upsert({
-      where: {
-        userId_milestone: {
+    const result = await runLearningTransaction(async tx => {
+      const stillEligible = await tx.chapterProgress.count({
+        where: {
           userId,
-          milestone,
-        },
-      },
-      create: {
-        userId,
-        milestone,
-        score: finalScore,
-        questionsCorrect: correctCount,
-        questionsTotal: questions.length,
-        projectSubmitted: !!projectCode,
-        projectScore: projectCode ? projectScore : null,
-        projectFeedback: projectCode ? projectFeedback : null,
-        passed,
-        gemsEarned,
-        xpEarned,
-        completedAt: new Date(),
-      },
-      update: {
-        score: finalScore,
-        questionsCorrect: correctCount,
-        projectSubmitted: !!projectCode,
-        projectScore: projectCode ? projectScore : null,
-        projectFeedback: projectCode ? projectFeedback : null,
-        passed,
-        gemsEarned: passed ? gemsEarned : 0,
-        xpEarned,
-        completedAt: new Date(),
-      },
-    })
-
-    // Award gems and XP if passed
-    if (passed) {
-      await prisma.user.update({
-        where: { id: userId },
-        data: {
-          gems: { increment: gemsEarned },
-          xp: { increment: xpEarned },
+          contentCompleted: true,
+          chapter: { chapterId: { in: canonicalChapterIdsThrough(milestone) } },
         },
       })
+      if (stillEligible < milestone) throw new Error('Milestone eligibility changed')
+
+      const concurrentlyPassed = await tx.milestoneTest.findUnique({
+        where: { userId_milestone: { userId, milestone } },
+      })
+      if (concurrentlyPassed?.passed) {
+        return {
+          replayed: true as const,
+          existingTest: concurrentlyPassed,
+          xpEarned: 0,
+          gemsEarned: 0,
+        }
+      }
+
+      const test = await tx.milestoneTest.upsert({
+        where: { userId_milestone: { userId, milestone } },
+        create: {
+          userId,
+          milestone,
+          score: finalScore,
+          questionsCorrect: correctCount,
+          questionsTotal: assessment.questions.length,
+          projectSubmitted: Boolean(projectCode),
+          projectScore: projectCode ? projectScore : null,
+          projectFeedback: projectCode ? projectFeedback : null,
+          passed,
+          gemsEarned: 0,
+          xpEarned: 0,
+          completedAt: new Date(),
+        },
+        update: {
+          score: finalScore,
+          questionsCorrect: correctCount,
+          questionsTotal: assessment.questions.length,
+          projectSubmitted: Boolean(projectCode),
+          projectScore: projectCode ? projectScore : null,
+          projectFeedback: projectCode ? projectFeedback : null,
+          passed: passed ? true : undefined,
+          completedAt: new Date(),
+        },
+      })
+      if (!passed) {
+        return { replayed: false as const, xpEarned: 0, gemsEarned: 0 }
+      }
+
+      const reward = await awardCanonicalReward(tx, {
+        userId,
+        sourceType: 'MILESTONE_PASS',
+        sourceId: String(milestone),
+        xpAmount: 500,
+        gemAmount: GEMS_FOR_PASSING,
+        questCategories: [QuestCategory.XP_EARNED],
+      })
+      if (reward.awarded) {
+        await tx.milestoneTest.update({
+          where: { id: test.id },
+          data: { xpEarned: reward.xpEarned, gemsEarned: reward.gemsEarned },
+        })
+      }
+      return { replayed: false as const, ...reward }
+    })
+
+    if (result.replayed) {
+      return NextResponse.json({
+        alreadyPassed: true,
+        replayed: true,
+        passed: true,
+        score: result.existingTest.score,
+        questionsCorrect: result.existingTest.questionsCorrect,
+        questionsTotal: result.existingTest.questionsTotal,
+        projectScore: result.existingTest.projectScore,
+        projectFeedback: result.existingTest.projectFeedback,
+        gemsEarned: 0,
+        xpEarned: 0,
+      })
     }
+
+    const newAchievements =
+      passed && result.xpEarned > 0 ? await checkAndAwardAchievements(userId) : []
 
     return NextResponse.json({
       passed,
       score: finalScore,
       questionsScore,
       questionsCorrect: correctCount,
-      questionsTotal: questions.length,
+      questionsTotal: assessment.questions.length,
       projectScore: projectCode ? projectScore : null,
       projectFeedback: projectCode ? projectFeedback : null,
-      gemsEarned,
-      xpEarned,
+      gemsEarned: result.gemsEarned,
+      xpEarned: result.xpEarned,
+      newAchievements,
       message: passed
         ? `Gratulujeme! Úspěšně jsi složil test po ${milestone}. kapitole!`
         : `Test nesložen. Potřebuješ alespoň 70% pro úspěch.`,

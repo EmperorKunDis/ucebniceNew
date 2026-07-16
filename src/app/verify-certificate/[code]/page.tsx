@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import { Award, CheckCircle, Calendar, Hash, User } from 'lucide-react'
+import { PublicPageLayout } from '@/components/layout/PublicPageLayout'
 
 interface PageProps {
   params: Promise<{ code: string }>
@@ -23,7 +24,7 @@ export default async function VerifyCertificatePage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black flex items-center justify-center p-4">
+    <PublicPageLayout maxWidth="4xl" contentClassName="flex items-center justify-center">
       <div className="max-w-lg w-full">
         {/* Success badge */}
         <div className="text-center mb-6">
@@ -108,6 +109,6 @@ export default async function VerifyCertificatePage({ params }: PageProps) {
           <p className="text-indigo-400 font-medium">Učebnice programování AI</p>
         </div>
       </div>
-    </div>
+    </PublicPageLayout>
   )
 }

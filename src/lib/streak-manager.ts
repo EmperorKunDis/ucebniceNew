@@ -1,11 +1,18 @@
 import { prisma } from './prisma'
-import { StreakFreezeSource } from '@prisma/client'
+import { Prisma, StreakFreezeSource } from '@prisma/client'
+
+type PrismaClientLike = Prisma.TransactionClient | typeof prisma
 
 /**
  * Update user's streak based on activity
  * Called when user completes XP-earning activity
  */
-export async function updateStreak(userId: string, xpEarned: number = 0) {
+export async function updateStreak(
+  userId: string,
+  xpEarned: number = 0,
+  client: PrismaClientLike = prisma,
+  lessonIncrement: number = 1
+) {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
@@ -13,7 +20,7 @@ export async function updateStreak(userId: string, xpEarned: number = 0) {
   yesterday.setDate(yesterday.getDate() - 1)
 
   // Get user's current streak data
-  const user = await prisma.user.findUnique({
+  const user = await client.user.findUnique({
     where: { id: userId },
     select: {
       currentStreak: true,
@@ -31,7 +38,7 @@ export async function updateStreak(userId: string, xpEarned: number = 0) {
     lastActive.setHours(0, 0, 0, 0)
     if (lastActive.getTime() === today.getTime()) {
       // Already active today - just update streak history XP
-      await prisma.streakHistory.upsert({
+      await client.streakHistory.upsert({
         where: {
           userId_date: { userId, date: today },
         },
@@ -39,11 +46,11 @@ export async function updateStreak(userId: string, xpEarned: number = 0) {
           userId,
           date: today,
           xpEarned,
-          lessonsCompleted: 1,
+          lessonsCompleted: lessonIncrement,
         },
         update: {
           xpEarned: { increment: xpEarned },
-          lessonsCompleted: { increment: 1 },
+          lessonsCompleted: { increment: lessonIncrement },
         },
       })
       return { streak: user.currentStreak, extended: false }
@@ -63,7 +70,7 @@ export async function updateStreak(userId: string, xpEarned: number = 0) {
     newStreak = user.currentStreak + 1
   } else {
     // Missed days - check for streak freeze
-    const freezePurchase = await prisma.userPurchase.findFirst({
+    const freezePurchase = await client.userPurchase.findFirst({
       where: {
         userId,
         usedAt: null,
@@ -79,7 +86,7 @@ export async function updateStreak(userId: string, xpEarned: number = 0) {
       froze = true
       freezeSource = StreakFreezeSource.SHOP_PURCHASE
 
-      await prisma.userPurchase.update({
+      await client.userPurchase.update({
         where: { id: freezePurchase.id },
         data: { usedAt: new Date() },
       })
@@ -93,7 +100,7 @@ export async function updateStreak(userId: string, xpEarned: number = 0) {
   const newLongestStreak = Math.max(user.longestStreak, newStreak)
 
   // Update user
-  await prisma.user.update({
+  await client.user.update({
     where: { id: userId },
     data: {
       currentStreak: newStreak,
@@ -103,7 +110,7 @@ export async function updateStreak(userId: string, xpEarned: number = 0) {
   })
 
   // Record in streak history
-  await prisma.streakHistory.upsert({
+  await client.streakHistory.upsert({
     where: {
       userId_date: { userId, date: today },
     },
@@ -111,13 +118,13 @@ export async function updateStreak(userId: string, xpEarned: number = 0) {
       userId,
       date: today,
       xpEarned,
-      lessonsCompleted: 1,
+      lessonsCompleted: lessonIncrement,
       froze,
       freezeSource,
     },
     update: {
       xpEarned: { increment: xpEarned },
-      lessonsCompleted: { increment: 1 },
+      lessonsCompleted: { increment: lessonIncrement },
     },
   })
 
@@ -126,38 +133,39 @@ export async function updateStreak(userId: string, xpEarned: number = 0) {
   const hitMilestone = streakMilestones.find(m => newStreak === m)
 
   if (hitMilestone) {
-    // Award achievement if not already earned
     const badgeId = `streak_${hitMilestone}`
-    const existingAchievement = await prisma.userAchievement.findFirst({
-      where: {
-        userId,
-        achievement: { badgeId },
-      },
-    })
+    const achievement = await client.achievement.findUnique({ where: { badgeId } })
 
-    if (!existingAchievement) {
-      const achievement = await prisma.achievement.findUnique({
-        where: { badgeId },
+    if (achievement) {
+      const insertedAchievement = await client.userAchievement.createMany({
+        data: [{ userId, achievementId: achievement.id }],
+        skipDuplicates: true,
       })
 
-      if (achievement) {
-        await prisma.userAchievement.create({
-          data: {
-            userId,
-            achievementId: achievement.id,
-          },
-        })
-
-        // Award gems
+      if (insertedAchievement.count === 1) {
         if (achievement.gemReward > 0) {
-          await prisma.user.update({
-            where: { id: userId },
-            data: { gems: { increment: achievement.gemReward } },
+          const insertedReward = await client.rewardLedger.createMany({
+            data: [
+              {
+                userId,
+                sourceType: 'STREAK_MILESTONE',
+                sourceId: badgeId,
+                dedupeKey: `STREAK_MILESTONE:${badgeId}`,
+                xpAmount: 0,
+                gemAmount: achievement.gemReward,
+              },
+            ],
+            skipDuplicates: true,
           })
+          if (insertedReward.count === 1) {
+            await client.user.update({
+              where: { id: userId },
+              data: { gems: { increment: achievement.gemReward } },
+            })
+          }
         }
 
-        // Create notification
-        await prisma.notification.create({
+        await client.notification.create({
           data: {
             userId,
             type: 'STREAK_MILESTONE',

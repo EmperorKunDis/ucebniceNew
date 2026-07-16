@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { requireAdmin } from '@/lib/admin-auth'
 import { prisma } from '@/lib/prisma'
+import {
+  canonicalChapterIdsThrough,
+  canonicalExerciseSourceKeysForCourse,
+} from '@/lib/canonical-content-keys'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,23 +13,10 @@ export const dynamic = 'force-dynamic'
  * Get analytics dashboard data (admin only)
  */
 export async function GET(request: NextRequest) {
+  const adminCheck = await requireAdmin()
+  if (adminCheck) return adminCheck
+
   try {
-    const session = await getServerSession(authOptions)
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Check if user is admin
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { isAdmin: true, role: true },
-    })
-
-    if (!user?.isAdmin && user?.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
-
     const { searchParams } = new URL(request.url)
     const days = parseInt(searchParams.get('days') ?? '7')
 
@@ -59,15 +49,19 @@ export async function GET(request: NextRequest) {
       }),
 
       // Total lessons completed this period (use updatedAt)
-      prisma.chapterCompletion.count({
-        where: { updatedAt: { gte: startDate } },
+      prisma.chapterProgress.count({
+        where: {
+          contentCompleted: true,
+          contentCompletedAt: { gte: startDate },
+          chapter: { chapterId: { in: canonicalChapterIdsThrough() } },
+        },
       }),
 
-      // Total exercises answered this period
-      prisma.analyticsEvent.count({
+      // ExerciseAttempt is the canonical answer history.
+      prisma.exerciseAttempt.count({
         where: {
-          type: 'EXERCISE_ANSWER',
-          createdAt: { gte: startDate },
+          attemptedAt: { gte: startDate },
+          exercise: { sourceKey: { in: canonicalExerciseSourceKeysForCourse() } },
         },
       }),
 
@@ -89,8 +83,12 @@ export async function GET(request: NextRequest) {
       `,
 
       // Top chapters by completions
-      prisma.chapterCompletion.groupBy({
+      prisma.chapterProgress.groupBy({
         by: ['chapterId'],
+        where: {
+          contentCompleted: true,
+          chapter: { chapterId: { in: canonicalChapterIdsThrough() } },
+        },
         _count: true,
         orderBy: { _count: { chapterId: 'desc' } },
         take: 10,
@@ -112,14 +110,14 @@ export async function GET(request: NextRequest) {
     // Get chapter titles for top chapters
     const chapterIds: string[] = topChapters.map(c => c.chapterId)
     const chapters = await prisma.chapter.findMany({
-      where: { chapterId: { in: chapterIds } },
-      select: { chapterId: true, title: true },
+      where: { id: { in: chapterIds } },
+      select: { id: true, chapterId: true, title: true },
     })
-    const chapterMap = new Map(chapters.map(c => [c.chapterId, c.title]))
+    const chapterMap = new Map(chapters.map(c => [c.id, c]))
 
     const topChaptersFormatted = topChapters.map(c => ({
-      chapterId: c.chapterId,
-      title: chapterMap.get(c.chapterId) ?? c.chapterId,
+      chapterId: chapterMap.get(c.chapterId)?.chapterId ?? c.chapterId,
+      title: chapterMap.get(c.chapterId)?.title ?? c.chapterId,
       completions: c._count,
     }))
 

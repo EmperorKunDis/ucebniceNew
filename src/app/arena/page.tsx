@@ -17,7 +17,7 @@ import {
   Loader2,
 } from 'lucide-react'
 
-import { UnifiedPageLayout } from '@/components/layout/unified-page-layout'
+import { PublicPageLayout } from '@/components/layout/PublicPageLayout'
 import { SectionHeader } from '@/components/ui/section-header'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { Button } from '@/components/ui/button'
@@ -296,7 +296,7 @@ export default function ArenaPage() {
   }, [graduates, searchQuery])
 
   return (
-    <UnifiedPageLayout maxWidth="7xl">
+    <PublicPageLayout maxWidth="7xl">
       <SectionHeader subtitle="Místo, kde se setkávají talentovaní vývojáři, soutěží v hackathonech a prezentují své dovednosti potenciálním zaměstnavatelům. Propoj se s komunitou, získej hodnotnou zpětnou vazbu od odborníků a otevři si dveře ke kariérním příležitostem.">
         Apex Aréna
       </SectionHeader>
@@ -628,6 +628,6 @@ export default function ArenaPage() {
           </Box>
         )}
       </Box>
-    </UnifiedPageLayout>
+    </PublicPageLayout>
   )
 }

@@ -6,6 +6,7 @@ import { getProgressToNextLevel } from '@/lib/gamification'
 import { applyRateLimit } from '@/lib/api-middleware'
 import { apiLimiter } from '@/lib/rate-limit'
 import { PAGINATION } from '@/lib/constants'
+import { canonicalChapterIdsThrough } from '@/lib/canonical-content-keys'
 
 export const dynamic = 'force-dynamic'
 
@@ -167,7 +168,6 @@ export async function GET(request: NextRequest) {
       include: {
         _count: {
           select: {
-            chapterCompletions: true,
             achievements: true,
           },
         },
@@ -180,10 +180,14 @@ export async function GET(request: NextRequest) {
             unlockedAt: 'desc',
           },
         },
-        chapterCompletions: {
+        chapterProgress: {
+          where: { chapter: { chapterId: { in: canonicalChapterIdsThrough() } } },
           take: safeProgressLimit,
           orderBy: {
             updatedAt: 'desc',
+          },
+          include: {
+            chapter: { select: { chapterId: true, title: true } },
           },
         },
       },
@@ -193,32 +197,41 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Fetch recent chapter completions with lesson info
-    const recentCompletionsRaw = await prisma.chapterCompletion.findMany({
-      where: {
-        userId: session.user.id,
-        completedChapter: true, // Only count chapters that were actually completed
-      },
-      take: safeRecentLimit,
-      orderBy: {
-        completedAt: 'desc',
-      },
-    })
-
-    // Get chapter titles in a single batched query (avoiding N+1)
-    const chapterIds = [...new Set(recentCompletionsRaw.map(c => c.chapterId))]
-    const chapters = await prisma.chapter.findMany({
-      where: { chapterId: { in: chapterIds } },
-      select: { chapterId: true, title: true },
-    })
-    const chapterMap = new Map(chapters.map(c => [c.chapterId, c.title]))
+    // Canonical chapter-level progress is the only source for stats.
+    const [completedChapters, totalProgress, recentCompletionsRaw] = await Promise.all([
+      prisma.chapterProgress.count({
+        where: {
+          userId: session.user.id,
+          contentCompleted: true,
+          chapter: { chapterId: { in: canonicalChapterIdsThrough() } },
+        },
+      }),
+      prisma.chapterProgress.count({
+        where: {
+          userId: session.user.id,
+          chapter: { chapterId: { in: canonicalChapterIdsThrough() } },
+        },
+      }),
+      prisma.chapterProgress.findMany({
+        where: {
+          userId: session.user.id,
+          contentCompleted: true,
+          chapter: { chapterId: { in: canonicalChapterIdsThrough() } },
+        },
+        take: safeRecentLimit,
+        orderBy: {
+          contentCompletedAt: 'desc',
+        },
+        include: { chapter: { select: { chapterId: true, title: true } } },
+      }),
+    ])
 
     const recentCompletions = recentCompletionsRaw.map(completion => ({
       id: completion.id,
-      chapterId: completion.chapterId,
-      chapterTitle: chapterMap.get(completion.chapterId) || `Chapter ${completion.chapterId}`,
-      completedAt: completion.completedAt,
-      xpEarned: 100, // Base XP for chapter completion
+      chapterId: completion.chapter.chapterId,
+      chapterTitle: completion.chapter.title,
+      completedAt: completion.contentCompletedAt,
+      xpEarned: 0,
     }))
 
     // Calculate level progress
@@ -239,7 +252,7 @@ export async function GET(request: NextRequest) {
         createdAt: user.createdAt,
       },
       stats: {
-        completedChapters: user._count.chapterCompletions,
+        completedChapters,
         totalAchievements: user._count.achievements,
         currentStreak: user.currentStreak,
         longestStreak: user.longestStreak,
@@ -256,11 +269,13 @@ export async function GET(request: NextRequest) {
         unlockedAt: ua.unlockedAt,
       })),
       recentCompletions: recentCompletions,
-      progress: user.chapterCompletions.map(c => ({
-        lessonId: c.chapterId,
-        completedChapter: c.completedChapter,
-        answeredQuestions: c.answeredQuestions,
-        submittedProject: c.submittedProject,
+      progress: user.chapterProgress.map(c => ({
+        lessonId: c.chapter.chapterId,
+        chapterId: c.chapter.chapterId,
+        completedChapter: c.contentCompleted,
+        answeredQuestions: c.exercisesCompleted,
+        submittedProject: c.projectApproved,
+        stars: c.stars,
         lastUpdated: c.updatedAt,
       })),
       pagination: {
@@ -269,8 +284,8 @@ export async function GET(request: NextRequest) {
           total: user._count.achievements,
         },
         progress: {
-          returned: user.chapterCompletions.length,
-          total: user.chapterCompletions.length,
+          returned: user.chapterProgress.length,
+          total: totalProgress,
         },
         recentCompletions: {
           returned: recentCompletions.length,

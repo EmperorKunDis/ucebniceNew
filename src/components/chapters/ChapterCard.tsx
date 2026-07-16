@@ -13,7 +13,7 @@ function ChapterCardComponent({ chapter }: ChapterCardProps) {
   const hasNotebook = !!chapter.notebookLMUrl || !!chapter.colabNotebook
 
   return (
-    <Link href={`/chapters/${chapter.id}`}>
+    <Link href={`/learn/${chapter.id}`}>
       <Box className="group bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-blue-600/50 rounded-xl p-6 transition-all duration-200 cursor-pointer">
         <div className="flex items-start justify-between">
           <div className="flex-1">

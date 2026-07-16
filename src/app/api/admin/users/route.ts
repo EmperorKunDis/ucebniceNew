@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/admin-auth'
 import { prisma } from '@/lib/prisma'
+import { canonicalChapterIdsThrough } from '@/lib/canonical-content-keys'
 
 /**
  * GET /api/admin/users
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
     // Get total count for pagination
     const total = await prisma.user.count({ where })
 
-    // Get users with relations - use chapterCompletions as primary source
+    // ChapterProgress is the canonical chapter-level source of truth.
     const users = await prisma.user.findMany({
       where,
       skip,
@@ -44,8 +45,11 @@ export async function GET(request: NextRequest) {
         _count: {
           select: {
             achievements: true,
-            chapterCompletions: {
-              where: { completedChapter: true },
+            chapterProgress: {
+              where: {
+                contentCompleted: true,
+                chapter: { chapterId: { in: canonicalChapterIdsThrough() } },
+              },
             },
           },
         },
@@ -63,11 +67,14 @@ export async function GET(request: NextRequest) {
         level: user.level,
         currentStreak: user.currentStreak,
         longestStreak: user.longestStreak,
-        isAdmin: user.isAdmin,
+        role: user.role,
+        // Compatibility field for the Release A admin UI. Role is primary;
+        // the legacy flag is accepted only as a fallback until Release B.
+        isAdmin: user.role === 'ADMIN' || user.isAdmin,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
         stats: {
-          completedChapters: user._count.chapterCompletions,
+          completedChapters: user._count.chapterProgress,
           achievements: user._count.achievements,
         },
       })),

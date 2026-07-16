@@ -2,7 +2,7 @@
 
 ## 🎯 PURPOSE
 
-Database schema definition and migrations for PostgreSQL via Prisma ORM. This is the single source of truth for data structure.
+Database schema definition and migrations for PostgreSQL via Prisma ORM. The database is the runtime source of truth for published lesson content and user progress; repository Markdown/manifest files are deterministic import inputs.
 
 ## 📦 EXPORTS
 
@@ -77,8 +77,12 @@ model CompletedChapter {
 2. **Cascade deletes**: Most relations cascade on user deletion
 3. **JSON fields**: `prizes`, `judges`, `skills`, etc. use JSON type
 4. **Compound unique**: Many models have `@@unique([userId, chapterId])` etc.
-5. **Two chapter tracking systems**: `CompletedChapter` (legacy) + `ChapterCompletion` (3-star)
-6. **Migration deploy**: Production uses `prisma migrate deploy`, not `dev`
+5. **Canonical progress**: `ChapterProgress` is the chapter-level source of truth. `CompletedChapter` and `ChapterCompletion` are legacy compatibility projections and must not grant rewards.
+6. **Stable content keys**: Imported `MicroLesson.sourceKey` and `Exercise.sourceKey` are nullable only to admit pre-existing DB-only rows; canonical rows always receive deterministic keys.
+7. **Reward idempotency**: `RewardLedger` owns the per-user dedupe constraint. Historical lesson, correct-answer, project, milestone, and achievement evidence receives zero-value migration claims that block replay rewards without changing balances.
+8. **Migration deploy**: Production uses `prisma migrate deploy`, not `dev`. Never run production migrations without explicit approval.
+9. **Historical test mapping**: Release A aggregates legacy module 1/2/3/4 into canonical milestone 10/20/30/40 using the best completed attempt. `ModuleTestAttempt` remains the full audit history; it must not be treated as a `FinalTest` because it has no mandatory final-project evidence.
+10. **Historical achievements**: Backfill materializes eligible `UserAchievement` visibility and matching zero-value `ACHIEVEMENT_UNLOCK:*` ledger claims without changing user balances.
 
 ## 📁 STRUCTURE
 
@@ -87,7 +91,7 @@ prisma/
 ├── schema.prisma    # Database schema (CRITICAL)
 ├── migrations/      # Migration history
 │   └── YYYYMMDD_*/ # Individual migrations
-└── seed.ts         # Database seeding script
+└── seed.ts         # Idempotent canonical content + quest seed
 ```
 
 ## 🔄 RELATED
@@ -100,21 +104,34 @@ prisma/
 
 ### Core Models
 
-| Model                    | Purpose                             |
-| ------------------------ | ----------------------------------- |
-| `User`                   | User account with XP, level, streak |
-| `Account`                | OAuth provider accounts (NextAuth)  |
-| `Session`                | User sessions (NextAuth)            |
-| `Chapter`                | Chapter metadata                    |
-| `CompletedChapter`       | Legacy completion tracking          |
-| `ChapterCompletion`      | 3-star completion system            |
-| `Achievement`            | Badge definitions                   |
-| `UserAchievement`        | User-badge relationships            |
-| `Question`               | Quiz questions                      |
-| `QuestionAnswer`         | User answers                        |
-| `ProjectSubmission`      | Project URLs                        |
-| `ModuleTestAttempt`      | Test results                        |
-| `CognitiveGlitchAttempt` | Glitch challenge results            |
+| Model                    | Purpose                              |
+| ------------------------ | ------------------------------------ |
+| `User`                   | User account with XP, level, streak  |
+| `Account`                | OAuth provider accounts (NextAuth)   |
+| `Session`                | User sessions (NextAuth)             |
+| `Chapter`                | Chapter metadata                     |
+| `ChapterProgress`        | Canonical 3-star chapter progress    |
+| `MicroLessonProgress`    | Per-user lesson completion           |
+| `ExerciseProgress`       | Aggregated per-user exercise state   |
+| `ExerciseAttempt`        | Append-only answer attempt history   |
+| `RewardLedger`           | Exactly-once XP/gem reward ledger    |
+| `CourseMilestone`        | Tests/certificate milestone metadata |
+| `CompletedChapter`       | Legacy compatibility tracking        |
+| `ChapterCompletion`      | Legacy compatibility 3-star state    |
+| `Achievement`            | Badge definitions                    |
+| `UserAchievement`        | User-badge relationships             |
+| `Question`               | Quiz questions                       |
+| `QuestionAnswer`         | User answers                         |
+| `ProjectSubmission`      | Project URLs                         |
+| `ModuleTestAttempt`      | Test results                         |
+| `CognitiveGlitchAttempt` | Glitch challenge results             |
+
+### Canonical star semantics
+
+- Star 1: `ChapterProgress.contentCompleted`; this unlocks the next chapter.
+- Star 2: `ChapterProgress.exercisesCompleted`; all ten canonical exercises are complete.
+- Star 3: `ChapterProgress.projectApproved`; the project review was approved.
+- A canonical content import must be run before the progress backfill. Neither operation may lower progress or retroactively alter XP, gems, streaks, or claimed rewards.
 
 ### AI Review Metadata
 

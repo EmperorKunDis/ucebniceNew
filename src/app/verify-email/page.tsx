@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircle, XCircle, Loader2, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { PublicPageLayout } from '@/components/layout/PublicPageLayout'
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams()
@@ -124,10 +125,10 @@ function LoadingFallback() {
 
 export default function VerifyEmailPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black flex items-center justify-center p-4">
+    <PublicPageLayout maxWidth="4xl" contentClassName="flex items-center justify-center">
       <Suspense fallback={<LoadingFallback />}>
         <VerifyEmailContent />
       </Suspense>
-    </div>
+    </PublicPageLayout>
   )
 }

@@ -77,6 +77,10 @@ describe('/api/learning-path', () => {
         lessonsCompleted: 1,
         exercisesCorrect: 3,
         exercisesTotal: 4,
+        contentCompleted: false,
+        exercisesCompleted: false,
+        projectApproved: false,
+        stars: 0,
       },
     ])
 
@@ -89,8 +93,8 @@ describe('/api/learning-path', () => {
       expect.objectContaining({
         id: '01',
         status: 'active',
-        stars: 1,
-        progress: 50,
+        stars: 0,
+        progress: 0,
         lessonsCompleted: 1,
       }),
       expect.objectContaining({
@@ -104,13 +108,13 @@ describe('/api/learning-path', () => {
       totalCompleted: 0,
       totalChapters: 2,
       currentChapter: '01',
-      totalStars: 1,
+      totalStars: 0,
       maxStars: 6,
       percentage: 0,
     })
   })
 
-  it('marks nodes completed only when gamified progress reaches 100 percent', async () => {
+  it('unlocks the next node when the content star is complete', async () => {
     mockPrisma.chapterProgress.findMany.mockResolvedValue([
       {
         chapterId: 'chapter-db-01',
@@ -118,6 +122,10 @@ describe('/api/learning-path', () => {
         lessonsCompleted: 3,
         exercisesCorrect: 8,
         exercisesTotal: 10,
+        contentCompleted: true,
+        exercisesCompleted: false,
+        projectApproved: false,
+        stars: 1,
       },
     ])
 
@@ -127,8 +135,8 @@ describe('/api/learning-path', () => {
     expect(body.data.nodes[0]).toMatchObject({
       id: '01',
       status: 'completed',
-      stars: 3,
-      progress: 100,
+      stars: 1,
+      progress: 33,
     })
     expect(body.data.nodes[1]).toMatchObject({
       id: '02',
@@ -137,7 +145,7 @@ describe('/api/learning-path', () => {
     expect(body.data.userProgress).toMatchObject({
       totalCompleted: 1,
       currentChapter: '02',
-      totalStars: 3,
+      totalStars: 1,
       percentage: 50,
     })
   })

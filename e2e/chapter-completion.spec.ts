@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 import {
   getTestDb,
   cleanupTestDb,
@@ -6,6 +6,14 @@ import {
   createTestUser,
   createChapterCompletion,
 } from './helpers/test-db'
+
+async function signInTestUser(page: Page, email: string) {
+  await page.goto('/auth/signin')
+  await page.getByLabel('Email').fill(email)
+  await page.getByLabel('Heslo').fill('Test123!')
+  await page.getByRole('button', { name: 'Přihlásit se emailem' }).click()
+  await page.waitForURL('**/dashboard')
+}
 
 test.describe('Chapter Completion Flow', () => {
   test.beforeEach(async () => {
@@ -32,10 +40,7 @@ test.describe('Chapter Completion Flow', () => {
       xpEarned: 150,
     })
 
-    await page.goto('/auth/signin')
-    await page.fill('input[name="email"]', 'chapter@test.com')
-    await page.fill('input[name="password"]', 'Test123!')
-    await page.click('button[type="submit"]')
+    await signInTestUser(page, 'chapter@test.com')
 
     // Navigate to dashboard (skill tree)
     await page.goto('/dashboard')
@@ -60,10 +65,7 @@ test.describe('Chapter Completion Flow', () => {
       xpEarned: 100,
     })
 
-    await page.goto('/auth/signin')
-    await page.fill('input[name="email"]', 'unlock@test.com')
-    await page.fill('input[name="password"]', 'Test123!')
-    await page.click('button[type="submit"]')
+    await signInTestUser(page, 'unlock@test.com')
 
     await page.goto('/dashboard')
 
@@ -96,10 +98,7 @@ test.describe('Chapter Completion Flow', () => {
       data: { xp: 150 },
     })
 
-    await page.goto('/auth/signin')
-    await page.fill('input[name="email"]', 'xp@test.com')
-    await page.fill('input[name="password"]', 'Test123!')
-    await page.click('button[type="submit"]')
+    await signInTestUser(page, 'xp@test.com')
 
     // Check XP display in header
     await page.goto('/dashboard')
@@ -129,10 +128,7 @@ test.describe('Chapter Completion Flow', () => {
       xpEarned: 50,
     })
 
-    await page.goto('/auth/signin')
-    await page.fill('input[name="email"]', 'stars@test.com')
-    await page.fill('input[name="password"]', 'Test123!')
-    await page.click('button[type="submit"]')
+    await signInTestUser(page, 'stars@test.com')
 
     await page.goto('/learn/01')
 
@@ -166,10 +162,7 @@ test.describe('Chapter Completion Flow', () => {
       },
     })
 
-    await page.goto('/auth/signin')
-    await page.fill('input[name="email"]', 'streak@test.com')
-    await page.fill('input[name="password"]', 'Test123!')
-    await page.click('button[type="submit"]')
+    await signInTestUser(page, 'streak@test.com')
 
     await page.goto('/profile')
 
@@ -185,28 +178,29 @@ test.describe('Chapter Completion Flow', () => {
     })
 
     const db = getTestDb()
+    const chapter = await db.chapter.findUniqueOrThrow({
+      where: { chapterId: '01' },
+      select: { id: true },
+    })
 
     // Create partial progress (not completed)
     await db.chapterProgress.create({
       data: {
         userId: user.id,
-        chapterId: '01',
-        lessonsCompleted: 2,
-        totalSteps: 5,
-        currentStep: 2,
+        chapterId: chapter.id,
+        lessonsCompleted: 0,
+        totalSteps: 1,
+        currentStep: 0,
         exercisesCorrect: 8,
         exercisesTotal: 10,
       },
     })
 
-    await page.goto('/auth/signin')
-    await page.fill('input[name="email"]', 'progress@test.com')
-    await page.fill('input[name="password"]', 'Test123!')
-    await page.click('button[type="submit"]')
+    await signInTestUser(page, 'progress@test.com')
 
     await page.goto('/learn/01')
 
-    // Should show partial progress (2/5 lessons)
-    await expect(page.locator('text=2/5')).toBeVisible()
+    // Partial exercise history must not promote the single canonical lesson to star 1.
+    await expect(page.getByText('0/1 lekcí')).toBeVisible()
   })
 })

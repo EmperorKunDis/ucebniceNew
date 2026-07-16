@@ -220,7 +220,7 @@ export const SUCCESS_MESSAGES = {
 
 export const ROUTES = {
   HOME: '/',
-  CHAPTERS: '/chapters',
+  CHAPTERS: '/dashboard',
   PROFILE: '/profile',
   LEADERBOARD: '/leaderboard',
   ACHIEVEMENTS: '/achievements',

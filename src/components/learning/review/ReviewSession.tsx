@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Brain, Loader2, CheckCircle } from 'lucide-react'
 import { ReviewCard } from './ReviewCard'
@@ -45,6 +45,9 @@ export function ReviewSession({ onComplete }: ReviewSessionProps) {
     xpEarned: 0,
   })
   const [isComplete, setIsComplete] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const submittingRef = useRef(false)
+  const requestKeys = useRef(new Map<string, { rating: string; key: string }>())
 
   // Fetch due cards
   useEffect(() => {
@@ -66,12 +69,23 @@ export function ReviewSession({ onComplete }: ReviewSessionProps) {
 
   const handleRating = async (rating: 'AGAIN' | 'HARD' | 'GOOD' | 'EASY') => {
     const card = cards[currentIndex]
-    if (!card) return
+    if (!card || submittingRef.current) return
+
+    submittingRef.current = true
+    setSubmitting(true)
+
+    const previousRequest = requestKeys.current.get(card.id)
+    const idempotencyKey =
+      previousRequest?.rating === rating ? previousRequest.key : crypto.randomUUID()
+    requestKeys.current.set(card.id, { rating, key: idempotencyKey })
 
     try {
       const res = await fetch('/api/review/answer', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Idempotency-Key': idempotencyKey,
+        },
         body: JSON.stringify({
           cardId: card.id,
           rating,
@@ -79,14 +93,16 @@ export function ReviewSession({ onComplete }: ReviewSessionProps) {
       })
 
       const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Failed to submit review rating')
 
-      // Update stats
-      const correct = rating !== 'AGAIN'
-      setSessionStats(prev => ({
-        reviewed: prev.reviewed + 1,
-        correct: prev.correct + (correct ? 1 : 0),
-        xpEarned: prev.xpEarned + (data.data?.xpEarned ?? 0),
-      }))
+      const correct = data.data?.correct === true
+      const nextStats = {
+        reviewed: sessionStats.reviewed + 1,
+        correct: sessionStats.correct + (correct ? 1 : 0),
+        xpEarned: sessionStats.xpEarned + (data.data?.xpEarned ?? 0),
+      }
+      setSessionStats(nextStats)
+      requestKeys.current.delete(card.id)
 
       // Move to next card
       if (currentIndex < cards.length - 1) {
@@ -95,10 +111,13 @@ export function ReviewSession({ onComplete }: ReviewSessionProps) {
       } else {
         // Session complete
         setIsComplete(true)
-        onComplete?.(sessionStats)
+        onComplete?.(nextStats)
       }
     } catch (error) {
       console.error('Error submitting rating:', error)
+    } finally {
+      submittingRef.current = false
+      setSubmitting(false)
     }
   }
 
@@ -199,6 +218,7 @@ export function ReviewSession({ onComplete }: ReviewSessionProps) {
               hasExercise={!!currentCard.exercise}
               onPractice={() => setShowExercise(true)}
               onRate={handleRating}
+              disabled={submitting}
             />
           </motion.div>
         )}

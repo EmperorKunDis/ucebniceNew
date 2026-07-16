@@ -57,9 +57,12 @@ Use the project scripts from `package.json`:
 - Type check: `npm run type-check`
 - Lint: `npm run lint`
 - Unit tests: `npm test`
+- Vitest: `npm run test:vitest`
 - E2E tests: `npm run test:e2e`
+- Chromium smoke: `npm run test:e2e:smoke`
 - Format check: `npm run format:check`
 - Storybook: `npm run storybook`
+- Storybook build: `npm run build-storybook`
 - Local Docker Compose: `make up`
 - Production Compose config check: `make compose-config-prod`
 
@@ -73,7 +76,7 @@ Default verification after code changes:
 
 ## Package manager and lockfiles
 
-The repository currently contains both `package-lock.json` and `pnpm-lock.yaml`. Do not install dependencies or update lockfiles casually. If a task requires dependency changes, identify the intended package manager from the task context; if unclear, ask Martin before changing lockfiles.
+Node.js 22 and npm are the only supported runtime and package-manager direction. Use the version from `.nvmrc`, keep `package-lock.json` as the only JavaScript lockfile, and do not use pnpm. Do not install dependencies or update `package-lock.json` unless the task requires dependency changes.
 
 ## Database and deployment safety
 

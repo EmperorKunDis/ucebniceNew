@@ -25,6 +25,11 @@ Core utility functions, configuration, and business logic shared across the appl
 | `swagger.ts`             | OpenAPI spec                            | API documentation           |
 | `env.ts`                 | Environment helpers                     | Env var access              |
 | `api-client.ts`          | API client functions                    | Frontend API calls          |
+| `course-content.ts`      | Deterministic 40/400 content parser     | Import and validation       |
+| `progress-merge.ts`      | Monotonic legacy progress merge         | Backfill                    |
+| `progress-backfill.ts`   | Pure history/parity projection helpers  | Backfill                    |
+| `exercise-contract.ts`   | Public answer-key filtering/evaluation  | Learning APIs               |
+| `learning-service.ts`    | Transactional progress/reward workflow  | Learning write APIs         |
 
 ## 🔗 DEPENDENCIES
 
@@ -67,6 +72,10 @@ level = Math.floor(Math.sqrt(xp / 100)) + 1
 3. **BADGES object**: CONSOLIDATED in `gamification.ts` only (Phase 1 fix, Feb 2025)
 4. **Rate limit bypass**: Rate limiting returns null when UPSTASH not configured (dev mode)
 5. **Cache invalidation**: Fire-and-forget pattern, don't await in API responses
+6. **Canonical content**: Runtime APIs read lessons/exercises from Prisma. `course-content.ts` converts the versioned manifest, full Markdown and assessment source into stable import records.
+7. **Canonical progress**: Write progress, attempts and rewards through `learning-service.ts`; reward side effects are guarded by `RewardLedger` inside the same serializable transaction.
+8. **Answer keys**: Lesson/detail responses must use `toPublicExerciseData()`. Correct-answer fields remain server-side.
+9. **Backfill parity helpers**: `progress-backfill.ts` owns deterministic legacy module-to-milestone selection, rollback OR/max projection, lesson and identity-less exercise claim selection, and historical achievement eligibility. It performs no database writes or rewards.
 
 ## 📁 STRUCTURE
 
@@ -88,7 +97,12 @@ lib/
 ├── theme.ts            # Theme config
 ├── swagger.ts          # API docs
 ├── env.ts              # Environment helpers
-└── api-client.ts       # Frontend API client
+├── api-client.ts       # Frontend API client
+├── course-content.ts   # Pure canonical content parser and invariant checks
+├── progress-merge.ts   # Pure non-decreasing progress merge
+├── progress-backfill.ts # Pure history/parity projection helpers
+├── exercise-contract.ts # Server evaluation and public payload filtering
+└── learning-service.ts # Transactional learning writes and reward dedupe
 ```
 
 ## 🔄 RELATED

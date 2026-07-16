@@ -47,17 +47,22 @@ export function SkillCheckpoint({
       transition={{ duration: 0.4, delay: module.id * 0.15 }}
     >
       {/* Module banner */}
-      <div
+      <button
+        type="button"
+        disabled={!isUnlocked || !onClick}
+        aria-label={`Modul ${module.id}: ${module.name}, ${completedChapters} z ${totalChapters} kapitol${isCompleted ? ', dokončeno' : !isUnlocked ? ', zamčeno' : ''}`}
         className={cn(
           'relative px-6 py-2 rounded-full',
           'flex items-center gap-2',
           'text-sm font-semibold',
+          'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300/70 focus-visible:ring-offset-4 focus-visible:ring-offset-gray-900',
           isCompleted
             ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white'
             : isUnlocked
               ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white'
               : 'bg-gray-700 text-gray-400',
-          isUnlocked && 'cursor-pointer hover:scale-105 transition-transform'
+          isUnlocked && onClick && 'cursor-pointer hover:scale-105 transition-transform',
+          (!isUnlocked || !onClick) && 'cursor-default'
         )}
         onClick={isUnlocked ? onClick : undefined}
       >
@@ -70,11 +75,18 @@ export function SkillCheckpoint({
         <span>
           Modul {module.id}: {module.name}
         </span>
-      </div>
+      </button>
 
       {/* Progress bar */}
       {isUnlocked && (
-        <div className="w-32 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+        <div
+          className="w-32 h-1.5 bg-gray-700 rounded-full overflow-hidden"
+          role="progressbar"
+          aria-label={`Pokrok modulu ${module.id}`}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(progress)}
+        >
           <motion.div
             className={cn(
               'h-full rounded-full',

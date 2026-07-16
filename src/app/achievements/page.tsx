@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
-import { UnifiedPageLayout } from '@/components/layout/unified-page-layout'
+import { PublicPageLayout } from '@/components/layout/PublicPageLayout'
 import { SectionHeader } from '@/components/ui/section-header'
 import { StatCard } from '@/components/ui/stat-card'
 import { GreySurface } from '@/components/ui/grey-surface'
@@ -59,16 +59,16 @@ export default function AchievementsPage() {
 
   if (isLoading) {
     return (
-      <UnifiedPageLayout maxWidth="6xl">
+      <PublicPageLayout maxWidth="6xl">
         <div className="flex items-center justify-center min-h-[60vh]">
           <Loader2 className="w-12 h-12 animate-spin text-purple-400" />
         </div>
-      </UnifiedPageLayout>
+      </PublicPageLayout>
     )
   }
 
   return (
-    <UnifiedPageLayout maxWidth="6xl">
+    <PublicPageLayout maxWidth="6xl">
       {/* Header */}
       <SectionHeader subtitle="Sbírejte odznaky za dokončené lekce, výzvy a speciální úspěchy">
         Úspěchy a odznaky
@@ -195,6 +195,6 @@ export default function AchievementsPage() {
           }
         )}
       </Stack>
-    </UnifiedPageLayout>
+    </PublicPageLayout>
   )
 }

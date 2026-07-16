@@ -16,10 +16,10 @@ export async function requireAdmin() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { isAdmin: true },
+    select: { role: true, isAdmin: true },
   })
 
-  if (!user?.isAdmin) {
+  if (user?.role !== 'ADMIN' && !user?.isAdmin) {
     return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 })
   }
 
@@ -40,10 +40,10 @@ export async function isAdmin(): Promise<boolean> {
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { isAdmin: true },
+      select: { role: true, isAdmin: true },
     })
 
-    return user?.isAdmin || false
+    return user?.role === 'ADMIN' || user?.isAdmin || false
   } catch (error) {
     console.error('Error checking admin status:', error)
     return false

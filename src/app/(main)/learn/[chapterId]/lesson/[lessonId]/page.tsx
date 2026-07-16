@@ -8,12 +8,28 @@ import { cn } from '@/lib/utils'
 import { ExercisePlayer, type Exercise } from '@/components/learning/exercise'
 import { useHearts } from '@/components/gamification/hearts'
 import { Confetti, XPGainAnimation } from '@/components/gamification/celebrations'
+import { LessonArticle } from '@/components/learning/LessonArticle'
+import { ProjectSubmission } from '@/components/chapters/ProjectSubmission'
 
 interface LessonData {
   id: string
   title: string
   chapterId: string
   chapterTitle: string
+  content?: string | null
+  videoFile?: string | null
+  notebookLMUrl?: string | null
+  notebookLmUrl?: string | null
+  colabNotebook?: string | null
+  colabUrl?: string | null
+  projectTitle?: string | null
+  projectDescription?: string | null
+  projectRequirements?: string | null
+  progress?: {
+    contentCompleted?: boolean
+    exercisesCompleted?: boolean
+    projectApproved?: boolean
+  }
   exercises: Exercise[]
   xpReward: number
 }
@@ -39,6 +55,8 @@ export default function LessonPage() {
     correct: boolean
     xp: number
   } | null>(null)
+  const [phase, setPhase] = useState<'content' | 'exercises'>('content')
+  const [contentSubmitting, setContentSubmitting] = useState(false)
 
   const fetchLesson = useCallback(async () => {
     try {
@@ -102,25 +120,43 @@ export default function LessonPage() {
       if (lesson && currentIndex < lesson.exercises.length - 1) {
         setCurrentIndex(prev => prev + 1)
       } else {
-        void completeLesson()
-          .then(data => {
-            const lessonXP = data.xpEarned ?? 0
-            if (lessonXP > 0) {
-              setXpEarned(prev => prev + lessonXP)
-            }
-            setIsComplete(true)
-          })
-          .catch(error => {
-            setCompletionError(
-              error instanceof Error ? error.message : 'Nepodařilo se uložit dokončení lekce'
-            )
-          })
+        setIsComplete(true)
       }
     }, 1500)
   }
 
   const handleClose = () => {
     router.push(`/learn/${chapterId}`)
+  }
+
+  const handleContentContinue = () => {
+    if (contentSubmitting) return
+
+    setCompletionError(null)
+    setContentSubmitting(true)
+
+    void completeLesson()
+      .then(data => {
+        const contentXP = data.xpEarned ?? 0
+        if (contentXP > 0) setXpEarned(value => value + contentXP)
+        setLesson(current =>
+          current
+            ? { ...current, progress: { ...current.progress, contentCompleted: true } }
+            : current
+        )
+
+        if (lesson && lesson.exercises.length > 0) {
+          setPhase('exercises')
+        } else {
+          setIsComplete(true)
+        }
+      })
+      .catch(error => {
+        setCompletionError(
+          error instanceof Error ? error.message : 'Nepodařilo se uložit dokončení lekce'
+        )
+      })
+      .finally(() => setContentSubmitting(false))
   }
 
   if (loading) {
@@ -131,7 +167,7 @@ export default function LessonPage() {
     )
   }
 
-  if (!lesson || lesson.exercises.length === 0) {
+  if (!lesson) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-gray-900">
         <h2 className="text-xl font-semibold text-white mb-4">Lekce nenalezena</h2>
@@ -142,19 +178,103 @@ export default function LessonPage() {
     )
   }
 
+  if (phase === 'content' && !isComplete) {
+    return (
+      <div className="min-h-full px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-4xl space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <button
+              type="button"
+              onClick={handleClose}
+              className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-gray-300 transition hover:bg-white/10 hover:text-white"
+              aria-label="Zpět na kapitolu"
+            >
+              <X className="h-5 w-5" aria-hidden="true" />
+              Zpět na kapitolu
+            </button>
+            {lesson.progress?.contentCompleted && (
+              <span className="inline-flex items-center gap-2 rounded-full border border-green-400/30 bg-green-500/10 px-3 py-1.5 text-sm font-semibold text-green-200">
+                <CheckCircle className="h-4 w-4" aria-hidden="true" />
+                Obsah už je dokončený
+              </span>
+            )}
+          </div>
+
+          <header className="rounded-2xl border border-white/10 bg-white/5 p-5 sm:p-7">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-purple-300">
+              {lesson.chapterTitle}
+            </p>
+            <h1 className="mt-2 text-3xl font-bold text-white sm:text-4xl">{lesson.title}</h1>
+            <p className="mt-3 text-gray-300">
+              Nejprve si projdi výklad a materiály. Cvičení se otevřou až po explicitním
+              pokračování.
+            </p>
+          </header>
+
+          <LessonArticle
+            content={lesson.content}
+            videoFile={lesson.videoFile}
+            notebookLMUrl={lesson.notebookLMUrl ?? lesson.notebookLmUrl}
+            colabNotebook={lesson.colabNotebook ?? lesson.colabUrl}
+            projectDescription={[
+              lesson.projectDescription,
+              lesson.projectRequirements ? `Požadavky:\n${lesson.projectRequirements}` : null,
+            ]
+              .filter(Boolean)
+              .join('\n\n')}
+          />
+
+          {completionError && (
+            <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200">
+              {completionError}
+            </div>
+          )}
+
+          <div className="sticky bottom-20 rounded-2xl border border-white/10 bg-gray-950/95 p-4 shadow-2xl shadow-black/40 backdrop-blur-xl lg:bottom-4">
+            <button
+              type="button"
+              onClick={handleContentContinue}
+              disabled={contentSubmitting}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 px-5 py-3.5 font-bold text-white transition hover:from-purple-500 hover:to-pink-500"
+            >
+              {contentSubmitting ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
+                  Ukládám dokončení obsahu…
+                </>
+              ) : (
+                <>
+                  {lesson.exercises.length > 0 ? 'Pokračovat na cvičení' : 'Dokončit obsah'}
+                  <ArrowRight className="h-5 w-5" aria-hidden="true" />
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   const progress = ((currentIndex + 1) / lesson.exercises.length) * 100
 
   // Lesson Complete Screen
   if (isComplete) {
     const accuracy = score.total > 0 ? Math.round((score.correct / score.total) * 100) : 0
-    const stars = accuracy >= 90 ? 3 : accuracy >= 70 ? 2 : accuracy >= 50 ? 1 : 0
+    const completedAllExercisesThisRun =
+      lesson.exercises.length > 0 &&
+      score.total === lesson.exercises.length &&
+      score.correct === lesson.exercises.length
+    const projectUnlocked =
+      completedAllExercisesThisRun ||
+      lesson.progress?.exercisesCompleted ||
+      lesson.progress?.projectApproved
 
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
         <Confetti isActive={true} pieceCount={80} />
 
         <motion.div
-          className="max-w-md w-full text-center"
+          className="w-full max-w-2xl text-center"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
         >
@@ -169,19 +289,33 @@ export default function LessonPage() {
           <h1 className="text-3xl font-bold text-white mb-2">Lekce dokončena!</h1>
           <p className="text-gray-400 mb-8">{lesson.title}</p>
 
-          {/* Stars */}
-          <div className="flex justify-center gap-2 mb-6">
-            {[1, 2, 3].map(star => (
-              <motion.span
-                key={star}
-                className={cn('text-4xl', star <= stars ? 'opacity-100' : 'opacity-30')}
-                initial={{ scale: 0, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ delay: star * 0.2 }}
-              >
+          {/* Canonical chapter-star milestones */}
+          <div className="mb-6 grid gap-2 text-left sm:grid-cols-3">
+            <div className="rounded-xl border border-yellow-400/30 bg-yellow-500/10 p-3">
+              <div className="text-xl" aria-hidden="true">
                 ⭐
-              </motion.span>
-            ))}
+              </div>
+              <div className="mt-1 text-sm font-semibold text-yellow-100">Obsah dokončen</div>
+            </div>
+            <div
+              className={cn(
+                'rounded-xl border p-3',
+                completedAllExercisesThisRun
+                  ? 'border-yellow-400/30 bg-yellow-500/10'
+                  : 'border-white/10 bg-white/5'
+              )}
+            >
+              <div className="text-xl" aria-hidden="true">
+                {completedAllExercisesThisRun ? '⭐' : '☆'}
+              </div>
+              <div className="mt-1 text-sm font-semibold text-gray-100">Všechna cvičení</div>
+            </div>
+            <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+              <div className="text-xl" aria-hidden="true">
+                ☆
+              </div>
+              <div className="mt-1 text-sm font-semibold text-gray-100">Schválený projekt</div>
+            </div>
           </div>
 
           {/* Stats */}
@@ -212,13 +346,46 @@ export default function LessonPage() {
               <ArrowRight className="w-5 h-5" />
             </button>
           </div>
+
+          <div className="mt-10 text-left">
+            {lesson.projectDescription && (
+              <div className="mb-5 rounded-xl border border-purple-400/30 bg-purple-500/10 p-4">
+                <h2 className="font-semibold text-white">Projekt kapitoly</h2>
+                <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-200">
+                  {lesson.projectDescription}
+                </p>
+              </div>
+            )}
+            {projectUnlocked ? (
+              <ProjectSubmission chapterId={chapterId} />
+            ) : (
+              <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-4 text-gray-300">
+                <XCircle className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                <p className="text-sm">
+                  Projekt se odemkne, až bude všech 10 cvičení dokončeno správně.
+                </p>
+              </div>
+            )}
+          </div>
         </motion.div>
       </div>
     )
   }
 
   const currentExercise = lesson.exercises[currentIndex]
-  if (!currentExercise) return null
+  if (!currentExercise) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center">
+        <h2 className="text-xl font-semibold text-white">Cvičení nejsou k dispozici</h2>
+        <button
+          onClick={() => setPhase('content')}
+          className="mt-4 text-indigo-300 hover:underline"
+        >
+          Zpět k obsahu
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col">

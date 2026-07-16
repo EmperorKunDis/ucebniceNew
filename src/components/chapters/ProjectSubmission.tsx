@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, memo } from 'react'
+import { useEffect, useRef, useState, memo } from 'react'
 import { motion } from 'framer-motion'
 import { AlertCircle, Clock, ExternalLink, Upload, Zap, CheckCircle, Loader2 } from 'lucide-react'
 import { GreySurface } from '@/components/ui/grey-surface'
@@ -88,6 +88,7 @@ export const ProjectSubmission = memo(function ProjectSubmission({
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(true)
   const [existingSubmission, setExistingSubmission] = useState<ExistingSubmission | null>(null)
+  const requestClaim = useRef<{ payload: string; key: string } | null>(null)
 
   useEffect(() => {
     // Check if user has already submitted a project
@@ -129,12 +130,17 @@ export const ProjectSubmission = memo(function ProjectSubmission({
     }
 
     setSubmitting(true)
+    const payload = JSON.stringify({ chapterId, projectUrl, description })
+    const idempotencyKey =
+      requestClaim.current?.payload === payload ? requestClaim.current.key : crypto.randomUUID()
+    requestClaim.current = { payload, key: idempotencyKey }
 
     try {
       const response = await fetch('/api/projects/submit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Idempotency-Key': idempotencyKey,
         },
         body: JSON.stringify({
           chapterId,
@@ -146,14 +152,13 @@ export const ProjectSubmission = memo(function ProjectSubmission({
       const data = await response.json()
 
       if (response.ok) {
+        requestClaim.current = null
         const submitData = data as ProjectSubmitResponse
         const nextSubmission: ExistingSubmission = {
           projectUrl,
           description,
-          aiApproved: submitData.updated ? null : (submitData.aiReview?.approved ?? null),
-          aiManualReviewRequired: submitData.updated
-            ? null
-            : (submitData.aiReview?.manualReviewRequired ?? null),
+          aiApproved: submitData.aiReview?.approved ?? null,
+          aiManualReviewRequired: submitData.aiReview?.manualReviewRequired ?? null,
           aiReviewFeedback: submitData.aiReview?.feedback ?? null,
           aiReviewScore: submitData.aiReview?.score ?? null,
         }

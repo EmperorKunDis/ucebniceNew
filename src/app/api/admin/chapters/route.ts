@@ -19,40 +19,51 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * limit
 
-    // Get total count
-    const total = await prisma.chapter.count()
-
-    // Get chapters with completion stats
-    const chapters = await prisma.chapter.findMany({
-      skip,
-      take: limit,
-      orderBy: { [sortBy]: sortOrder },
-      include: {
-        _count: {
-          select: {
-            completedBy: true,
-            progress: true,
+    const [total, chapters, completedCounts] = await Promise.all([
+      prisma.chapter.count(),
+      prisma.chapter.findMany({
+        skip,
+        take: limit,
+        orderBy: { [sortBy]: sortOrder },
+        include: {
+          _count: {
+            select: {
+              progress: true,
+            },
           },
         },
-      },
-    })
+      }),
+      prisma.chapterProgress.groupBy({
+        by: ['chapterId'],
+        where: { contentCompleted: true },
+        _count: true,
+      }),
+    ])
+
+    const completionsByChapterId = new Map(
+      completedCounts.map(completion => [completion.chapterId, completion._count])
+    )
 
     return NextResponse.json({
-      chapters: chapters.map(chapter => ({
-        id: chapter.id,
-        chapterId: chapter.chapterId,
-        title: chapter.title,
-        description: chapter.description,
-        xpReward: chapter.xpReward,
-        difficulty: chapter.difficulty,
-        order: chapter.order,
-        createdAt: chapter.createdAt,
-        updatedAt: chapter.updatedAt,
-        stats: {
-          completions: chapter._count.completedBy,
-          inProgress: chapter._count.progress,
-        },
-      })),
+      chapters: chapters.map(chapter => {
+        const completions = completionsByChapterId.get(chapter.id) ?? 0
+
+        return {
+          id: chapter.id,
+          chapterId: chapter.chapterId,
+          title: chapter.title,
+          description: chapter.description,
+          xpReward: chapter.xpReward,
+          difficulty: chapter.difficulty,
+          order: chapter.order,
+          createdAt: chapter.createdAt,
+          updatedAt: chapter.updatedAt,
+          stats: {
+            completions,
+            inProgress: Math.max(0, chapter._count.progress - completions),
+          },
+        }
+      }),
       pagination: {
         page,
         limit,

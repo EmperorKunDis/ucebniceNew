@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { checkAndAwardAchievements } from '@/lib/achievement-checker'
 import { prisma } from '@/lib/prisma'
 import { reviewMilestoneProject } from '@/lib/gemini'
+import { awardCanonicalReward, runLearningTransaction } from '@/lib/learning-service'
+import { QuestCategory } from '@prisma/client'
 import { z } from 'zod'
+import { canonicalChapterIdsThrough } from '@/lib/canonical-content-keys'
 
 const GEMS_FOR_PASSING = 500
 const XP_FOR_PASSING = 1000
@@ -149,10 +153,11 @@ export async function GET(_request: NextRequest) {
     const userId = session.user.id
 
     // Check if user has completed all 40 chapters
-    const completedChapters = await prisma.chapterCompletion.count({
+    const completedChapters = await prisma.chapterProgress.count({
       where: {
         userId,
-        completedChapter: true,
+        contentCompleted: true,
+        chapter: { chapterId: { in: canonicalChapterIdsThrough() } },
       },
     })
 
@@ -236,19 +241,56 @@ export async function POST(request: NextRequest) {
     const { answers, selectedProjectId, projectUrl, projectCode } = validation.data
     const userId = session.user.id
 
+    const submittedQuestionIds = Object.keys(answers)
+    const expectedQuestionIds = new Set(FINAL_QUESTIONS.map(question => question.id))
+    if (
+      submittedQuestionIds.length !== FINAL_QUESTIONS.length ||
+      submittedQuestionIds.some(questionId => !expectedQuestionIds.has(questionId))
+    ) {
+      return NextResponse.json(
+        { error: 'Finální test musí obsahovat právě všech 10 otázek' },
+        { status: 400 }
+      )
+    }
+
+    if (!projectUrl && !projectCode?.trim()) {
+      return NextResponse.json(
+        { error: 'Pro finální test je povinné odevzdat projekt' },
+        { status: 400 }
+      )
+    }
+
+    const completedChapters = await prisma.chapterProgress.count({
+      where: {
+        userId,
+        contentCompleted: true,
+        chapter: { chapterId: { in: canonicalChapterIdsThrough() } },
+      },
+    })
+    if (completedChapters < 40) {
+      return NextResponse.json(
+        { error: 'Musíš dokončit všech 40 kapitol před finálním testem' },
+        { status: 403 }
+      )
+    }
+
     // Check if already passed
     const existingTest = await prisma.finalTest.findUnique({
       where: { userId },
     })
 
     if (existingTest?.passed) {
-      return NextResponse.json(
-        {
-          error: 'Finální test už byl úspěšně složen',
-          alreadyPassed: true,
-        },
-        { status: 400 }
-      )
+      return NextResponse.json({
+        alreadyPassed: true,
+        replayed: true,
+        passed: true,
+        questionsScore: existingTest.questionsScore,
+        projectScore: existingTest.projectScore,
+        projectFeedback: existingTest.projectFeedback,
+        gemsEarned: 0,
+        xpEarned: 0,
+        certificateReady: true,
+      })
     }
 
     // Grade questions using AI
@@ -303,56 +345,96 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate final score
-    const finalScore =
-      projectCode || projectUrl ? Math.round((questionsScore + projectScore) / 2) : questionsScore
+    const finalScore = Math.round((questionsScore + projectScore) / 2)
+    const passed = finalScore >= 70 && questionsScore >= 70 && projectScore >= 70
 
-    const passed =
-      finalScore >= 70 &&
-      questionsScore >= 70 &&
-      (projectScore >= 70 || (!projectCode && !projectUrl))
-    const gemsEarned = passed ? GEMS_FOR_PASSING : 0
-    const xpEarned = passed ? XP_FOR_PASSING : 200
-
-    // Save test result
-    await prisma.finalTest.upsert({
-      where: { userId },
-      create: {
-        userId,
-        questionsScore,
-        selectedProjectId,
-        projectSubmitted: !!(projectCode || projectUrl),
-        projectUrl: projectUrl || null,
-        projectScore: projectScore || null,
-        projectFeedback: projectFeedback || null,
-        passed,
-        gemsEarned,
-        xpEarned,
-        completedAt: passed ? new Date() : null,
-      },
-      update: {
-        questionsScore,
-        selectedProjectId,
-        projectSubmitted: !!(projectCode || projectUrl),
-        projectUrl: projectUrl || null,
-        projectScore: projectScore || null,
-        projectFeedback: projectFeedback || null,
-        passed,
-        gemsEarned: passed ? gemsEarned : 0,
-        xpEarned,
-        completedAt: passed ? new Date() : null,
-      },
-    })
-
-    // Award gems and XP if passed
-    if (passed) {
-      await prisma.user.update({
-        where: { id: userId },
-        data: {
-          gems: { increment: gemsEarned },
-          xp: { increment: xpEarned },
+    const reward = await runLearningTransaction(async tx => {
+      const stillEligible = await tx.chapterProgress.count({
+        where: {
+          userId,
+          contentCompleted: true,
+          chapter: { chapterId: { in: canonicalChapterIdsThrough() } },
         },
       })
+      if (stillEligible < 40) throw new Error('Final test eligibility changed')
+
+      const concurrentlyPassed = await tx.finalTest.findUnique({ where: { userId } })
+      if (concurrentlyPassed?.passed) {
+        return {
+          replayed: true as const,
+          existingTest: concurrentlyPassed,
+          xpEarned: 0,
+          gemsEarned: 0,
+        }
+      }
+
+      const test = await tx.finalTest.upsert({
+        where: { userId },
+        create: {
+          userId,
+          questionsScore,
+          selectedProjectId,
+          projectSubmitted: true,
+          projectUrl: projectUrl || null,
+          projectScore,
+          projectFeedback: projectFeedback || null,
+          passed,
+          gemsEarned: 0,
+          xpEarned: 0,
+          completedAt: passed ? new Date() : null,
+        },
+        update: {
+          questionsScore,
+          selectedProjectId,
+          projectSubmitted: true,
+          projectUrl: projectUrl || null,
+          projectScore,
+          projectFeedback: projectFeedback || null,
+          passed: passed ? true : undefined,
+          completedAt: passed ? new Date() : undefined,
+        },
+      })
+
+      if (!passed) {
+        return { replayed: false as const, xpEarned: 0, gemsEarned: 0 }
+      }
+
+      const awarded = await awardCanonicalReward(tx, {
+        userId,
+        sourceType: 'FINAL_TEST_PASS',
+        sourceId: 'foundation',
+        xpAmount: XP_FOR_PASSING,
+        gemAmount: GEMS_FOR_PASSING,
+        questCategories: [QuestCategory.XP_EARNED],
+      })
+      if (awarded.awarded) {
+        await tx.finalTest.update({
+          where: { id: test.id },
+          data: {
+            xpEarned: awarded.xpEarned,
+            gemsEarned: awarded.gemsEarned,
+          },
+        })
+      }
+      return { replayed: false as const, ...awarded }
+    })
+
+    if (reward.replayed) {
+      return NextResponse.json({
+        alreadyPassed: true,
+        replayed: true,
+        passed: true,
+        questionsScore: reward.existingTest.questionsScore,
+        projectScore: reward.existingTest.projectScore,
+        projectFeedback: reward.existingTest.projectFeedback,
+        gemsEarned: 0,
+        xpEarned: 0,
+        certificateReady: true,
+      })
     }
+
+    const newAchievements =
+      passed && reward.xpEarned > 0 ? await checkAndAwardAchievements(userId) : []
 
     return NextResponse.json({
       passed,
@@ -360,8 +442,9 @@ export async function POST(request: NextRequest) {
       questionsScore,
       projectScore: projectScore || null,
       projectFeedback: projectFeedback || null,
-      gemsEarned,
-      xpEarned,
+      gemsEarned: reward.gemsEarned,
+      xpEarned: reward.xpEarned,
+      newAchievements,
       message: passed
         ? '🎉 Gratulujeme! Úspěšně jsi dokončil celou učebnici! Tvůj certifikát je připraven ke stažení.'
         : 'Test nesložen. Potřebuješ alespoň 70% v každé části.',

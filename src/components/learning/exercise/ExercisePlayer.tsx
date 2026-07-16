@@ -12,6 +12,7 @@ export type ExerciseType =
   | 'TRUE_FALSE'
   | 'CODE_OUTPUT'
   | 'MATCH_PAIRS'
+  | 'TYPE_ANSWER'
 
 export interface Exercise {
   id: string
@@ -31,6 +32,33 @@ interface ExercisePlayerProps {
   showHints?: boolean
 }
 
+const RETRYABLE_RESPONSE_STATUSES = new Set([502, 503, 504])
+
+function createAttemptKey() {
+  if (typeof globalThis.crypto?.randomUUID === 'function') {
+    return globalThis.crypto.randomUUID()
+  }
+
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
+}
+
+async function fetchWithNetworkRetry(url: string, init: RequestInit) {
+  let lastError: unknown
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const response = await fetch(url, init)
+      if (attempt === 0 && RETRYABLE_RESPONSE_STATUSES.has(response.status)) continue
+      return response
+    } catch (error) {
+      lastError = error
+      if (attempt === 1) throw error
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error('Síťový požadavek selhal')
+}
+
 export function ExercisePlayer({
   exercise,
   onComplete,
@@ -46,18 +74,24 @@ export function ExercisePlayer({
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [attemptKey, setAttemptKey] = useState(0)
   const [xpEarned, setXpEarned] = useState(0)
+  const [serverExplanation, setServerExplanation] = useState<string | null>(null)
 
-  const submitAnswer = async (answer: unknown, fallbackCorrect: boolean) => {
+  const submitAnswer = async (answer: unknown) => {
     setIsSubmitting(true)
     setSubmitError(null)
+    const idempotencyKey = createAttemptKey()
 
     try {
-      const response = await fetch(`/api/exercises/${exercise.id}/answer`, {
+      const response = await fetchWithNetworkRetry(`/api/exercises/${exercise.id}/answer`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Idempotency-Key': idempotencyKey,
+        },
         body: JSON.stringify({
           answer,
           hintsUsed,
+          idempotencyKey,
         }),
       })
 
@@ -71,6 +105,7 @@ export function ExercisePlayer({
       setAnswered(true)
       setIsCorrect(serverCorrect)
       setXpEarned(typeof data?.xpEarned === 'number' ? data.xpEarned : 0)
+      setServerExplanation(typeof data?.explanation === 'string' ? data.explanation : null)
 
       if (!serverCorrect && data?.heartLost && onHeartLost) {
         onHeartLost()
@@ -82,14 +117,10 @@ export function ExercisePlayer({
       setAnswered(false)
       setIsCorrect(false)
       setXpEarned(0)
+      setServerExplanation(null)
       setShowExplanation(false)
       setAttemptKey(prev => prev + 1)
       setSubmitError(error instanceof Error ? error.message : 'Nepodařilo se uložit odpověď')
-
-      // Keep the old local answer result only as a fallback for unexpected response shape.
-      if (fallbackCorrect) {
-        console.warn('Exercise answer looked correct locally but was not persisted.')
-      }
     } finally {
       setIsSubmitting(false)
     }
@@ -115,8 +146,7 @@ export function ExercisePlayer({
             key={`${exercise.id}-${attemptKey}`}
             question={exercise.question}
             options={data.options as string[]}
-            correctIndex={data.correctIndex as number}
-            onAnswer={(selected, correct) => submitAnswer(selected, correct)}
+            onAnswer={submitAnswer}
             disabled={answered || isSubmitting}
           />
         )
@@ -126,9 +156,7 @@ export function ExercisePlayer({
           <FillInBlank
             key={`${exercise.id}-${attemptKey}`}
             text={data.text as string}
-            answers={data.answers as string[]}
-            alternatives={data.alternatives as string[][] | undefined}
-            onAnswer={(answers, correct) => submitAnswer(answers, correct)}
+            onAnswer={submitAnswer}
             disabled={answered || isSubmitting}
           />
         )
@@ -138,8 +166,7 @@ export function ExercisePlayer({
           <TrueFalse
             key={`${exercise.id}-${attemptKey}`}
             statement={exercise.question}
-            isTrue={data.isTrue as boolean}
-            onAnswer={(selected, correct) => submitAnswer(selected, correct)}
+            onAnswer={submitAnswer}
             disabled={answered || isSubmitting}
           />
         )
@@ -152,8 +179,7 @@ export function ExercisePlayer({
             language={data.language as string}
             question={exercise.question}
             options={data.options as string[]}
-            correctIndex={data.correctIndex as number}
-            onAnswer={(selected, correct) => submitAnswer(selected, correct)}
+            onAnswer={submitAnswer}
             disabled={answered || isSubmitting}
           />
         )
@@ -162,10 +188,19 @@ export function ExercisePlayer({
         return (
           <MatchPairs
             key={`${exercise.id}-${attemptKey}`}
-            pairs={data.pairs as { left: string; right: string }[]}
-            onAnswer={(matches, correct) =>
-              submitAnswer(Object.fromEntries(matches.entries()), correct)
-            }
+            leftItems={data.leftItems as string[]}
+            rightItems={data.rightItems as string[]}
+            onAnswer={submitAnswer}
+            disabled={answered || isSubmitting}
+          />
+        )
+
+      case 'TYPE_ANSWER':
+        return (
+          <FillInBlank
+            key={`${exercise.id}-${attemptKey}`}
+            text="___"
+            onAnswer={answers => submitAnswer(answers[0] ?? '')}
             disabled={answered || isSubmitting}
           />
         )
@@ -231,7 +266,11 @@ export function ExercisePlayer({
       {renderExercise()}
 
       {isSubmitting && (
-        <div className="mt-4 rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-3 text-sm text-indigo-200">
+        <div
+          className="mt-4 rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-3 text-sm text-indigo-200"
+          role="status"
+          aria-live="polite"
+        >
           Ukládám odpověď...
         </div>
       )}
@@ -286,10 +325,10 @@ export function ExercisePlayer({
             </div>
 
             {/* Explanation */}
-            {exercise.explanation && (
+            {(serverExplanation || exercise.explanation) && (
               <div className="bg-gray-800 rounded-xl p-4 mb-4">
                 <h4 className="text-white font-semibold mb-2">Vysvětlení</h4>
-                <p className="text-gray-300 text-sm">{exercise.explanation}</p>
+                <p className="text-gray-300 text-sm">{serverExplanation || exercise.explanation}</p>
               </div>
             )}
 

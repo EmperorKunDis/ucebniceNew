@@ -2,6 +2,14 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { chapters } from '../src/data/chapters'
+import {
+  buildCanonicalCourseContent,
+  CHAPTERS_WITHOUT_VIDEO,
+  EXPECTED_CHAPTER_COUNT,
+  EXPECTED_EXERCISE_COUNT,
+  EXPECTED_VIDEO_COUNT,
+  validateCanonicalCourseContent,
+} from '../src/lib/course-content'
 
 type IssueLevel = 'error' | 'warning'
 
@@ -10,8 +18,6 @@ interface ContentIssue {
   message: string
 }
 
-const EXPECTED_CHAPTER_COUNT = 40
-const CHAPTERS_WITHOUT_VIDEO = new Set(['09', '10'])
 const currentFile = fileURLToPath(import.meta.url)
 const repoRoot = path.resolve(path.dirname(currentFile), '..')
 const lectureDir = path.join(repoRoot, 'public', 'prednasky')
@@ -21,6 +27,8 @@ const videoDir = process.env.VIDEO_FILES_DIR
   : path.join(repoRoot, 'data', 'videa')
 
 const issues: ContentIssue[] = []
+let canonicalLessonCount = 0
+let canonicalExerciseCount = 0
 
 function addIssue(level: IssueLevel, message: string): void {
   issues.push({ level, message })
@@ -162,6 +170,10 @@ function validateVideos(): void {
   }
 
   const actualVideos = fs.readdirSync(videoDir).filter(file => file.endsWith('.mp4'))
+  if (actualVideos.length !== EXPECTED_VIDEO_COUNT) {
+    addIssue('error', `Expected ${EXPECTED_VIDEO_COUNT} video files, found ${actualVideos.length}`)
+  }
+
   actualVideos.forEach(file => {
     if (!referencedVideos.has(file)) {
       addIssue(
@@ -170,6 +182,32 @@ function validateVideos(): void {
       )
     }
   })
+}
+
+function validateCanonicalImport(): void {
+  try {
+    const course = buildCanonicalCourseContent(repoRoot)
+    const canonicalIssues = validateCanonicalCourseContent(course)
+    canonicalLessonCount = course.chapters.length
+    canonicalExerciseCount = course.chapters.reduce(
+      (total, chapter) => total + chapter.lesson.exercises.length,
+      0
+    )
+
+    canonicalIssues.forEach(issue => addIssue('error', `${issue.path}: ${issue.message}`))
+
+    if (canonicalExerciseCount !== EXPECTED_EXERCISE_COUNT) {
+      addIssue(
+        'error',
+        `Expected ${EXPECTED_EXERCISE_COUNT} canonical exercises, found ${canonicalExerciseCount}`
+      )
+    }
+  } catch (error) {
+    addIssue(
+      'error',
+      `Canonical content parser failed: ${error instanceof Error ? error.message : String(error)}`
+    )
+  }
 }
 
 function validateExternalReferences(): void {
@@ -198,11 +236,17 @@ function printSummary(): void {
   const errors = issues.filter(issue => issue.level === 'error')
   const warnings = issues.filter(issue => issue.level === 'warning')
   const configuredVideos = chapters.filter(chapter => chapter.videoFile).length
+  const configuredNotebookLm = chapters.filter(chapter => chapter.notebookLMUrl).length
+  const configuredColab = chapters.filter(chapter => chapter.colabNotebook).length
 
   console.log(`Validated ${chapters.length} chapters`)
   console.log(`Lecture directory: ${path.relative(repoRoot, lectureDir)}`)
   console.log(`Video directory: ${path.relative(repoRoot, videoDir)}`)
   console.log(`Configured videos: ${configuredVideos}`)
+  console.log(`Configured NotebookLM links: ${configuredNotebookLm}`)
+  console.log(`Configured Colab links: ${configuredColab}`)
+  console.log(`Canonical published lessons: ${canonicalLessonCount}`)
+  console.log(`Canonical exercises: ${canonicalExerciseCount}`)
 
   issues.forEach(issue => {
     console.log(`${issue.level.toUpperCase()}: ${issue.message}`)
@@ -223,4 +267,5 @@ validateChapterStructure()
 validateContentFiles()
 validateVideos()
 validateExternalReferences()
+validateCanonicalImport()
 printSummary()

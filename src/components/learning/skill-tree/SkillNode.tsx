@@ -31,6 +31,10 @@ interface SkillNodeProps {
 
 export function SkillNode({ node, onClick, isSelected }: SkillNodeProps) {
   const { status, stars, title } = node
+  const isLocked = status === 'locked'
+  const statusLabel =
+    status === 'completed' ? 'dokončeno' : status === 'active' ? 'aktivní' : 'zamčeno'
+  const tooltipId = `skill-node-${node.id}-tooltip`
 
   // Colors based on status
   const statusStyles = {
@@ -74,10 +78,19 @@ export function SkillNode({ node, onClick, isSelected }: SkillNodeProps) {
       : moduleColors[(node.module - 1) % moduleColors.length]
 
   return (
-    <motion.div
+    <motion.button
+      type="button"
+      disabled={isLocked}
+      data-chapter={node.id}
+      data-locked={isLocked ? 'true' : 'false'}
+      data-stars={stars}
+      aria-label={`Kapitola ${node.id}: ${title}, ${statusLabel}, ${stars} ze 3 hvězd`}
+      aria-pressed={isSelected}
+      aria-describedby={tooltipId}
       className={cn(
-        'absolute cursor-pointer transform -translate-x-1/2 -translate-y-1/2',
-        status === 'locked' && 'cursor-not-allowed opacity-60'
+        'group absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer rounded-full text-left',
+        'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300/70 focus-visible:ring-offset-4 focus-visible:ring-offset-gray-900',
+        isLocked && 'cursor-not-allowed opacity-60'
       )}
       style={{
         left: node.position.x,
@@ -86,9 +99,9 @@ export function SkillNode({ node, onClick, isSelected }: SkillNodeProps) {
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ duration: 0.3, delay: node.order * 0.05 }}
-      whileHover={status !== 'locked' ? { scale: 1.1 } : undefined}
-      whileTap={status !== 'locked' ? { scale: 0.95 } : undefined}
-      onClick={() => status !== 'locked' && onClick?.(node)}
+      whileHover={!isLocked ? { scale: 1.1 } : undefined}
+      whileTap={!isLocked ? { scale: 0.95 } : undefined}
+      onClick={() => !isLocked && onClick?.(node)}
     >
       {/* Glow effect for active */}
       {status === 'active' && (
@@ -113,16 +126,20 @@ export function SkillNode({ node, onClick, isSelected }: SkillNodeProps) {
       >
         {/* Icon based on status */}
         {status === 'locked' ? (
-          <Lock className="w-6 h-6 text-gray-300" />
+          <Lock className="w-6 h-6 text-gray-300" aria-hidden="true" />
         ) : status === 'completed' ? (
-          <CheckCircle className="w-7 h-7 text-white" />
+          <CheckCircle className="w-7 h-7 text-white" aria-hidden="true" />
         ) : (
-          <Play className="w-6 h-6 text-white ml-1" />
+          <Play className="w-6 h-6 text-white ml-1" aria-hidden="true" />
         )}
 
         {/* Progress ring for active nodes */}
         {status === 'active' && node.progress > 0 && (
-          <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
+          <svg
+            className="absolute inset-0 w-full h-full -rotate-90"
+            viewBox="0 0 100 100"
+            aria-hidden="true"
+          >
             <circle
               cx="50"
               cy="50"
@@ -182,12 +199,14 @@ export function SkillNode({ node, onClick, isSelected }: SkillNodeProps) {
         className={cn(
           'absolute top-full mt-2 left-1/2 -translate-x-1/2',
           'bg-gray-900/95 backdrop-blur-sm text-white text-xs px-2 py-1 rounded',
-          'whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity',
+          'whitespace-nowrap opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity',
           'pointer-events-none'
         )}
+        id={tooltipId}
+        role="tooltip"
       >
         {title}
       </div>
-    </motion.div>
+    </motion.button>
   )
 }

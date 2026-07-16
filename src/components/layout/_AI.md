@@ -1,94 +1,69 @@
 # src/components/layout/ - AI Context
 
-## 🎯 PURPOSE
+## PURPOSE
 
-Core layout components for the application shell - sidebar navigation, topbar with user stats, and responsive main layout wrapper.
+Canonical visual shells for the v2 application. Every route belongs to exactly one shell:
 
-## 📦 EXPORTS
+- authenticated learning app: `MainLayout`;
+- public and auth routes: `PublicShell` / `PublicPageLayout`;
+- administration: `AdminShell` after the server-side admin guard.
 
-| Component    | Purpose                                                |
-| ------------ | ------------------------------------------------------ |
-| `MainLayout` | Full page wrapper with sidebar, topbar, error boundary |
-| `Sidebar`    | Collapsible navigation sidebar with active indicators  |
-| `Topbar`     | Header with hearts, XP, gems, notifications, avatar    |
-| `MobileNav`  | Fixed bottom navigation for mobile (lg:hidden)         |
+## EXPORTS
 
-## 🔗 DEPENDENCIES
+| Component           | Purpose                                                        |
+| ------------------- | -------------------------------------------------------------- |
+| `MainLayout`        | Sidebar, Topbar and mobile bottom navigation for signed-in UI  |
+| `PublicShell`       | Lightweight responsive public navigation and partner footer    |
+| `PublicPageLayout`  | Public shell plus a constrained, padded main-content container |
+| `AdminShell`        | Token-aligned desktop and mobile admin navigation              |
+| `Footer` (internal) | Partner logos; rendered only by `PublicShell`                  |
+| `Sidebar`           | Desktop and drawer navigation for the learning app             |
+| `Topbar`            | Hearts, XP, gems, notifications and avatar HUD                 |
+| `MobileNav`         | Fixed bottom navigation for the learning app                   |
 
-- `framer-motion` - Animations (sidebar toggle, mobile overlay)
-- `next-auth/react` - Session data for user stats
-- `@/components/gamification/hearts` - HeartDisplay, useHearts
-- `@/components/gamification/streak` - StreakDisplay
-- `@/components/gamification/xp` - XPCounter, LevelBadge
-- `@/components/shared/ErrorBoundary` - Error catching
+## PATTERNS
 
-## 🏗️ PATTERNS
+```tsx
+// Public page
+<PublicPageLayout maxWidth="7xl">{children}</PublicPageLayout>
 
-### Sidebar Navigation
+// Auth section layout
+<PublicShell showNavigation={false}>{children}</PublicShell>
 
-```typescript
-const navItems = [
-  { href: '/dashboard', icon: Home, label: 'Domů' },
-  { href: '/learn', icon: BookOpen, label: 'Učení' },
-  // ...
-]
-
-// Active detection
-const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`)
+// Authenticated route group
+<MainLayout>{children}</MainLayout>
 ```
 
-### Mobile Responsiveness
+`PublicPageLayout` accepts `maxWidth`, `showNav`, `showFooter`, `className` and
+`contentClassName`. Public navigation links to the canonical `/dashboard` and
+`/learn/*` learning experience; never add a new `/chapters` link.
 
-```typescript
-// Sidebar
-<div className="hidden lg:block">
-  <Sidebar />
-</div>
+## GOTCHAS
 
-// Mobile overlay
-<AnimatePresence>
-  {sidebarOpen && (
-    <motion.div className="fixed inset-0 z-40 lg:hidden">
-      ...
-    </motion.div>
-  )}
-</AnimatePresence>
-```
+1. The root `src/app/layout.tsx` owns providers only. Do not put navigation or the partner footer there.
+2. Partner logos belong exclusively to `PublicShell`; app and admin screens must not render them.
+3. Admin authorization remains server-side in `src/app/admin/layout.tsx`; `AdminShell` is presentation only.
+4. `MainLayout` is height-constrained and scrolls its own main region.
+5. Public and admin mobile menus must retain their labels, `aria-expanded`, `aria-controls` and Escape/route-close behavior.
 
-### Topbar Stats
+## STRUCTURE
 
-```typescript
-// Displays: Streak | XP | Level | Hearts | Gems | Notifications | Avatar
-// Hearts use useHearts() hook for real-time updates
-```
-
-## ⚠️ GOTCHAS
-
-1. **Collapsed state**: Sidebar stores collapsed in local state (no persistence)
-2. **Hearts hook**: Topbar uses useHearts() which auto-fetches on mount
-3. **Session data**: Falls back to 0/1 if session.user fields missing
-4. **Mobile menu**: z-50 for sidebar, z-40 for backdrop
-
-## 📁 STRUCTURE
-
-```
+```text
 layout/
-├── _AI.md              # This file
-├── index.ts            # Barrel exports
-├── MainLayout.tsx      # Full page wrapper
-├── Sidebar.tsx         # Navigation sidebar
-└── Topbar.tsx          # Header bar
+├── MainLayout.tsx
+├── PublicShell.tsx
+├── PublicPageLayout.tsx
+├── AdminShell.tsx
+├── Sidebar.tsx
+├── Topbar.tsx
+├── MobileNav.tsx
+├── footer.tsx
+└── index.ts
 ```
 
-## 🔄 RELATED
-
-- `src/app/(main)/layout.tsx` - Uses MainLayout
-- `src/components/gamification/` - Stats components used in Topbar
-- `src/components/shared/ErrorBoundary.tsx` - Wraps page content
-
----
+The retired `Navigation`, `PageLayout` and `UnifiedPageLayout` components must not be reintroduced.
 
 <!-- META: For AI agents -->
 <!-- TRAVERSE: no -->
 <!-- DEPTH: 2 -->
-<!-- CRITICAL: MainLayout.tsx -->
+<!-- CRITICAL: MainLayout.tsx, PublicShell.tsx, AdminShell.tsx -->

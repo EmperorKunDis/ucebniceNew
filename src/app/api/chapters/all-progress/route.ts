@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { canonicalChapterIdsThrough } from '@/lib/canonical-content-keys'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,11 +24,12 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({ progress: {} })
     }
 
-    // Get all chapter completions for this user
-    const chapterCompletions = await prisma.chapterCompletion.findMany({
+    const chapterProgress = await prisma.chapterProgress.findMany({
       where: {
         userId: user.id,
+        chapter: { chapterId: { in: canonicalChapterIdsThrough() } },
       },
+      include: { chapter: { select: { chapterId: true } } },
     })
 
     // Convert to map for easy lookup
@@ -38,16 +40,17 @@ export async function GET(_request: NextRequest) {
         answeredQuestions: boolean
         submittedProject: boolean
         completed: boolean
+        stars: number
       }
     > = {}
 
-    chapterCompletions.forEach(completion => {
-      progress[completion.chapterId] = {
-        completedChapter: completion.completedChapter,
-        answeredQuestions: completion.answeredQuestions,
-        submittedProject: completion.submittedProject,
-        // BUG FIX: completed = Star 1 (completedChapter), not just record existence
-        completed: completion.completedChapter,
+    chapterProgress.forEach(chapterProgress => {
+      progress[chapterProgress.chapter.chapterId] = {
+        completedChapter: chapterProgress.contentCompleted,
+        answeredQuestions: chapterProgress.exercisesCompleted,
+        submittedProject: chapterProgress.projectApproved,
+        completed: chapterProgress.contentCompleted,
+        stars: chapterProgress.stars,
       }
     })
 

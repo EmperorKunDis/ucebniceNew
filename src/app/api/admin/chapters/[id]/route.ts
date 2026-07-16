@@ -15,18 +15,6 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     const chapter = await prisma.chapter.findUnique({
       where: { id },
       include: {
-        completedBy: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                username: true,
-              },
-            },
-          },
-        },
         progress: {
           include: {
             user: {
@@ -38,6 +26,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
               },
             },
           },
+          orderBy: { lastUpdated: 'desc' },
         },
       },
     })

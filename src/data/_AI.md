@@ -2,16 +2,14 @@
 
 ## 🎯 PURPOSE
 
-Static data definitions for chapters, questions, module tests, and skill graphs. This is the content configuration layer.
+Versioned import manifests plus static skill-tree data. The database is the runtime content source; this directory and `public/prednasky/` are deterministic inputs for canonical imports.
 
 ## 📦 EXPORTS
 
-| File              | Export                                  | Description                   |
-| ----------------- | --------------------------------------- | ----------------------------- |
-| `chapters.ts`     | `chapters: Chapter[]`                   | 40 chapter definitions        |
-| `questions.ts`    | `questions: Record<string, Question[]>` | Quiz questions per chapter    |
-| `module-tests.ts` | `moduleTests: ModuleTest[]`             | Tests after every 10 chapters |
-| `skills-graph.ts` | `skillsGraph: SkillNode[]`              | D3 skill tree data            |
+| File              | Export                     | Description            |
+| ----------------- | -------------------------- | ---------------------- |
+| `chapters.ts`     | `chapters: Chapter[]`      | 40 chapter definitions |
+| `skills-graph.ts` | `skillsGraph: SkillNode[]` | D3 skill tree data     |
 
 ## 🔗 DEPENDENCIES
 
@@ -37,51 +35,30 @@ interface Chapter {
 }
 ```
 
-### Question Definition
-
-```typescript
-interface Question {
-  id: string
-  question: string
-  options: string[]
-  correctAnswer: number // Index of correct option
-  explanation?: string
-}
-```
-
-### Module Test (Every 10 Chapters)
-
-```typescript
-interface ModuleTest {
-  moduleNumber: number // 1, 2, 3, 4
-  title: string
-  chapters: string[] // Chapter IDs covered
-  questions: Question[]
-}
-```
-
 ## ⚠️ GOTCHAS
 
 1. **40 chapters total**: Organized into 4 modules of 10 chapters each
 2. **Video files**: Not all chapters have videos (check `videoFile`)
 3. **NotebookLM**: External Google service links
 4. **Colab notebooks**: Stored in separate GitHub repo (see GITHUB_CONFIG in constants.ts)
-5. **Questions are hardcoded**: Also exist in database (Question model) - keep in sync
+5. **Canonical assessments**: The 400 v2 exercises come from `public/prednasky/Otazky_Kapitoly_1-40.md`; answer keys are never bundled into client data.
 6. **File paths**: Runtime video files are served from `VIDEO_FILES_DIR` (default `/data/videa`), lectures in `public/prednasky/`
+7. **Import invariants**: There must be 40 chapter manifest entries, one full published Markdown lesson and 10 exercises per chapter, plus 38 videos, 38 NotebookLM links, and 40 Colab links (chapters 09 and 10 intentionally have no video/NotebookLM).
+8. **Stable IDs**: Canonical imports use `lesson:<chapterId>` and `exercise:<chapterId>:<questionNumber>` source keys and must upsert rather than delete/recreate records.
 
 ## 📁 STRUCTURE
 
 ```
 data/
 ├── chapters.ts      # Chapter definitions (CRITICAL)
-├── questions.ts     # Quiz questions per chapter
-├── module-tests.ts  # Module test definitions
 └── skills-graph.ts  # Skill visualization data
 ```
 
 ## 🔄 RELATED
 
-- `prisma/schema.prisma` - Chapter and Question models (database mirror)
+- `src/lib/course-content.ts` - Canonical parser and invariant validation
+- `scripts/import-v2-content.ts` - Database upsert boundary
+- `prisma/schema.prisma` - Runtime Chapter/MicroLesson/Exercise models
 - `src/app/chapters/` - Pages using this data
 - `public/prednasky/` - Markdown lecture files
 - `VIDEO_FILES_DIR` - Runtime video files mounted by Docker Compose in production

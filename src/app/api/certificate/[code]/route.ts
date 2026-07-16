@@ -29,16 +29,19 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
     }
 
     // Generate PDF
-    const pdfBuffer = await generateCertificatePDF({
-      userId: certificate.userId,
-      userName: certificate.userName,
-      courseTitle: certificate.courseTitle,
-      courseLevel: certificate.courseLevel as 'foundation' | 'advanced',
-      completedAt: certificate.completedAt,
-      totalXP: certificate.totalXP,
-      totalChapters: certificate.totalChapters,
-      averageScore: certificate.averageScore || undefined,
-    })
+    const pdfBuffer = await generateCertificatePDF(
+      {
+        userId: certificate.userId,
+        userName: certificate.userName,
+        courseTitle: certificate.courseTitle,
+        courseLevel: certificate.courseLevel as 'foundation' | 'advanced',
+        completedAt: certificate.completedAt,
+        totalXP: certificate.totalXP,
+        totalChapters: certificate.totalChapters,
+        averageScore: certificate.averageScore || undefined,
+      },
+      certificate.uniqueCode
+    )
 
     // Return PDF
     return new NextResponse(new Uint8Array(pdfBuffer), {

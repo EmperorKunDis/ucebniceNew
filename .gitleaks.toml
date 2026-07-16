@@ -1,0 +1,20 @@
+title = "UcebniceNew Gitleaks configuration"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Public shop item identifiers are not API keys"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''^prisma/seed-duolingo\.ts$''']
+regexes = ['''^\s*key:\s*['"]unlimited_hearts_(1h|1d)['"],?\s*$''']
+
+[[allowlists]]
+description = "Bitnami SealedSecret ciphertext is safe to commit"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''^argocd/(postgres|ucebnice)-sealed-secret\.yaml$''']
+regexes = ['''^\s+(password|GOOGLE_CLIENT_SECRET|NEXTAUTH_SECRET|UPSTASH_REDIS_REST_TOKEN):\s+Ag[A-Za-z0-9+/=]+\s*$''']

@@ -1,97 +1,43 @@
 # src/components/learning/exercise/ - AI Context
 
-## 🎯 PURPOSE
+## PURPOSE
 
-Interactive exercise components for the micro-lesson system. Supports multiple exercise types with hints, feedback, and XP rewards.
+Server-authoritative exercise inputs for the v2 lesson flow. Components collect a user answer; only `/api/exercises/[id]/answer` decides correctness, rewards XP and returns feedback.
 
-## 📦 EXPORTS
+## PUBLIC DATA CONTRACT
 
-| File                           | Component      | Purpose                                         |
-| ------------------------------ | -------------- | ----------------------------------------------- |
-| `ExercisePlayer.tsx`           | ExercisePlayer | Main wrapper that renders correct exercise type |
-| `exercises/MultipleChoice.tsx` | MultipleChoice | A/B/C/D choice questions                        |
-| `exercises/FillInBlank.tsx`    | FillInBlank    | Text with \_\_\_ blanks to fill                 |
-| `exercises/TrueFalse.tsx`      | TrueFalse      | True/False statement evaluation                 |
-| `exercises/CodeOutput.tsx`     | CodeOutput     | "What does this code print?"                    |
-| `exercises/MatchPairs.tsx`     | MatchPairs     | Connect left items to right items               |
-
-## 🔗 DEPENDENCIES
-
-- `framer-motion` - Animations and transitions
-- `lucide-react` - Icons
-- `@/lib/utils` - `cn()` class merging
-
-## 🏗️ PATTERNS
-
-### Exercise Data Structure
+The browser receives display fields only:
 
 ```typescript
-interface Exercise {
-  id: string
-  type: ExerciseType // 'MULTIPLE_CHOICE' | 'FILL_IN_BLANK' | etc.
-  question: string
-  data: Record<string, unknown> // Type-specific data
-  explanation?: string
-  hints?: string[]
-  xpReward: number
-}
-
-// Example data for each type:
-// MULTIPLE_CHOICE: { options: string[], correctIndex: number }
-// FILL_IN_BLANK: { text: string, answers: string[], alternatives?: string[][] }
-// TRUE_FALSE: { isTrue: boolean }
-// CODE_OUTPUT: { code: string, language: string, options: string[], correctIndex: number }
-// MATCH_PAIRS: { pairs: { left: string, right: string }[] }
+// MULTIPLE_CHOICE: { options: string[] }
+// CODE_OUTPUT: { code: string, language?: string, options: string[] }
+// TRUE_FALSE: {}
+// FILL_IN_BLANK: { text: string } // blank count comes from ___ placeholders
+// MATCH_PAIRS: { leftItems: string[], rightItems: string[] }
+// TYPE_ANSWER: {}
 ```
 
-### Callback Pattern
+Never add `correctIndex`, `isTrue`, `answers`, `alternatives`, ordered answer pairs or any other answer key to component props or browser evaluation.
+
+## CALLBACK PATTERN
+
+Leaf inputs call `onAnswer(answer)` exactly once. `ExercisePlayer` POSTs that answer and waits for the server response before it renders correct/incorrect feedback.
+
+`MATCH_PAIRS` submits:
 
 ```typescript
-// All exercise types call onAnswer(userAnswer, isCorrect)
-// ExercisePlayer wraps this to handle hearts, XP, etc.
-
-onComplete: (isCorrect: boolean, xpEarned: number) => void
-onHeartLost?: () => void  // Called when wrong answer
+Array<{ left: string; right: string }>
 ```
 
-### Hint System
+`onComplete(isCorrect, xpEarned)` remains the lesson-level callback and uses server response values only.
 
-```typescript
-// Hints reduce XP reward by 2 each
-const xpEarned = Math.max(1, exercise.xpReward - hintsUsed * 2)
-```
+## GOTCHAS
 
-## ⚠️ GOTCHAS
-
-1. **MatchPairs shuffle**: Right column is shuffled once on mount using useState initializer
-2. **FillInBlank alternatives**: Case-insensitive by default, supports multiple correct answers
-3. **Auto-submit**: MatchPairs auto-submits when all pairs connected
-4. **Disabled state**: All exercises accept `disabled` prop to prevent interaction after answer
-
-## 📁 STRUCTURE
-
-```
-exercise/
-├── _AI.md              # This file
-├── index.ts            # Barrel exports
-├── ExercisePlayer.tsx  # Main player component
-└── exercises/
-    ├── index.ts
-    ├── MultipleChoice.tsx
-    ├── FillInBlank.tsx
-    ├── TrueFalse.tsx
-    ├── CodeOutput.tsx
-    └── MatchPairs.tsx
-```
-
-## 🔄 RELATED
-
-- `/api/exercises/[id]/answer` - Submit answer API
-- `src/components/gamification/hearts/` - Heart loss handling
-- `src/components/gamification/celebrations/` - XP gain animations
-- `prisma/schema.prisma` - Exercise model with ExerciseType enum
-
----
+1. Every explicit attempt gets a new idempotency key. A transport/502-504 retry reuses that key; after both requests fail, the leaf input remounts for a new explicit attempt.
+2. Fill-in-the-blank inputs derive their count from `___`; no answer array is needed.
+3. Match-pair columns are already independently ordered by the API; do not infer correctness from array indexes.
+4. Explanations may come from the answer response and must never include an answer key.
+5. Keep leaf selection styling neutral until server feedback is available.
 
 <!-- META: For AI agents -->
 <!-- TRAVERSE: no -->

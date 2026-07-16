@@ -2,7 +2,7 @@
 
 ## 🎯 PURPOSE
 
-API endpoints for interactive exercises - answer submission, hint requests, and progress tracking.
+Canonical server-authoritative answer submission for v2 exercises.
 
 ## 📦 EXPORTS (API Routes)
 
@@ -13,88 +13,58 @@ API endpoints for interactive exercises - answer submission, hint requests, and 
 ## 🔗 DEPENDENCIES
 
 - `@/lib/auth` - Session authentication
-- `@/lib/prisma` - Database access
-- `@/lib/streak-manager` - Streak updates on correct answers
-- `@/lib/quest-tracker` - Quest progress updates
+- `@/lib/learning-service` - Serializable attempt, progress and reward workflow
+- `@/lib/exercise-contract` - Private server-side answer evaluation
 
 ## 🏗️ PATTERNS
 
-### Answer Evaluation
+### Write contract
 
 ```typescript
-// Different evaluation logic per exercise type
-switch (type) {
-  case 'MULTIPLE_CHOICE':
-    return answer === data.correctIndex
-  case 'TRUE_FALSE':
-    return answer === data.isTrue
-  case 'FILL_IN_BLANK': // Check all blanks with alternatives
-  case 'CODE_OUTPUT':
-    return answer === data.correctIndex
-  case 'MATCH_PAIRS': // Verify all pairs match
-}
+POST /api/exercises/:id/answer
+Idempotency-Key: <stable key for this explicit attempt>
+
+{ answer, hintsUsed?, timeSpentSeconds?, idempotencyKey? }
 ```
 
-### Heart System Integration
+`ExercisePlayer` reuses the same key for a network retry. Reusing a key with a different exercise or answer returns `409`.
+
+### Canonical transaction
 
 ```typescript
-// Check hearts before allowing answer
-if (!hasUnlimitedHearts && user.hearts <= 0) {
-  return { error: 'Nemáš žádná srdce', outOfHearts: true }
-}
-
-// Lose heart on wrong answer
-if (!isCorrect && !hasUnlimitedHearts) {
-  await prisma.user.update({ hearts: { decrement: 1 } })
-}
+attempt -> server evaluation -> ExerciseProgress -> ChapterProgress
+        -> RewardLedger -> XP/streak/quests/league
 ```
 
-### XP Multiplier Check
+The transaction uses `Serializable` isolation and retries Prisma `P2034`. `RewardLedger` grants the first correct answer only; later correct attempts remain recorded with `xpEarned: 0`.
 
-```typescript
-// Check for active double XP boost
-const xpBoost = await prisma.userPurchase.findFirst({
-  where: {
-    userId,
-    expiresAt: { gt: new Date() },
-    item: { key: 'double_xp' },
-  },
-})
-if (xpBoost) xpEarned *= 2
-```
-
-### Response Format - Correct
+### Response
 
 ```typescript
 {
-  correct: true,
-  xpEarned: 10,
-  leveledUp: null | newLevel,
-  questProgress: [{ questId, newProgress, target }],
-  hearts: 5,
-  heartLost: false
+  ;(correct,
+    xpEarned,
+    replayed,
+    hearts,
+    heartLost,
+    outOfHearts,
+    totalXP,
+    level,
+    leveledUp,
+    exercisesCompleted,
+    stars,
+    questProgress)
 }
 ```
 
-### Response Format - Incorrect
-
-```typescript
-{
-  correct: false,
-  correctAnswer: { index: 2, text: "Správná odpověď" },
-  explanation: "Vysvětlení proč...",
-  hearts: 4,
-  heartLost: true,
-  outOfHearts: false
-}
-```
+The response never contains `correctAnswer`, `correctIndex`, ordered correct pairs or any other answer key.
 
 ## ⚠️ GOTCHAS
 
-1. **Hearts check first**: Always verify hearts before processing answer
-2. **XP boost stacking**: Only one boost type active at a time
-3. **Level calculation**: `level = floor(sqrt(xp/100)) + 1`
-4. **Chapter progress**: Updates both correct and total counts
+1. **Idempotency is mandatory**: Reject writes without a stable attempt key.
+2. **Internal chapter ids only**: `ChapterProgress.chapterId` receives `Chapter.id`, never public slug `"01"`.
+3. **Content gate**: The lesson content must be completed before its exercises accept answers.
+4. **No answer key**: Evaluation stays in `learning-service.ts` and `exercise-contract.ts`.
 
 ## 📁 STRUCTURE
 

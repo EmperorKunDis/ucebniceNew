@@ -5,6 +5,8 @@ node_modules/
 
 # testing
 coverage/
+/playwright-report/
+/test-results/
 
 # next.js
 .next/
@@ -56,6 +58,10 @@ prisma/*.db-journal
 # migration
 scripts/migration/sqlite-export.json
 scripts/migration/*.backup
+/backup_*.sql
+
+# npm is the only supported JavaScript package manager
+/pnpm-lock.yaml
 
 # Knowledge base
 .claude/knowledge/*.md

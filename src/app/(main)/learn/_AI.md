@@ -6,12 +6,12 @@ Learning flow pages - chapter overview, micro-lessons, and practice sessions. Th
 
 ## 📄 PAGES
 
-| Path                                   | Purpose                           |
-| -------------------------------------- | --------------------------------- |
-| `/learn`                               | Redirects to `/dashboard`         |
-| `/learn/[chapterId]`                   | Chapter overview with lesson list |
-| `/learn/[chapterId]/lesson/[lessonId]` | Micro-lesson player               |
-| `/learn/[chapterId]/practice`          | Random exercises for practice     |
+| Path                                   | Purpose                            |
+| -------------------------------------- | ---------------------------------- |
+| `/learn`                               | Redirects to `/dashboard`          |
+| `/learn/[chapterId]`                   | Chapter overview with lesson list  |
+| `/learn/[chapterId]/lesson/[lessonId]` | Content-first lesson and exercises |
+| `/learn/[chapterId]/practice`          | Random exercises for practice      |
 
 ## 🔗 DEPENDENCIES
 
@@ -30,10 +30,19 @@ Learning flow pages - chapter overview, micro-lessons, and practice sessions. Th
     ↓ click chapter
 /learn/[chapterId] (overview)
     ↓ click lesson
-/learn/[chapterId]/lesson/[lessonId] (exercises)
+/learn/[chapterId]/lesson/[lessonId] (Markdown, video and resources)
+    ↓ explicit "Pokračovat na cvičení"
+server-authoritative exercises
     ↓ complete
 back to chapter overview
 ```
+
+### Lesson content contract
+
+The lesson UI accepts `content`, `videoFile`, `notebookLMUrl`, `colabNotebook`,
+`projectDescription` and `progress.contentCompleted`. Content is raw Markdown
+from the database. The page always presents content before exercises and never
+derives answer correctness in the browser.
 
 ### Exercise Session
 
@@ -64,6 +73,8 @@ const handleExerciseComplete = (isCorrect: boolean, earnedXP: number) => {
 2. **Hearts consumed**: Wrong answers call `loseHeart()` from useHearts
 3. **Exercise undefined check**: Must check `currentExercise` exists before render
 4. **Practice mode**: `/practice` fetches random exercises from all lessons
+5. **Answer keys**: Exercise DTOs contain display fields only; feedback comes from the answer API
+6. **Projects**: The chapter overview and lesson completion screen render `ProjectSubmission`
 
 ## 📁 STRUCTURE
 

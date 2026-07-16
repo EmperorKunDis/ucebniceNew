@@ -2,10 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { ReviewRating } from '@prisma/client'
-import { updateStreak } from '@/lib/streak-manager'
-import { updateQuestProgress } from '@/lib/quest-tracker'
-import { QuestCategory } from '@prisma/client'
+import { QuestCategory, ReviewRating } from '@prisma/client'
+import type { Prisma } from '@prisma/client'
+import {
+  awardCanonicalReward,
+  LearningServiceError,
+  runLearningTransaction,
+} from '@/lib/learning-service'
+import { canonicalExerciseSourceKeysForCourse } from '@/lib/canonical-content-keys'
 
 /**
  * SM-2 Spaced Repetition Algorithm
@@ -55,6 +59,56 @@ function calculateSM2(
   }
 }
 
+interface ReviewAnswerData {
+  newInterval: number
+  newEaseFactor: number
+  newRepetitions: number
+  nextReviewAt: string
+  xpEarned: number
+  correct: boolean
+  replayed: boolean
+}
+
+function replayClaim(
+  metadata: unknown,
+  expected: { cardId: string; rating: ReviewRating }
+): ReviewAnswerData {
+  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
+    throw new LearningServiceError('Idempotency claim nelze bezpečně zopakovat', 409)
+  }
+
+  const claim = metadata as Record<string, unknown>
+  if (claim.cardId !== expected.cardId || claim.rating !== expected.rating) {
+    throw new LearningServiceError('Idempotency klíč už byl použit pro jinou odpověď', 409)
+  }
+
+  const result = claim.result
+  if (!result || typeof result !== 'object' || Array.isArray(result)) {
+    throw new LearningServiceError('Idempotency claim neobsahuje výsledek', 409)
+  }
+  const data = result as Record<string, unknown>
+  if (
+    typeof data.newInterval !== 'number' ||
+    typeof data.newEaseFactor !== 'number' ||
+    typeof data.newRepetitions !== 'number' ||
+    typeof data.nextReviewAt !== 'string' ||
+    typeof data.xpEarned !== 'number' ||
+    typeof data.correct !== 'boolean'
+  ) {
+    throw new LearningServiceError('Idempotency claim má neplatný výsledek', 409)
+  }
+
+  return {
+    newInterval: data.newInterval,
+    newEaseFactor: data.newEaseFactor,
+    newRepetitions: data.newRepetitions,
+    nextReviewAt: data.nextReviewAt,
+    xpEarned: data.xpEarned,
+    correct: data.correct,
+    replayed: true,
+  }
+}
+
 /**
  * POST /api/review/answer
  * Submit a review rating for a card
@@ -71,29 +125,22 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { cardId, rating, timeSpent: _timeSpent } = body
 
+    if (typeof cardId !== 'string' || cardId.length === 0) {
+      return NextResponse.json({ error: 'cardId is required' }, { status: 400 })
+    }
+
+    const idempotencyKey = request.headers.get('Idempotency-Key')?.trim()
+    if (!idempotencyKey || idempotencyKey.length < 8 || idempotencyKey.length > 200) {
+      return NextResponse.json(
+        { error: 'Platný Idempotency-Key header je povinný' },
+        { status: 400 }
+      )
+    }
+
     // Validate rating
     const validRatings: ReviewRating[] = ['AGAIN', 'HARD', 'GOOD', 'EASY']
     if (!validRatings.includes(rating)) {
       return NextResponse.json({ error: 'Invalid rating' }, { status: 400 })
-    }
-
-    // Get the card
-    const card = await prisma.reviewCard.findUnique({
-      where: { id: cardId },
-      include: {
-        concept: {
-          include: {
-            exercises: {
-              take: 1,
-              select: { xpReward: true },
-            },
-          },
-        },
-      },
-    })
-
-    if (!card || card.userId !== userId) {
-      return NextResponse.json({ error: 'Karta nenalezena' }, { status: 404 })
     }
 
     // Map rating to quality (0-5)
@@ -103,68 +150,147 @@ export async function POST(request: NextRequest) {
       GOOD: 4,
       EASY: 5,
     }
-    const quality = qualityMap[rating as ReviewRating]
+    const reviewRating = rating as ReviewRating
+    const quality = qualityMap[reviewRating]
+    const dedupeKey = `REVIEW_ANSWER:${cardId}:${idempotencyKey}`
 
-    // Calculate new SM-2 values
-    const { newInterval, newEaseFactor, newRepetitions } = calculateSM2(
-      quality,
-      card.repetitions,
-      card.easeFactor,
-      card.interval
-    )
+    const transactionResult = await runLearningTransaction(async tx => {
+      const existingClaim = await tx.rewardLedger.findUnique({
+        where: { userId_dedupeKey: { userId, dedupeKey } },
+        select: { metadata: true },
+      })
+      if (existingClaim) {
+        return {
+          kind: 'response' as const,
+          data: replayClaim(existingClaim.metadata, { cardId, rating: reviewRating }),
+        }
+      }
 
-    // Calculate next review date
-    const nextReviewAt = new Date()
-    nextReviewAt.setDate(nextReviewAt.getDate() + newInterval)
-
-    // Update the card
-    const updatedCard = await prisma.reviewCard.update({
-      where: { id: cardId },
-      data: {
-        easeFactor: newEaseFactor,
-        interval: newInterval,
-        repetitions: newRepetitions,
-        nextReviewAt,
-        lastReviewAt: new Date(),
-        totalReviews: { increment: 1 },
-        correctCount: quality >= 3 ? { increment: 1 } : undefined,
-        lastRating: rating,
-      },
-    })
-
-    // Award XP for successful review
-    let xpEarned = 0
-    if (quality >= 3) {
-      xpEarned = card.concept.exercises[0]?.xpReward ?? 5
-
-      await prisma.user.update({
-        where: { id: userId },
-        data: {
-          xp: { increment: xpEarned },
-          dailyXP: { increment: xpEarned },
+      const card = await tx.reviewCard.findUnique({
+        where: { id: cardId },
+        include: {
+          concept: {
+            include: {
+              exercises: {
+                where: { sourceKey: { in: canonicalExerciseSourceKeysForCourse() } },
+                take: 1,
+                select: { xpReward: true },
+              },
+            },
+          },
         },
       })
 
-      // Update streak
-      await updateStreak(userId, xpEarned)
+      if (!card || card.userId !== userId) {
+        throw new LearningServiceError('Karta nenalezena', 404)
+      }
 
-      // Update quest progress
-      await updateQuestProgress(userId, QuestCategory.REVIEW_SESSIONS, 1)
-      await updateQuestProgress(userId, QuestCategory.XP_EARNED, xpEarned)
+      const reviewedAt = new Date()
+      if (card.nextReviewAt.getTime() > reviewedAt.getTime()) {
+        throw new LearningServiceError('Tato karta zatím není připravena k opakování', 409)
+      }
+
+      const { newInterval, newEaseFactor, newRepetitions } = calculateSM2(
+        quality,
+        card.repetitions,
+        card.easeFactor,
+        card.interval
+      )
+      const nextReviewAt = new Date(reviewedAt)
+      nextReviewAt.setDate(nextReviewAt.getDate() + newInterval)
+      const proposedXp = quality >= 3 ? (card.concept.exercises[0]?.xpReward ?? 5) : 0
+      const data: ReviewAnswerData = {
+        newInterval,
+        newEaseFactor,
+        newRepetitions,
+        nextReviewAt: nextReviewAt.toISOString(),
+        xpEarned: proposedXp,
+        correct: quality >= 3,
+        replayed: false,
+      }
+      const resultMetadata: Prisma.InputJsonObject = {
+        newInterval: data.newInterval,
+        newEaseFactor: data.newEaseFactor,
+        newRepetitions: data.newRepetitions,
+        nextReviewAt: data.nextReviewAt,
+        xpEarned: data.xpEarned,
+        correct: data.correct,
+        replayed: data.replayed,
+      }
+      const metadata: Prisma.InputJsonObject = {
+        cardId,
+        rating: reviewRating,
+        result: resultMetadata,
+      }
+
+      if (quality >= 3) {
+        const reward = await awardCanonicalReward(tx, {
+          userId,
+          sourceType: 'REVIEW_ANSWER',
+          sourceId: `${cardId}:${idempotencyKey}`,
+          xpAmount: proposedXp,
+          metadata,
+          questCategories: [QuestCategory.REVIEW_SESSIONS, QuestCategory.XP_EARNED],
+        })
+        if (!reward.awarded) return { kind: 'collision' as const }
+        data.xpEarned = reward.xpEarned
+      } else {
+        const claim = await tx.rewardLedger.createMany({
+          data: [
+            {
+              userId,
+              sourceType: 'REVIEW_ANSWER',
+              sourceId: `${cardId}:${idempotencyKey}`,
+              dedupeKey,
+              xpAmount: 0,
+              gemAmount: 0,
+              metadata,
+            },
+          ],
+          skipDuplicates: true,
+        })
+        if (claim.count !== 1) return { kind: 'collision' as const }
+      }
+
+      await tx.reviewCard.update({
+        where: { id: cardId },
+        data: {
+          easeFactor: newEaseFactor,
+          interval: newInterval,
+          repetitions: newRepetitions,
+          nextReviewAt,
+          lastReviewAt: reviewedAt,
+          totalReviews: { increment: 1 },
+          correctCount: quality >= 3 ? { increment: 1 } : undefined,
+          lastRating: reviewRating,
+        },
+      })
+
+      return { kind: 'response' as const, data }
+    })
+
+    let responseData: ReviewAnswerData
+    if (transactionResult.kind === 'collision') {
+      const claim = await prisma.rewardLedger.findUnique({
+        where: { userId_dedupeKey: { userId, dedupeKey } },
+        select: { metadata: true },
+      })
+      if (!claim) {
+        throw new LearningServiceError('Souběžná odpověď se zpracovává, zkus požadavek znovu', 409)
+      }
+      responseData = replayClaim(claim.metadata, { cardId, rating: reviewRating })
+    } else {
+      responseData = transactionResult.data
     }
 
     return NextResponse.json({
       success: true,
-      data: {
-        newInterval,
-        newEaseFactor,
-        newRepetitions,
-        nextReviewAt: updatedCard.nextReviewAt.toISOString(),
-        xpEarned,
-        correct: quality >= 3,
-      },
+      data: responseData,
     })
   } catch (error) {
+    if (error instanceof LearningServiceError) {
+      return NextResponse.json({ error: error.message }, { status: error.status })
+    }
     console.error('Error submitting review:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

@@ -1,7 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { PageLayout } from '@/components/layout/page-layout'
+import { PublicPageLayout } from '@/components/layout/PublicPageLayout'
 import { GreySurface } from '@/components/ui/grey-surface'
 import { Button } from '@/components/ui/button'
 import { Stack, Grid, Box } from '@/components/layout'
@@ -29,7 +29,7 @@ export default function HomePage() {
 
   // Removed auto-redirect - let users browse freely first
   return (
-    <PageLayout>
+    <PublicPageLayout maxWidth="none" contentClassName="space-y-0 p-0">
       {/* Hero section */}
       <Box
         as="section"
@@ -68,7 +68,7 @@ export default function HomePage() {
                 </Link>
 
                 <Button variant="secondary" size="lg" asChild>
-                  <Link href="/chapters">Prohlédnout kapitoly</Link>
+                  <Link href="/dashboard">Prohlédnout kapitoly</Link>
                 </Button>
               </Stack>
             </Stack>
@@ -167,6 +167,6 @@ export default function HomePage() {
           </GreySurface>
         </Box>
       </Box>
-    </PageLayout>
+    </PublicPageLayout>
   )
 }

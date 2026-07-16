@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { isCanonicalChapterId } from '@/lib/canonical-content-keys'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
   const chapterId = searchParams.get('chapterId')
 
-  if (!chapterId) {
+  if (!chapterId || !isCanonicalChapterId(chapterId)) {
     return NextResponse.json({ error: 'Missing chapterId' }, { status: 400 })
   }
 
@@ -32,33 +33,16 @@ export async function GET(request: NextRequest) {
         questionText: true,
         options: true,
         xpReward: true,
-        // We don't send correctAnswer or explanation to the frontend for security
-        // The frontend will receive explanation only after answering
+        // Answer keys and explanations remain server-side.
       },
     })
 
-    // Map to the format expected by the frontend
+    // Read-only compatibility DTO; the v2 exercise API is canonical.
     const formattedQuestions = questions.map((q: any) => ({
       id: q.id,
       question: q.questionText,
       options: q.options as string[],
       xpReward: q.xpReward,
-      // Frontend expects these but they shouldn't be revealed initially.
-      // We might need to adjust the frontend type or send dummies/nulls if strictly required by types,
-      // but for now let's see if we can get away with not sending them or handling it in frontend.
-      // Looking at Question interface in src/data/questions.ts:
-      // correctAnswer: number
-      // explanation: string
-      // We should probably just send them if we want to avoid refactoring everything right now,
-      // BUT it defeats the purpose of security.
-      // However, the prompt asked to fix the missing questions.
-      // Let's send them for now to maintain compatibility with existing 'Question' interface
-      // and 'ChapterLayout' logic if it purely relies on local data (though ChapterLayout sends answer to API).
-      // WAIT, ChapterLayout calls 'handleAnswerQuestion' which calls '/api/questions/answer`.
-      // The frontend DOES NOT verify locally.
-      // But `QuestionCard` might display explanation after answer?
-      // `handleAnswerQuestion` returns `correct` and `explanation`.
-      // So we don't need to send them here!
     }))
 
     return NextResponse.json({ questions: formattedQuestions })
