@@ -212,13 +212,17 @@ model User {
   sessions Session[]
 
   // Learning relations
-  completedChapters  CompletedChapter[]
-  chapterCompletions ChapterCompletion[]
-  chapterProgress    ChapterProgress[]
-  questionAnswers    QuestionAnswer[]
-  projectSubmissions ProjectSubmission[]
-  moduleTestAttempts ModuleTestAttempt[]
-  cognitiveGlitches  CognitiveGlitchAttempt[]
+  completedChapters   CompletedChapter[]
+  chapterCompletions  ChapterCompletion[]
+  chapterProgress     ChapterProgress[]
+  microLessonProgress MicroLessonProgress[]
+  exerciseProgress    ExerciseProgress[]
+  exerciseAttempts    ExerciseAttempt[]
+  questionAnswers     QuestionAnswer[]
+  projectSubmissions  ProjectSubmission[]
+  moduleTestAttempts  ModuleTestAttempt[]
+  cognitiveGlitches   CognitiveGlitchAttempt[]
+  rewardLedger        RewardLedger[]
 
   // Gamification relations
   achievements      UserAchievement[]
@@ -274,14 +278,20 @@ model VerificationToken {
 // ═══════════════════════════════════════════════════════════
 
 model Chapter {
-  id          String             @id @default(uuid())
-  chapterId   String             @unique // "01"-"40"
-  title       String
-  description String?
-  xpReward    Int                @default(100)
-  difficulty  ExerciseDifficulty @default(EASY)
-  order       Int
-  module      Int                @default(1) // 1-8
+  id                  String             @id @default(uuid())
+  chapterId           String             @unique // "01"-"40"
+  title               String
+  description         String?
+  videoFile           String?
+  notebookLmUrl       String?
+  colabUrl            String?
+  projectTitle        String?
+  projectDescription  String?
+  projectRequirements String?
+  xpReward            Int                @default(100)
+  difficulty          ExerciseDifficulty @default(EASY)
+  order               Int
+  module              Int                @default(1) // 1-8
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -294,6 +304,7 @@ model Chapter {
   completions        ChapterCompletion[]
   progress           ChapterProgress[]
   projectSubmissions ProjectSubmission[]
+  milestone          CourseMilestone?
 
   @@index([chapterId])
   @@index([difficulty])
@@ -346,20 +357,27 @@ model ChapterCompletion {
 }
 
 model ChapterProgress {
-  id               String   @id @default(uuid())
-  userId           String
-  chapterId        String
-  progress         Int      @default(0)
-  currentStep      Int      @default(0)
-  totalSteps       Int      @default(0)
-  lessonsCompleted Int      @default(0)
-  exercisesCorrect Int      @default(0)
-  exercisesTotal   Int      @default(0)
-  timeSpentSeconds Int      @default(0)
-  lastAccessedAt   DateTime @default(now())
-  lastUpdated      DateTime @default(now())
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id                   String    @id @default(uuid())
+  userId               String
+  chapterId            String
+  progress             Int       @default(0)
+  currentStep          Int       @default(0)
+  totalSteps           Int       @default(0)
+  lessonsCompleted     Int       @default(0)
+  exercisesCorrect     Int       @default(0)
+  exercisesTotal       Int       @default(0)
+  timeSpentSeconds     Int       @default(0)
+  contentCompleted     Boolean   @default(false)
+  exercisesCompleted   Boolean   @default(false)
+  projectApproved      Boolean   @default(false)
+  stars                Int       @default(0)
+  contentCompletedAt   DateTime?
+  exercisesCompletedAt DateTime?
+  projectApprovedAt    DateTime?
+  lastAccessedAt       DateTime  @default(now())
+  lastUpdated          DateTime  @default(now())
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   chapter Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
@@ -377,6 +395,7 @@ model ChapterProgress {
 
 model MicroLesson {
   id          String   @id @default(uuid())
+  sourceKey   String?  @unique
   chapterId   String
   order       Int
   title       String
@@ -387,8 +406,9 @@ model MicroLesson {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  chapter   Chapter    @relation(fields: [chapterId], references: [chapterId])
+  chapter   Chapter               @relation(fields: [chapterId], references: [chapterId])
   exercises Exercise[]
+  progress  MicroLessonProgress[]
 
   @@unique([chapterId, order])
   @@index([chapterId])
@@ -396,6 +416,7 @@ model MicroLesson {
 
 model Exercise {
   id            String             @id @default(uuid())
+  sourceKey     String?            @unique
   microLessonId String
   order         Int
   type          ExerciseType
@@ -411,10 +432,111 @@ model Exercise {
 
   microLesson MicroLesson @relation(fields: [microLessonId], references: [id], onDelete: Cascade)
   concept     Concept?    @relation(fields: [conceptId], references: [id])
+  progress    ExerciseProgress[]
+  attempts    ExerciseAttempt[]
 
   @@index([microLessonId])
   @@index([type])
   @@index([conceptId])
+}
+
+model MicroLessonProgress {
+  id             String    @id @default(uuid())
+  userId         String
+  microLessonId  String
+  completed      Boolean   @default(false)
+  completedAt    DateTime?
+  startedAt      DateTime?
+  lastAccessedAt DateTime @default(now())
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  microLesson MicroLesson @relation(fields: [microLessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, microLessonId])
+  @@index([userId])
+  @@index([microLessonId])
+  @@index([userId, completed])
+}
+
+model ExerciseProgress {
+  id              String    @id @default(uuid())
+  userId          String
+  exerciseId      String
+  completed       Boolean   @default(false)
+  attemptCount    Int       @default(0)
+  correctCount    Int       @default(0)
+  firstCorrectAt  DateTime?
+  lastAttemptAt   DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, exerciseId])
+  @@index([userId])
+  @@index([exerciseId])
+  @@index([userId, completed])
+}
+
+model ExerciseAttempt {
+  id               String   @id @default(uuid())
+  userId           String
+  exerciseId       String
+  dedupeKey        String?
+  answer            Json
+  correct           Boolean
+  xpEarned          Int      @default(0)
+  timeSpentSeconds  Int?
+  attemptedAt       DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dedupeKey])
+  @@index([userId])
+  @@index([exerciseId])
+  @@index([userId, exerciseId])
+  @@index([attemptedAt])
+}
+
+model RewardLedger {
+  id         String   @id @default(uuid())
+  userId     String
+  sourceType String
+  sourceId   String
+  dedupeKey  String
+  xpAmount   Int      @default(0)
+  gemAmount  Int      @default(0)
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dedupeKey])
+  @@index([userId])
+  @@index([sourceType, sourceId])
+  @@index([createdAt])
+}
+
+model CourseMilestone {
+  id                  String   @id @default(uuid())
+  sourceKey           String   @unique
+  chapterId           String   @unique
+  order               Int      @unique
+  title               String
+  description         String?
+  testRequired        Boolean  @default(true)
+  certificateEligible Boolean  @default(false)
+  isPublished         Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  chapter Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  @@index([isPublished])
 }
 
 // ═══════════════════════════════════════════════════════════

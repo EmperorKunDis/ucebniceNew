@@ -1,36 +1,12 @@
-import { notFound } from 'next/navigation'
-import { ChapterLayout } from '@/components/chapters/ChapterLayout'
-import { getChapterById } from '@/data/chapters'
+import { permanentRedirect } from 'next/navigation'
 
-export async function generateStaticParams() {
-  return Array.from({ length: 40 }, (_, i) => ({
-    chapterId: String(i + 1).padStart(2, '0'),
-  }))
+interface LegacyChapterRedirectPageProps {
+  params: Promise<{ chapterId: string }>
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ chapterId: string }> }) {
+export default async function LegacyChapterRedirectPage({
+  params,
+}: LegacyChapterRedirectPageProps) {
   const { chapterId } = await params
-  const chapter = getChapterById(chapterId)
-
-  if (!chapter) {
-    return {
-      title: 'Kapitola nenalezena',
-    }
-  }
-
-  return {
-    title: `Kapitola ${chapter.number}: ${chapter.title} | Učebnice programování AI`,
-    description: chapter.description,
-  }
-}
-
-export default async function ChapterPage({ params }: { params: Promise<{ chapterId: string }> }) {
-  const { chapterId } = await params
-  const chapter = getChapterById(chapterId)
-
-  if (!chapter) {
-    notFound()
-  }
-
-  return <ChapterLayout chapter={chapter} />
+  permanentRedirect(`/learn/${encodeURIComponent(chapterId)}`)
 }

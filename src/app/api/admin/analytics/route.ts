@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/admin-auth'
 import { prisma } from '@/lib/prisma'
+import {
+  canonicalChapterIdsThrough,
+  canonicalExerciseSourceKeysForCourse,
+} from '@/lib/canonical-content-keys'
 
 /**
  * GET /api/admin/analytics
@@ -11,24 +15,38 @@ export async function GET(_request: NextRequest) {
   if (adminCheck) return adminCheck
 
   try {
-    // Get counts - use ChapterCompletion as primary source
+    // ChapterProgress is the canonical chapter-level source of truth.
     const [
       totalUsers,
       totalChapters,
       totalAchievements,
       totalChapterCompletions,
-      totalQuestionAnswers,
+      totalExerciseAttempts,
       totalProjectSubmissions,
+      totalProjectApprovals,
       activeUsersCount,
     ] = await Promise.all([
       prisma.user.count(),
-      prisma.chapter.count(),
+      prisma.chapter.count({ where: { chapterId: { in: canonicalChapterIdsThrough() } } }),
       prisma.achievement.count(),
-      prisma.chapterCompletion.count({
-        where: { completedChapter: true },
+      prisma.chapterProgress.count({
+        where: {
+          contentCompleted: true,
+          chapter: { chapterId: { in: canonicalChapterIdsThrough() } },
+        },
       }),
-      prisma.questionAnswer.count(),
-      prisma.projectSubmission.count(),
+      prisma.exerciseAttempt.count({
+        where: { exercise: { sourceKey: { in: canonicalExerciseSourceKeysForCourse() } } },
+      }),
+      prisma.projectSubmission.count({
+        where: { chapter: { chapterId: { in: canonicalChapterIdsThrough() } } },
+      }),
+      prisma.chapterProgress.count({
+        where: {
+          projectApproved: true,
+          chapter: { chapterId: { in: canonicalChapterIdsThrough() } },
+        },
+      }),
       // Active users (logged in within last 7 days)
       prisma.user.count({
         where: {
@@ -62,13 +80,14 @@ export async function GET(_request: NextRequest) {
       },
     })
 
-    // Get chapter completion rates using ChapterCompletion model
+    // Get chapter completion rates from canonical progress.
     const chaptersWithCompletions = await prisma.chapter.findMany({
+      where: { chapterId: { in: canonicalChapterIdsThrough() } },
       include: {
         _count: {
           select: {
-            completions: {
-              where: { completedChapter: true },
+            progress: {
+              where: { contentCompleted: true },
             },
           },
         },
@@ -83,20 +102,21 @@ export async function GET(_request: NextRequest) {
       chapterId: chapter.chapterId,
       title: chapter.title,
       order: chapter.order,
-      completions: chapter._count.completions,
+      completions: chapter._count.progress,
       completionRate:
-        totalUsers > 0 ? ((chapter._count.completions / totalUsers) * 100).toFixed(2) : '0.00',
+        totalUsers > 0 ? ((chapter._count.progress / totalUsers) * 100).toFixed(2) : '0.00',
     }))
 
-    // Get recent activity (last 30 days) using ChapterCompletion
+    // Get recent canonical content completions (last 30 days).
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
 
-    const recentCompletions = await prisma.chapterCompletion.count({
+    const recentCompletions = await prisma.chapterProgress.count({
       where: {
-        completedChapter: true,
-        completedAt: {
+        contentCompleted: true,
+        contentCompletedAt: {
           gte: thirtyDaysAgo,
         },
+        chapter: { chapterId: { in: canonicalChapterIdsThrough() } },
       },
     })
 
@@ -134,8 +154,12 @@ export async function GET(_request: NextRequest) {
         totalAchievements,
         totalCompletedChapters: totalChapterCompletions, // Renamed for clarity
         totalChapterCompletions,
-        totalQuestionAnswers,
+        // Keep the old response key during Release A, but source it from the
+        // canonical exercise-attempt history.
+        totalQuestionAnswers: totalExerciseAttempts,
+        totalExerciseAttempts,
         totalProjectSubmissions,
+        totalProjectApprovals,
       },
       averages: {
         xp: avgStats._avg.xp?.toFixed(0) || '0',

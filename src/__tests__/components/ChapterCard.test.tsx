@@ -85,7 +85,7 @@ describe('ChapterCard', () => {
     render(<ChapterCard chapter={mockChapter} />)
 
     const link = screen.getByRole('link')
-    expect(link).toHaveAttribute('href', '/chapters/01')
+    expect(link).toHaveAttribute('href', '/learn/01')
   })
 
   it('should show both video and interactive indicators', () => {

@@ -21,7 +21,7 @@ import {
   Star,
 } from 'lucide-react'
 
-import { UnifiedPageLayout } from '@/components/layout/unified-page-layout'
+import { PublicPageLayout } from '@/components/layout/PublicPageLayout'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { Button } from '@/components/ui/button'
 import { Stack, Grid, Box } from '@/components/layout'
@@ -222,25 +222,25 @@ export default function HackathonDetailPage() {
 
   if (loading) {
     return (
-      <UnifiedPageLayout maxWidth="7xl">
+      <PublicPageLayout maxWidth="7xl">
         <Stack direction="col" align="center" justify="center" className="min-h-[60vh]">
           <Loader2 className="w-12 h-12 text-purple-400 animate-spin" />
           <p className="text-gray-400 mt-4">Načítání hackathonu...</p>
         </Stack>
-      </UnifiedPageLayout>
+      </PublicPageLayout>
     )
   }
 
   if (error || !hackathon) {
     return (
-      <UnifiedPageLayout maxWidth="7xl">
+      <PublicPageLayout maxWidth="7xl">
         <Stack direction="col" align="center" justify="center" className="min-h-[60vh]">
           <p className="text-red-400 mb-4 text-xl">{error || 'Hackathon nenalezen'}</p>
           <Button asChild>
             <Link href="/arena">Zpět na Arénu</Link>
           </Button>
         </Stack>
-      </UnifiedPageLayout>
+      </PublicPageLayout>
     )
   }
 
@@ -263,7 +263,7 @@ export default function HackathonDetailPage() {
   }
 
   return (
-    <UnifiedPageLayout maxWidth="7xl">
+    <PublicPageLayout maxWidth="7xl">
       {/* Back navigation */}
       <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
         <Button variant="ghost" asChild className="mb-6">
@@ -841,6 +841,6 @@ export default function HackathonDetailPage() {
           </motion.div>
         </motion.div>
       )}
-    </UnifiedPageLayout>
+    </PublicPageLayout>
   )
 }

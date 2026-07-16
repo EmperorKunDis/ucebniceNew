@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic'
 import { motion } from 'framer-motion'
 import 'swagger-ui-react/swagger-ui.css'
 
-import { UnifiedPageLayout } from '@/components/layout/unified-page-layout'
+import { PublicPageLayout } from '@/components/layout/PublicPageLayout'
 import { SectionHeader } from '@/components/ui/section-header'
 import { GlassSurface } from '@/components/ui/glass-surface'
 
@@ -12,7 +12,7 @@ const SwaggerUI = dynamic(() => import('swagger-ui-react'), { ssr: false })
 
 export default function ApiDocsPage() {
   return (
-    <UnifiedPageLayout maxWidth="7xl">
+    <PublicPageLayout maxWidth="7xl">
       <SectionHeader subtitle="Complete API documentation for Učebnice programování AI">
         API Documentation
       </SectionHeader>
@@ -28,6 +28,6 @@ export default function ApiDocsPage() {
           </div>
         </GlassSurface>
       </motion.div>
-    </UnifiedPageLayout>
+    </PublicPageLayout>
   )
 }

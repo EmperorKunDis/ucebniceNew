@@ -23,26 +23,15 @@ export function getTestDb() {
 export async function cleanupTestDb() {
   const db = getTestDb()
 
-  // Clean up in order to respect foreign key constraints
-  await db.analyticsEvent.deleteMany()
-  await db.notification.deleteMany()
-  await db.userQuest.deleteMany()
-  await db.quest.deleteMany()
-  await db.friendship.deleteMany()
-  await db.leagueMembership.deleteMany()
-  await db.league.deleteMany()
-  await db.aIChatHistory.deleteMany()
-  await db.reviewCard.deleteMany()
-  await db.questionAnswer.deleteMany()
-  await db.userAchievement.deleteMany()
-  await db.achievement.deleteMany()
-  await db.chapterCompletion.deleteMany()
-  await db.chapterProgress.deleteMany()
-  await db.userPurchase.deleteMany()
-  await db.shopItem.deleteMany()
-  await db.account.deleteMany()
-  await db.session.deleteMany()
+  // User deletion cascades through canonical and compatibility progress,
+  // attempts, rewards, projects, tests, certificates and social records.
   await db.user.deleteMany()
+
+  // Clean global fixtures after their user-owned join rows were cascaded.
+  await db.quest.deleteMany()
+  await db.league.deleteMany()
+  await db.achievement.deleteMany()
+  await db.shopItem.deleteMany()
 }
 
 export async function disconnectTestDb() {
@@ -101,15 +90,84 @@ export async function createChapterCompletion(data: {
   xpEarned?: number
 }) {
   const db = getTestDb()
-  return db.chapterCompletion.create({
-    data: {
+  const chapter = await db.chapter.findUniqueOrThrow({
+    where: { chapterId: data.chapterId },
+    select: { id: true, chapterId: true },
+  })
+  const stars = Math.max(0, Math.min(3, data.stars ?? 3))
+  const contentCompleted = stars >= 1
+  const exercisesCompleted = stars >= 2
+  const projectApproved = stars >= 3
+  const now = new Date()
+
+  const progress = await db.chapterProgress.upsert({
+    where: { userId_chapterId: { userId: data.userId, chapterId: chapter.id } },
+    create: {
       userId: data.userId,
-      chapterId: data.chapterId,
-      completedChapter: true,
-      stars: data.stars ?? 3,
+      chapterId: chapter.id,
+      progress: Math.round((stars / 3) * 100),
+      currentStep: contentCompleted ? 1 : 0,
+      totalSteps: 1,
+      lessonsCompleted: contentCompleted ? 1 : 0,
+      exercisesCorrect: exercisesCompleted ? 10 : 0,
+      exercisesTotal: exercisesCompleted ? 10 : 0,
+      contentCompleted,
+      exercisesCompleted,
+      projectApproved,
+      stars,
+      contentCompletedAt: contentCompleted ? now : null,
+      exercisesCompletedAt: exercisesCompleted ? now : null,
+      projectApprovedAt: projectApproved ? now : null,
+    },
+    update: {
+      progress: Math.round((stars / 3) * 100),
+      lessonsCompleted: contentCompleted ? 1 : 0,
+      exercisesCorrect: exercisesCompleted ? 10 : 0,
+      exercisesTotal: exercisesCompleted ? 10 : 0,
+      contentCompleted,
+      exercisesCompleted,
+      projectApproved,
+      stars,
+      contentCompletedAt: contentCompleted ? now : null,
+      exercisesCompletedAt: exercisesCompleted ? now : null,
+      projectApprovedAt: projectApproved ? now : null,
+    },
+  })
+
+  // Release A keeps a monotonic compatibility projection for rollback.
+  await db.chapterCompletion.upsert({
+    where: { userId_chapterId: { userId: data.userId, chapterId: chapter.chapterId } },
+    create: {
+      userId: data.userId,
+      chapterId: chapter.chapterId,
+      completedChapter: contentCompleted,
+      answeredQuestions: exercisesCompleted,
+      submittedProject: projectApproved,
+      stars,
+      xpEarned: data.xpEarned ?? 100,
+    },
+    update: {
+      completedChapter: contentCompleted,
+      answeredQuestions: exercisesCompleted,
+      submittedProject: projectApproved,
+      stars,
       xpEarned: data.xpEarned ?? 100,
     },
   })
+  if (contentCompleted) {
+    await db.completedChapter.upsert({
+      where: { userId_chapterId: { userId: data.userId, chapterId: chapter.id } },
+      create: {
+        userId: data.userId,
+        chapterId: chapter.id,
+        completedAt: now,
+        xpEarned: data.xpEarned ?? 100,
+      },
+      update: {},
+    })
+  }
+
+  return progress
 }
 
 /**

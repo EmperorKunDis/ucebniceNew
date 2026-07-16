@@ -16,6 +16,8 @@ import {
   Loader2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { LessonArticle } from '@/components/learning/LessonArticle'
+import { ProjectSubmission } from '@/components/chapters/ProjectSubmission'
 
 interface Lesson {
   id: string
@@ -30,12 +32,24 @@ interface ChapterData {
   title: string
   description: string
   difficulty: string
+  content?: string | null
+  videoFile?: string | null
+  notebookLMUrl?: string | null
+  notebookLmUrl?: string | null
+  colabNotebook?: string | null
+  colabUrl?: string | null
+  projectTitle?: string | null
+  projectDescription?: string | null
+  projectRequirements?: string | null
   lessons: Lesson[]
   progress: {
     lessonsCompleted: number
     totalLessons: number
     stars: number
     bestScore: number
+    contentCompleted: boolean
+    exercisesCompleted: boolean
+    projectApproved: boolean
   }
   isUnlocked: boolean
 }
@@ -86,6 +100,7 @@ export default function ChapterOverviewPage() {
     chapter.progress.totalLessons > 0
       ? (chapter.progress.lessonsCompleted / chapter.progress.totalLessons) * 100
       : 0
+  const projectUnlocked = chapter.progress.exercisesCompleted || chapter.progress.projectApproved
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
@@ -112,7 +127,7 @@ export default function ChapterOverviewPage() {
           </div>
 
           {/* Stars */}
-          <div className="flex gap-1">
+          <div className="flex gap-1" data-stars={chapter.progress.stars}>
             {[1, 2, 3].map(star => (
               <Star
                 key={star}
@@ -163,6 +178,37 @@ export default function ChapterOverviewPage() {
           </Link>
         </div>
       </motion.section>
+
+      {(chapter.content ||
+        chapter.videoFile ||
+        chapter.notebookLMUrl ||
+        chapter.notebookLmUrl ||
+        chapter.colabNotebook ||
+        chapter.colabUrl ||
+        chapter.projectDescription) && (
+        <section aria-labelledby="chapter-materials-heading" className="space-y-4">
+          <h2
+            id="chapter-materials-heading"
+            className="flex items-center gap-2 text-lg font-semibold text-white"
+          >
+            <BookOpen className="h-5 w-5 text-sky-300" aria-hidden="true" />
+            Materiály kapitoly
+          </h2>
+          <LessonArticle
+            content={chapter.content}
+            videoFile={chapter.videoFile}
+            notebookLMUrl={chapter.notebookLMUrl ?? chapter.notebookLmUrl}
+            colabNotebook={chapter.colabNotebook ?? chapter.colabUrl}
+            projectDescription={[
+              chapter.projectDescription,
+              chapter.projectRequirements ? `Požadavky:\n${chapter.projectRequirements}` : null,
+            ]
+              .filter(Boolean)
+              .join('\n\n')}
+            showContentPlaceholder={false}
+          />
+        </section>
+      )}
 
       {/* Lessons List */}
       <section>
@@ -248,6 +294,25 @@ export default function ChapterOverviewPage() {
             )
           })}
         </div>
+      </section>
+
+      <section aria-labelledby="chapter-project-heading" className="space-y-4">
+        <div>
+          <h2 id="chapter-project-heading" className="text-lg font-semibold text-white">
+            Projekt kapitoly
+          </h2>
+          <p className="mt-1 text-sm text-gray-400">
+            Odevzdej vlastní řešení a po schválení získej třetí hvězdičku.
+          </p>
+        </div>
+        {projectUnlocked ? (
+          <ProjectSubmission chapterId={chapterId} />
+        ) : (
+          <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-4 text-gray-300">
+            <Lock className="h-5 w-5 text-gray-400" aria-hidden="true" />
+            <p className="text-sm">Projekt se odemkne po správném dokončení všech 10 cvičení.</p>
+          </div>
+        )}
       </section>
     </div>
   )

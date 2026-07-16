@@ -290,25 +290,6 @@ export const answerQuestionSchema = z.object({
 })
 
 /**
- * POST /api/tests/submit
- */
-export const submitTestSchema = z.object({
-  moduleNumber: moduleNumberSchema,
-  score: scoreSchema,
-  totalQuestions: z.number().int().min(1).max(100),
-  timeElapsed: timeElapsedSchema,
-  answers: z
-    .array(
-      z.object({
-        questionId: z.string(),
-        answer: z.number().int().min(0),
-        correct: z.boolean(),
-      })
-    )
-    .optional(),
-})
-
-/**
  * POST /api/projects/submit
  */
 export const submitProjectSchema = z.object({
@@ -358,7 +339,6 @@ export const respondFriendRequestSchema = z.object({
 
 export type CompleteChapterData = z.infer<typeof completeChapterSchema>
 export type AnswerQuestionData = z.infer<typeof answerQuestionSchema>
-export type SubmitTestData = z.infer<typeof submitTestSchema>
 export type SubmitProjectData = z.infer<typeof submitProjectSchema>
 export type CompleteOnboardingData = z.infer<typeof completeOnboardingSchema>
 export type ChapterProgressQuery = z.infer<typeof chapterProgressQuerySchema>

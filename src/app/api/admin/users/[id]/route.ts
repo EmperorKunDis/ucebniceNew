@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/admin-auth'
 import { prisma } from '@/lib/prisma'
+import {
+  canonicalChapterIdsThrough,
+  canonicalExerciseSourceKeysForCourse,
+} from '@/lib/canonical-content-keys'
 
 /**
  * GET /api/admin/users/[id]
@@ -15,12 +19,13 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     const user = await prisma.user.findUnique({
       where: { id },
       include: {
-        completedChapters: {
+        chapterProgress: {
+          where: { chapter: { chapterId: { in: canonicalChapterIdsThrough() } } },
           include: {
             chapter: true,
           },
           orderBy: {
-            completedAt: 'desc',
+            lastUpdated: 'desc',
           },
         },
         achievements: {
@@ -31,9 +36,37 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
             unlockedAt: 'desc',
           },
         },
-        chapterCompletions: true,
-        questionAnswers: true,
-        projectSubmissions: true,
+        exerciseProgress: {
+          where: { exercise: { sourceKey: { in: canonicalExerciseSourceKeysForCourse() } } },
+          include: {
+            exercise: {
+              select: {
+                id: true,
+                sourceKey: true,
+                question: true,
+                microLessonId: true,
+              },
+            },
+          },
+          orderBy: { updatedAt: 'desc' },
+        },
+        exerciseAttempts: {
+          where: { exercise: { sourceKey: { in: canonicalExerciseSourceKeysForCourse() } } },
+          include: {
+            exercise: {
+              select: {
+                id: true,
+                sourceKey: true,
+                question: true,
+                microLessonId: true,
+              },
+            },
+          },
+          orderBy: { attemptedAt: 'desc' },
+        },
+        projectSubmissions: {
+          where: { chapter: { chapterId: { in: canonicalChapterIdsThrough() } } },
+        },
         moduleTestAttempts: true,
       },
     })
@@ -42,7 +75,12 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    return NextResponse.json({ user })
+    return NextResponse.json({
+      user: {
+        ...user,
+        isAdmin: user.role === 'ADMIN' || user.isAdmin,
+      },
+    })
   } catch (error) {
     console.error('Error fetching user:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -60,7 +98,19 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { id } = await params
     const body = await request.json()
-    const { xp, level, currentStreak, longestStreak, isAdmin, name, username } = body
+    const { xp, level, currentStreak, longestStreak, isAdmin, role, name, username } = body
+
+    const validRoles = ['USER', 'JUDGE', 'TEAM_LEADER', 'ADMIN'] as const
+    if (role !== undefined && !validRoles.includes(role)) {
+      return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
+    }
+
+    if (isAdmin !== undefined && typeof isAdmin !== 'boolean') {
+      return NextResponse.json({ error: 'isAdmin must be a boolean' }, { status: 400 })
+    }
+
+    const effectiveRole =
+      role ?? (isAdmin === true ? 'ADMIN' : isAdmin === false ? 'USER' : undefined)
 
     const user = await prisma.user.update({
       where: { id },
@@ -69,7 +119,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         ...(level !== undefined && { level }),
         ...(currentStreak !== undefined && { currentStreak }),
         ...(longestStreak !== undefined && { longestStreak }),
-        ...(isAdmin !== undefined && { isAdmin }),
+        ...(effectiveRole !== undefined && {
+          // Release A compatibility: role is primary, while the legacy flag is
+          // kept aligned for older sessions and rollback tooling.
+          role: effectiveRole,
+          isAdmin: effectiveRole === 'ADMIN',
+        }),
         ...(name !== undefined && { name }),
         ...(username !== undefined && { username }),
       },

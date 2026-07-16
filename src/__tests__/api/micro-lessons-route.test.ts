@@ -53,6 +53,7 @@ const chapter = {
       order: 1,
       title: 'Promenne',
       xpReward: 10,
+      progress: [{ completed: true, completedAt: new Date() }],
       exercises: [
         {
           id: 'exercise-1',
@@ -63,25 +64,6 @@ const chapter = {
           data: { options: ['Hodnota', 'Soubor'], correctIndex: 0 },
           explanation: 'Promenna uchovava hodnotu.',
           hints: ['Je to pojmenovane misto pro hodnotu.'],
-          xpReward: 5,
-        },
-      ],
-    },
-    {
-      id: 'lesson-2',
-      order: 2,
-      title: 'Podminky',
-      xpReward: 10,
-      exercises: [
-        {
-          id: 'exercise-2',
-          order: 1,
-          type: 'TRUE_FALSE',
-          difficulty: 'EASY',
-          question: 'if spousti vetev podle podminky.',
-          data: { isTrue: true },
-          explanation: null,
-          hints: [],
           xpReward: 5,
         },
       ],
@@ -104,6 +86,10 @@ describe('/api/micro-lessons/[chapterId]', () => {
       lessonsCompleted: 1,
       exercisesCorrect: 3,
       exercisesTotal: 4,
+      contentCompleted: true,
+      exercisesCompleted: false,
+      projectApproved: false,
+      stars: 1,
     })
   })
 
@@ -125,12 +111,12 @@ describe('/api/micro-lessons/[chapterId]', () => {
       isUnlocked: true,
       progress: {
         lessonsCompleted: 1,
-        totalLessons: 2,
+        totalLessons: 1,
         stars: 1,
         bestScore: 75,
         completed: 1,
-        total: 2,
-        percentage: 50,
+        total: 1,
+        percentage: 100,
       },
     })
 
@@ -141,16 +127,10 @@ describe('/api/micro-lessons/[chapterId]', () => {
         status: 'completed',
         exerciseCount: 1,
       }),
-      expect.objectContaining({
-        id: 'lesson-2',
-        completed: false,
-        status: 'active',
-        exerciseCount: 1,
-      }),
     ])
   })
 
-  it('returns full exercises for practice mode', async () => {
+  it('returns practice exercises without an answer key', async () => {
     const response = await GET(requestFor('/api/micro-lessons/01?practice=true&limit=1'), {
       params: Promise.resolve({ chapterId: '01' }),
     })
@@ -170,11 +150,12 @@ describe('/api/micro-lessons/[chapterId]', () => {
         id: 'exercise-1',
         type: 'MULTIPLE_CHOICE',
         question: 'Co je promenna?',
-        data: { options: ['Hodnota', 'Soubor'], correctIndex: 0 },
+        data: { options: ['Hodnota', 'Soubor'] },
         lessonId: 'lesson-1',
         lessonTitle: 'Promenne',
       }),
     ])
+    expect(body.data.exercises[0].data).not.toHaveProperty('correctIndex')
   })
 
   it('returns 401 without a session', async () => {

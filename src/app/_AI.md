@@ -77,8 +77,8 @@ app/
 │   ├── graduates/     # Graduate profiles
 │   └── ...
 ├── auth/              # Auth pages (signin, signup)
-├── chapters/          # Chapter listing & detail
-│   └── [chapterId]/   # Dynamic chapter page
+├── chapters/          # Permanent compatibility redirects to v2
+│   └── [chapterId]/   # Redirects to /learn/[chapterId]
 ├── admin/             # Admin dashboard
 │   ├── achievements/
 │   ├── chapters/

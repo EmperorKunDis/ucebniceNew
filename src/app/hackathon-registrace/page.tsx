@@ -4,7 +4,7 @@ import { useState, useEffect, FormEvent } from 'react'
 import { motion } from 'framer-motion'
 import { Send, CheckCircle, Loader2, ChevronDown, X } from 'lucide-react'
 
-import { UnifiedPageLayout } from '@/components/layout/unified-page-layout'
+import { PublicPageLayout } from '@/components/layout/PublicPageLayout'
 import { SectionHeader } from '@/components/ui/section-header'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { Button } from '@/components/ui/button'
@@ -190,17 +190,17 @@ export default function HackathonRegistracePage() {
 
   if (loading) {
     return (
-      <UnifiedPageLayout maxWidth="4xl" showNav={false}>
+      <PublicPageLayout maxWidth="4xl" showNav={false}>
         <Stack direction="col" align="center" justify="center" className="min-h-[60vh]">
           <Loader2 className="w-12 h-12 text-purple-400 animate-spin" />
         </Stack>
-      </UnifiedPageLayout>
+      </PublicPageLayout>
     )
   }
 
   if (submitted) {
     return (
-      <UnifiedPageLayout maxWidth="4xl" showNav={false}>
+      <PublicPageLayout maxWidth="4xl" showNav={false}>
         <Stack direction="col" align="center" justify="center" className="min-h-[60vh]">
           <motion.div
             initial={{ scale: 0 }}
@@ -217,7 +217,7 @@ export default function HackathonRegistracePage() {
             </GlassSurface>
           </motion.div>
         </Stack>
-      </UnifiedPageLayout>
+      </PublicPageLayout>
     )
   }
 
@@ -228,7 +228,7 @@ export default function HackathonRegistracePage() {
   const sectionTitle = 'text-lg font-semibold text-white mb-4 flex items-center gap-2'
 
   return (
-    <UnifiedPageLayout maxWidth="4xl" showNav={false}>
+    <PublicPageLayout maxWidth="4xl" showNav={false}>
       <SectionHeader subtitle="Vyplň formulář a zaregistruj se do hackathonu">
         Přihlášení do Hackathonu
       </SectionHeader>
@@ -735,6 +735,6 @@ export default function HackathonRegistracePage() {
           </Stack>
         </form>
       </motion.div>
-    </UnifiedPageLayout>
+    </PublicPageLayout>
   )
 }

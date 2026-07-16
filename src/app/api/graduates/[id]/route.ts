@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { canonicalChapterIdsThrough } from '@/lib/canonical-content-keys'
 
 /**
  * GET /api/graduates/[id]
@@ -23,7 +24,12 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
             createdAt: true,
             _count: {
               select: {
-                completedChapters: true,
+                chapterProgress: {
+                  where: {
+                    contentCompleted: true,
+                    chapter: { chapterId: { in: canonicalChapterIdsThrough() } },
+                  },
+                },
                 achievements: true,
               },
             },
@@ -80,7 +86,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
           level: graduate.user.level,
           xp: graduate.user.xp,
           joinedAt: graduate.user.createdAt,
-          completedChapters: graduate.user._count.completedChapters,
+          completedChapters: graduate.user._count.chapterProgress,
           achievements: graduate.user._count.achievements,
         },
         bio: graduate.bio,

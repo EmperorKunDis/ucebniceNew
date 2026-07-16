@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { isCanonicalChapterId } from '@/lib/canonical-content-keys'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
@@ -34,6 +35,9 @@ export async function GET(request: NextRequest) {
     }
 
     const { chapterId } = validation.data
+    if (!isCanonicalChapterId(chapterId)) {
+      return NextResponse.json({ error: 'Chapter not found' }, { status: 404 })
+    }
     const userId = session.user.id
 
     // Get chapter
@@ -82,10 +86,8 @@ export async function GET(request: NextRequest) {
         previousAnswer: previousAnswer
           ? {
               answer: previousAnswer.answer,
-              correct: previousAnswer.correct,
             }
           : null,
-        hint: q.explanation || null,
       }
     })
 

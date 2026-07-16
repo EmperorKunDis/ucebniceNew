@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { PublicShell } from '@/components/layout/PublicShell'
 
 export const metadata: Metadata = {
   title: 'Přihlášení',
@@ -10,5 +11,5 @@ export const metadata: Metadata = {
 }
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
+  return <PublicShell showNavigation={false}>{children}</PublicShell>
 }

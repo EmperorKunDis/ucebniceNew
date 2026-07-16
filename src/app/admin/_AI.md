@@ -2,7 +2,9 @@
 
 ## 🎯 PURPOSE
 
-Admin dashboard for managing the platform. Requires `isAdmin` flag on user. Provides CRUD operations for chapters, achievements, hackathons, and user management.
+Admin dashboard for managing the platform. Release A accepts canonical `role=ADMIN`
+and the temporary compatibility flag `isAdmin=true`. It provides CRUD operations
+for chapters, achievements, hackathons, and user management.
 
 ## 📦 EXPORTS
 
@@ -40,11 +42,13 @@ export default async function AdminPage() {
 
 ### Admin Layout
 
-The `layout.tsx` provides consistent admin navigation sidebar.
+`layout.tsx` performs the server-side authorization check and then renders
+`AdminShell`. The shell uses the v2 dark tokens and provides both desktop and
+mobile navigation. Do not move authorization into the client shell.
 
 ## ⚠️ GOTCHAS
 
-1. **isAdmin flag**: Must be set directly in database (no self-service admin)
+1. **Release A guard**: Accept `role === ADMIN || isAdmin`; remove the compatibility flag only in Release B
 2. **Server-side check**: Always verify admin status server-side, not just client
 3. **API routes**: Admin API endpoints (`/api/admin/*`) have separate auth checks
 4. **No role system**: Binary admin/non-admin only

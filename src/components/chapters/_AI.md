@@ -1,161 +1,42 @@
-# src/components/chapters/ - AI Context
+# `src/components/chapters/` - AI Context
 
-## 🎯 PURPOSE
+## Purpose
 
-Components for rendering chapter content: video players, content display, quiz questions, project submission, and navigation between chapters.
+Shared media and project widgets used by the canonical `/learn/*` flow. The
+legacy chapter shell, local question card, module-test modal and chapter hooks
+were removed during the v2-only cutover.
 
-## 📦 EXPORTS
+## Active components
 
-| Component           | Description                      |
-| ------------------- | -------------------------------- |
-| `ChapterCard`       | Card for chapter list display    |
-| `ChapterContent`    | Main chapter content renderer    |
-| `ChapterLayout`     | Layout wrapper for chapter pages |
-| `ChapterHeader`     | Chapter title and metadata       |
-| `ChapterNavigation` | Previous/next chapter links      |
-| `VideoPlayer`       | Video player with controls       |
-| `QuestionCard`      | Quiz question with options       |
-| `ProjectSubmission` | Project URL submission form      |
-| `NotebookLinks`     | Colab/NotebookLM links           |
+| Component           | Use                                                                |
+| ------------------- | ------------------------------------------------------------------ |
+| `VideoPlayer`       | Streams a chapter video through `/api/video/[filename]`.           |
+| `ProjectSubmission` | Sends a chapter slug and project URL to the canonical project API. |
+| `ChapterCard`       | Reusable chapter presentation for Storybook/secondary views.       |
 
-## 🔗 DEPENDENCIES
+Lesson content, external links and exercises are rendered by
+`src/components/learning/` and routes under `src/app/(main)/learn/`.
 
-- `@/data/chapters` - Chapter data
-- `@/data/questions` - Question data
-- `@/lib/api-client` - API calls
-- `@/components/ui/*` - UI primitives
-- `framer-motion` - Animations
-- `lucide-react` - Icons
+## Rules
 
-## 🏗️ PATTERNS
+- Do not recreate a `/chapters` UI; `/chapters/*` permanently redirects to
+  `/dashboard` or `/learn/*`.
+- Do not evaluate answers in these components. The server owns answer keys and
+  returns only the public exercise DTO.
+- `ChapterProgress` is the only chapter-level read model. Legacy progress
+  tables are Release A rollback projections only.
+- Keep partner branding out of the authenticated application shell.
 
-### ChapterCard Pattern
+## Related
 
-```typescript
-interface ChapterCardProps {
-  chapter: Chapter
-  progress?: ChapterProgress
-  isLocked?: boolean
-}
-
-export function ChapterCard({ chapter, progress, isLocked }: ChapterCardProps) {
-  const stars = countStars(progress)
-  // Render card with stars indicator
-}
-```
-
-### VideoPlayer Pattern
-
-```typescript
-export function VideoPlayer({ videoFile }: { videoFile: string }) {
-  // Streams from /api/video/[filename]
-  return (
-    <video controls>
-      <source src={`/api/video/${videoFile}`} type="video/mp4" />
-    </video>
-  )
-}
-```
-
-### QuestionCard Pattern
-
-```typescript
-interface QuestionCardProps {
-  question: Question
-  onAnswer: (correct: boolean) => void
-  answered?: boolean
-}
-```
-
-### 3-Star Progress Display
-
-```typescript
-function StarDisplay({ progress }: { progress: ChapterCompletion }) {
-  return (
-    <div className="flex gap-1">
-      <Star filled={progress.completedChapter} />    {/* Star 1 */}
-      <Star filled={progress.answeredQuestions} />    {/* Star 2 */}
-      <Star filled={progress.submittedProject} />     {/* Star 3 */}
-    </div>
-  )
-}
-```
-
-## ⚠️ GOTCHAS
-
-1. **Video streaming**: Videos are served via API route, not direct file access
-2. **Question state**: Track answered questions to prevent double XP
-3. **Project URL validation**: Must be valid URL format
-4. **Progress sync**: Client state should sync with server after mutations
-5. **Colab links**: External links, open in new tab
-
-## 📁 STRUCTURE
-
-```
-chapters/
-├── ChapterCard.tsx        # List item card
-├── ChapterCard.stories.tsx # Storybook
-├── ChapterContent.tsx     # Content renderer
-├── ChapterLayout.tsx      # Page layout (refactored 2026-02-08)
-├── ChapterHeader.tsx      # Header section
-├── ChapterNavigation.tsx  # Nav links
-├── VideoPlayer.tsx        # Video component
-├── QuestionCard.tsx       # Quiz question
-├── ProjectSubmission.tsx  # Project form
-├── NotebookLinks.tsx      # External links
-└── hooks/                 # ⭐ NEW: Custom hooks
-    ├── index.ts           # Exports
-    ├── useChapterProgress.ts  # Progress state & API
-    └── useChapterQuestions.ts # Questions fetching
-```
-
-## 🆕 HOOKS (added 2026-02-08)
-
-### useChapterProgress
-
-Manages chapter progress state, completion, and question answering.
-
-```typescript
-const progress = useChapterProgress(chapterId)
-
-// Returns:
-{
-  completedChapter: boolean
-  answeredQuestions: boolean
-  submittedProject: boolean
-  completed: boolean
-  isChapterLocked: boolean
-  loading: boolean
-  questionAnswers: Map<string, boolean>
-  completing: boolean
-  completionData: CompletionData | null
-  completeChapter: () => Promise<CompletionData | null>
-  answerQuestion: (id, index) => Promise<Result>
-  markProjectSubmitted: () => void
-  isAuthenticated: boolean
-}
-```
-
-### useChapterQuestions
-
-Fetches questions for a chapter.
-
-```typescript
-const { questions, loading, error } = useChapterQuestions(chapterId)
-```
-
-## 🔄 RELATED
-
-- `src/data/chapters.ts` - Chapter definitions
-- `src/data/questions.ts` - Question data
-- `src/app/chapters/` - Chapter pages
-- `src/app/api/progress/` - Progress API
-- `src/app/api/questions/` - Question API
-- `src/app/api/projects/` - Project API
+- `src/app/(main)/learn/_AI.md`
+- `src/components/learning/exercise/_AI.md`
+- `src/lib/learning-service.ts`
+- `src/app/api/projects/submit/route.ts`
 
 ---
 
 <!-- META: For AI agents -->
 <!-- TRAVERSE: no -->
 <!-- DEPTH: all -->
-<!-- CRITICAL: ChapterContent.tsx, QuestionCard.tsx -->
+<!-- CRITICAL: VideoPlayer.tsx, ProjectSubmission.tsx -->

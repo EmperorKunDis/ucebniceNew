@@ -11,8 +11,7 @@ Learning-related UI components for the Duolingo-style transformation. Contains s
 | `skill-tree/` | SkillTreeContainer, SkillNode, SkillPath, SkillCheckpoint | Visual learning path  |
 | `exercise/`   | ExercisePlayer, MultipleChoice, FillInBlank, etc.         | Interactive exercises |
 | `review/`     | ReviewSession, ReviewCard, ReviewComplete                 | Spaced repetition     |
-| `lesson/`     | (TODO) LessonPlayer, LessonProgress                       | Micro-lesson playback |
-| `chapter/`    | (existing) ChapterLayout, ChapterHeader                   | Chapter views         |
+| root          | LessonArticle                                             | Markdown lesson view  |
 
 ## 🔗 DEPENDENCIES
 
@@ -72,10 +71,9 @@ learning/
 │   ├── SkillNode.tsx   # Individual skill circle
 │   ├── SkillPath.tsx   # SVG bezier connections
 │   └── SkillCheckpoint.tsx     # Module milestone banners
-├── lesson/             # TODO: Micro-lesson components
-├── exercise/           # TODO: Exercise type components
-├── review/             # TODO: Spaced repetition components
-└── chapter/            # Existing chapter components
+├── LessonArticle.tsx   # Canonical Markdown lesson content
+├── exercise/           # Server-graded exercise components
+└── review/             # Spaced repetition components
 ```
 
 ## 🔄 RELATED

@@ -1,8 +1,121 @@
-import { test, expect } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 import { cleanupTestDb, createTestUser, disconnectTestDb } from './helpers/test-db'
 
-test.describe('Mobile Responsive Tests', () => {
-  test.beforeEach(async () => {
+const MOBILE_VIEWPORT = { width: 375, height: 667 }
+
+async function useAnonymousSession(page: Page) {
+  await page.route('**/api/auth/session', route =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: '{}',
+    })
+  )
+}
+
+async function signInWithCredentials(page: Page, email: string) {
+  await page.goto('/auth/signin')
+  await page.getByLabel('Email').fill(email)
+  await page.getByLabel('Heslo').fill('Test123!')
+  await page.getByRole('button', { name: 'Přihlásit se emailem' }).click()
+  await expect(page).toHaveURL(/\/dashboard$/)
+}
+
+test.describe('Public responsive shell', () => {
+  test.beforeEach(async ({ page }) => {
+    await useAnonymousSession(page)
+  })
+
+  test('should display only the mobile menu trigger on small screens', async ({ page }) => {
+    await page.setViewportSize(MOBILE_VIEWPORT)
+
+    await page.goto('/')
+
+    await expect(page.getByRole('button', { name: 'Otevřít hlavní navigaci' })).toBeVisible()
+    await expect(page.getByRole('navigation', { name: 'Hlavní navigace' })).toBeHidden()
+  })
+
+  test('should open and close mobile menu', async ({ page }) => {
+    await page.setViewportSize(MOBILE_VIEWPORT)
+
+    await page.goto('/')
+
+    const openButton = page.getByRole('button', { name: 'Otevřít hlavní navigaci' })
+    await openButton.click()
+
+    const mobileNavigation = page.getByRole('navigation', { name: 'Mobilní navigace' })
+    await expect(mobileNavigation).toBeVisible()
+    await expect(mobileNavigation.getByRole('link', { name: 'Kurz' })).toBeVisible()
+    await expect(mobileNavigation.getByRole('link', { name: 'Apex Aréna' })).toBeVisible()
+    await expect(mobileNavigation.getByRole('link', { name: 'Žebříček' })).toBeVisible()
+
+    const closeButton = page.getByRole('button', { name: 'Zavřít hlavní navigaci' })
+    await expect(closeButton).toHaveAttribute('aria-expanded', 'true')
+    await closeButton.click()
+    await expect(mobileNavigation).toBeHidden()
+    await expect(page.getByRole('button', { name: 'Otevřít hlavní navigaci' })).toHaveAttribute(
+      'aria-expanded',
+      'false'
+    )
+  })
+
+  test('should preserve the permanent chapters redirect on mobile clients', async ({ request }) => {
+    const response = await request.get('/chapters', { maxRedirects: 0 })
+
+    expect(response.status()).toBe(308)
+    expect(response.headers().location).toBe('/dashboard')
+  })
+
+  test('should be usable on tablet portrait', async ({ page }) => {
+    await page.setViewportSize({ width: 768, height: 1024 })
+
+    await page.goto('/')
+
+    await expect(page.getByRole('button', { name: 'Otevřít hlavní navigaci' })).toBeVisible()
+    const mainContent = page.getByRole('main')
+    await expect(mainContent).toBeVisible()
+    const box = await mainContent.boundingBox()
+
+    expect(box).not.toBeNull()
+    expect(box!.width).toBeLessThanOrEqual(768)
+  })
+
+  test('should be usable on tablet landscape', async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 768 })
+
+    await page.goto('/')
+
+    await expect(page.getByRole('navigation', { name: 'Hlavní navigace' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Otevřít hlavní navigaci' })).toBeHidden()
+  })
+
+  test('should expose the canonical course link in the touch menu', async ({ page }) => {
+    await page.setViewportSize(MOBILE_VIEWPORT)
+
+    await page.goto('/')
+    await page.getByRole('button', { name: 'Otevřít hlavní navigaci' }).click()
+
+    const mobileNavigation = page.getByRole('navigation', { name: 'Mobilní navigace' })
+    await expect(mobileNavigation.getByRole('link', { name: 'Kurz' })).toHaveAttribute(
+      'href',
+      '/dashboard'
+    )
+  })
+
+  test('should navigate properly on small mobile device', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 568 })
+
+    await page.goto('/')
+
+    await expect(page.getByRole('main')).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: /Nauč se programovat/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Otevřít hlavní navigaci' })).toBeVisible()
+  })
+})
+
+test.describe('Authenticated mobile flows', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setViewportSize(MOBILE_VIEWPORT)
     await cleanupTestDb()
   })
 
@@ -11,75 +124,7 @@ test.describe('Mobile Responsive Tests', () => {
     await disconnectTestDb()
   })
 
-  test('should display mobile menu on small screens', async ({ page }) => {
-    // Set mobile viewport
-    await page.setViewportSize({ width: 375, height: 667 }) // iPhone SE size
-
-    await page.goto('/')
-
-    // Mobile menu button should be visible
-    const menuButton = await page.locator('button:has(svg), button[aria-label*="menu" i]').first()
-    await expect(menuButton).toBeVisible({ timeout: 5000 })
-
-    // Desktop navigation should be hidden
-    const desktopNav = await page.locator('nav >> text=Kapitoly').first()
-    const isDesktopNavHidden = await desktopNav.isHidden().catch(() => true)
-    expect(isDesktopNavHidden).toBeTruthy()
-  })
-
-  test('should open and close mobile menu', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 667 })
-
-    await page.goto('/')
-
-    // Click menu button to open
-    const menuButton = await page.locator('button:has(svg), button[aria-label*="menu" i]').first()
-    await menuButton.click()
-
-    // Wait for menu to appear
-    await page.waitForTimeout(500)
-
-    // Menu items should be visible
-    const menuItem = await page.locator('text=Kapitoly, text=Dashboard, text=Profil').first()
-    await expect(menuItem).toBeVisible({ timeout: 3000 })
-
-    // Click to close (might be X button or overlay)
-    const closeButton = await page.locator('button:has(svg), button[aria-label*="close" i]').first()
-    if (await closeButton.isVisible()) {
-      await closeButton.click()
-      await page.waitForTimeout(500)
-    }
-  })
-
-  test('should display chapters list correctly on mobile', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 667 })
-
-    await page.goto('/chapters')
-    await page.waitForLoadState('networkidle')
-
-    // Chapter cards should be stacked vertically
-    const chapterCards = await page.locator('[href^="/chapters/"]')
-    const count = await chapterCards.count()
-
-    expect(count).toBeGreaterThan(0)
-
-    // Verify cards are properly sized for mobile
-    if (count > 0) {
-      const firstCard = chapterCards.first()
-      const box = await firstCard.boundingBox()
-
-      if (box) {
-        // Card should take most of screen width (with some padding)
-        expect(box.width).toBeGreaterThan(300)
-        expect(box.width).toBeLessThan(375)
-      }
-    }
-  })
-
   test('should login successfully on mobile device', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 667 })
-
-    // Create test user
     await createTestUser({
       email: 'mobile@example.com',
       username: 'mobileuser',
@@ -87,54 +132,11 @@ test.describe('Mobile Responsive Tests', () => {
       password: 'Test123!',
     })
 
-    await page.goto('/auth/signin')
-
-    // Fill login form on mobile
-    await page.fill('input[type="email"]', 'mobile@example.com')
-    await page.fill('input[type="password"]', 'Test123!')
-
-    // Submit form
-    await page.click('button[type="submit"]')
-
-    // Should navigate to dashboard
-    await page.waitForURL('/dashboard', { timeout: 10000 })
-    expect(page.url()).toContain('/dashboard')
-  })
-
-  test('should be usable on tablet portrait', async ({ page }) => {
-    // iPad mini size
-    await page.setViewportSize({ width: 768, height: 1024 })
-
-    await page.goto('/')
-
-    // Navigation should be visible or accessible
-    const navElement = await page.locator('nav').first()
-    await expect(navElement).toBeVisible({ timeout: 5000 })
-
-    // Content should fit properly
-    const mainContent = await page.locator('main, [role="main"]').first()
-    const box = await mainContent.boundingBox()
-
-    if (box) {
-      expect(box.width).toBeLessThanOrEqual(768)
-    }
-  })
-
-  test('should be usable on tablet landscape', async ({ page }) => {
-    // iPad landscape
-    await page.setViewportSize({ width: 1024, height: 768 })
-
-    await page.goto('/')
-
-    // Desktop navigation should be visible on landscape tablet
-    const navElement = await page.locator('nav').first()
-    await expect(navElement).toBeVisible({ timeout: 5000 })
+    await signInWithCredentials(page, 'mobile@example.com')
+    await expect(page.getByRole('main')).toBeVisible()
   })
 
   test('should display profile correctly on mobile', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 667 })
-
-    // Create test user
     await createTestUser({
       email: 'profile-mobile@example.com',
       username: 'profilemobile',
@@ -142,45 +144,14 @@ test.describe('Mobile Responsive Tests', () => {
       password: 'Test123!',
     })
 
-    // Login
-    await page.goto('/auth/signin')
-    await page.fill('input[type="email"]', 'profile-mobile@example.com')
-    await page.fill('input[type="password"]', 'Test123!')
-    await page.click('button[type="submit"]')
-    await page.waitForURL('/dashboard', { timeout: 10000 })
-
-    // Navigate to profile
+    await signInWithCredentials(page, 'profile-mobile@example.com')
     await page.goto('/profile')
-    await page.waitForLoadState('networkidle')
 
-    // Profile content should be visible
-    const profileContent = await page.locator('text=Profile Mobile, text=profilemobile').first()
-    await expect(profileContent).toBeVisible({ timeout: 5000 })
-  })
-
-  test('should handle touch interactions on mobile', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 667 })
-
-    await page.goto('/chapters')
-    await page.waitForLoadState('networkidle')
-
-    // Tap on first chapter (mobile touch)
-    const firstChapter = await page.locator('a[href^="/chapters/"]').first()
-
-    if (await firstChapter.isVisible()) {
-      // Simulate mobile tap
-      await firstChapter.tap()
-
-      // Should navigate to chapter page
-      await page.waitForURL(/\/chapters\/\d+/, { timeout: 10000 })
-      expect(page.url()).toMatch(/\/chapters\/\d+/)
-    }
+    await expect(page.getByRole('heading', { level: 1, name: 'Profile Mobile' })).toBeVisible()
+    await expect(page.getByText('@profilemobile', { exact: true })).toBeVisible()
   })
 
   test('should display achievement cards responsively on mobile', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 667 })
-
-    // Create test user
     await createTestUser({
       email: 'achievement-mobile@example.com',
       username: 'achievementmobile',
@@ -188,42 +159,15 @@ test.describe('Mobile Responsive Tests', () => {
       password: 'Test123!',
     })
 
-    // Login
-    await page.goto('/auth/signin')
-    await page.fill('input[type="email"]', 'achievement-mobile@example.com')
-    await page.fill('input[type="password"]', 'Test123!')
-    await page.click('button[type="submit"]')
-    await page.waitForURL('/dashboard', { timeout: 10000 })
-
-    // Navigate to achievements page
+    await signInWithCredentials(page, 'achievement-mobile@example.com')
     await page.goto('/achievements')
-    await page.waitForLoadState('networkidle')
 
-    // Achievement grid should be visible
-    const achievementContainer = await page.locator('main, [role="main"]').first()
-    await expect(achievementContainer).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('heading', { name: 'Úspěchy a odznaky' })).toBeVisible()
+    const achievementContainer = page.getByRole('main')
+    await expect(achievementContainer).toBeVisible()
 
-    // Check if content fits in viewport
     const box = await achievementContainer.boundingBox()
-    if (box) {
-      expect(box.width).toBeLessThanOrEqual(375)
-    }
-  })
-
-  test('should navigate properly on small mobile device', async ({ page }) => {
-    // Very small device (iPhone SE 1st gen)
-    await page.setViewportSize({ width: 320, height: 568 })
-
-    await page.goto('/')
-
-    // Should still be functional
-    const content = await page.locator('body').first()
-    await expect(content).toBeVisible()
-
-    // Navigation should work
-    await page.goto('/chapters')
-    await page.waitForLoadState('networkidle')
-
-    expect(page.url()).toContain('/chapters')
+    expect(box).not.toBeNull()
+    expect(box!.width).toBeLessThanOrEqual(MOBILE_VIEWPORT.width)
   })
 })

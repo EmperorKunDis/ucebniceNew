@@ -10,6 +10,7 @@ import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
 import QRCode from 'qrcode'
 import path from 'path'
 import fs from 'fs/promises'
+import { canonicalChapterIdsThrough } from './canonical-content-keys'
 
 const APP_URL = process.env.NEXTAUTH_URL || 'https://ucebnice.ai'
 
@@ -58,7 +59,10 @@ async function loadBackgroundImage(): Promise<Buffer | null> {
 /**
  * Generate certificate PDF
  */
-export async function generateCertificatePDF(data: CertificateData): Promise<Buffer> {
+export async function generateCertificatePDF(
+  data: CertificateData,
+  certificateCode: string
+): Promise<Buffer> {
   const backgroundImage = await loadBackgroundImage()
 
   // Create PDF document
@@ -91,9 +95,6 @@ export async function generateCertificatePDF(data: CertificateData): Promise<Buf
   // Scale factor for positioning
   const scaleX = pageWidth / CERT_WIDTH
   const scaleY = pageHeight / CERT_HEIGHT
-
-  // Generate certificate ID
-  const certificateCode = generateCertificateCode()
 
   // Helper function to convert y coordinate (layout uses top-left origin, PDF uses bottom-left)
   const toY = (layoutY: number) => pageHeight - layoutY * scaleY
@@ -287,11 +288,10 @@ export async function createCertificate(data: CertificateData): Promise<{
   }
   pdfBuffer: Buffer
 }> {
-  // Generate PDF
-  const pdfBuffer = await generateCertificatePDF(data)
-
-  // Generate unique code
+  // Generate one code and use it consistently in the database, printed
+  // certificate number and verification QR.
   const uniqueCode = generateCertificateCode()
+  const pdfBuffer = await generateCertificatePDF(data, uniqueCode)
 
   // Save certificate record
   const certificate = await prisma.certificate.create({
@@ -327,10 +327,11 @@ export async function checkCertificateEligibility(userId: string): Promise<{
   completedChapters: number
   requiredChapters: number
 }> {
-  const completedChapters = await prisma.chapterCompletion.count({
+  const completedChapters = await prisma.chapterProgress.count({
     where: {
       userId,
-      completedChapter: true,
+      contentCompleted: true,
+      chapter: { chapterId: { in: canonicalChapterIdsThrough() } },
     },
   })
 

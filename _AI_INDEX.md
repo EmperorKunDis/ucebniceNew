@@ -1,12 +1,20 @@
 # Učebnice Codebase - AI Navigation Index
 
-> **Last Updated:** 2026-02-08
+> **Last Updated:** 2026-07-15
 > **Codebase Version:** v2.0 VPS Docker Compose migration (uncommitted)
 > **Total Files:** ~230+ TypeScript/TSX files (62 API routes, 75 components, 42 pages)
 > **Lines of Code:** ~58,000+
 > **Build Status:** pending local verification after v2.0 migration
 > **TS Errors:** 0 ✅
 > **Changed Files:** v2.0 production infra, CI, hooks, AI readiness
+
+## Canonical learning architecture (July 2026)
+
+- `/dashboard` and `/learn/*` are the canonical Duolingo frontend routes.
+- The database is the runtime source for lessons and exercises; `src/data/chapters.ts`, full Markdown lectures, and the 400-question assessment file are deterministic import inputs.
+- `ChapterProgress` is the canonical chapter-level progress model. Per-lesson/per-exercise state lives in `MicroLessonProgress`, `ExerciseProgress`, and append-only `ExerciseAttempt`; `RewardLedger` prevents duplicate XP/gem grants.
+- Use `scripts/import-v2-content.ts --check` before any DB mode, then import content before running `scripts/backfill-v2-progress.ts --dry-run`.
+- `CompletedChapter` and `ChapterCompletion` remain compatibility models during Release A and must not independently grant rewards.
 
 ## v2.0 Production Direction (June 2026)
 
@@ -22,13 +30,13 @@
 - ✅ Removed duplicate `/certificate` route (kept `/(main)/certificate/`, deleted `/certificate/`)
 - ✅ Fixed `/verify-email` missing Suspense boundary for `useSearchParams()`
 - ✅ **Hydration fix**: Added `useUserStoreHydrated` hook in `store/user-store.ts`
-- ✅ **ChapterLayout refactor**: Split into hooks (`hooks/useChapterProgress.ts`, `hooks/useChapterQuestions.ts`) + smaller components
-- ✅ **Chapter ID mismatch**: Consolidated API routes to use `ChapterCompletion` model, created migration script (`scripts/migrate-chapter-completions.ts`)
+- ✅ **v2-only chapter cutover**: Removed the legacy `ChapterLayout` cluster; `/dashboard` and `/learn/*` are canonical.
+- ✅ **Canonical progress**: API reads use internal `Chapter.id` backed `ChapterProgress`; legacy progress writes are rollback-only projections.
 - ✅ **GlassSurface hydration fix**: SVG filter detection now deferred to client via `useState` to prevent className mismatch
 
 ### Key \_AI.md Updates (2026-02-08)
 
-- `src/components/chapters/_AI.md` — Added hooks documentation
+- `src/components/chapters/_AI.md` — Canonical media/project widgets only
 - `src/store/_AI.md` — Added hydration fix documentation
 - `src/components/ui/_AI.md` — Added glass-surface fix documentation
 

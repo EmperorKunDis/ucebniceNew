@@ -50,6 +50,10 @@ prisma/dev.db
 prisma/dev.db-journal
 *.db
 *.db-journal
+backup_*.sql
+
+# npm is the only supported JavaScript package manager
+pnpm-lock.yaml
 
 # Storybook
 .storybook

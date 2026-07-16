@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { toPublicExerciseData } from '@/lib/exercise-contract'
+import { canonicalExerciseSourceKeysForCourse } from '@/lib/canonical-content-keys'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,6 +41,7 @@ export async function GET(request: NextRequest) {
               },
             },
             exercises: {
+              where: { sourceKey: { in: canonicalExerciseSourceKeysForCourse() } },
               take: 1,
               orderBy: { order: 'asc' },
               select: {
@@ -93,21 +96,29 @@ export async function GET(request: NextRequest) {
     })
 
     // Format cards for response
-    const cards = dueCards.map(card => ({
-      id: card.id,
-      conceptId: card.conceptId,
-      conceptName: card.concept.name,
-      conceptDescription: card.concept.description,
-      chapterTitle: card.concept.chapter.title,
-      chapterId: card.concept.chapter.chapterId,
-      exercise: card.concept.exercises[0] ?? null,
-      difficulty: {
-        easeFactor: card.easeFactor,
-        interval: card.interval,
-        repetitions: card.repetitions,
-        lastRating: card.lastRating,
-      },
-    }))
+    const cards = dueCards.map(card => {
+      const exercise = card.concept.exercises[0]
+      return {
+        id: card.id,
+        conceptId: card.conceptId,
+        conceptName: card.concept.name,
+        conceptDescription: card.concept.description,
+        chapterTitle: card.concept.chapter.title,
+        chapterId: card.concept.chapter.chapterId,
+        exercise: exercise
+          ? {
+              ...exercise,
+              data: toPublicExerciseData(exercise.type, exercise.data as Record<string, unknown>),
+            }
+          : null,
+        difficulty: {
+          easeFactor: card.easeFactor,
+          interval: card.interval,
+          repetitions: card.repetitions,
+          lastRating: card.lastRating,
+        },
+      }
+    })
 
     return NextResponse.json({
       success: true,

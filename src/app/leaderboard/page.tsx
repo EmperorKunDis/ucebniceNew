@@ -15,7 +15,7 @@ import {
   Loader2,
 } from 'lucide-react'
 
-import { UnifiedPageLayout } from '@/components/layout/unified-page-layout'
+import { PublicPageLayout } from '@/components/layout/PublicPageLayout'
 import { SectionHeader } from '@/components/ui/section-header'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { Button } from '@/components/ui/button'
@@ -427,7 +427,7 @@ export default function LeaderboardPage() {
 
   if (isLoading) {
     return (
-      <UnifiedPageLayout maxWidth="7xl">
+      <PublicPageLayout maxWidth="7xl">
         <div
           className="flex items-center justify-center min-h-[60vh]"
           role="status"
@@ -437,12 +437,12 @@ export default function LeaderboardPage() {
           <Loader2 className="w-12 h-12 animate-spin text-purple-400" aria-hidden="true" />
           <span className="sr-only">Načítání žebříčku...</span>
         </div>
-      </UnifiedPageLayout>
+      </PublicPageLayout>
     )
   }
 
   return (
-    <UnifiedPageLayout maxWidth="7xl">
+    <PublicPageLayout maxWidth="7xl">
       <SectionHeader subtitle="Soutěžte s ostatními studenty a staňte se mistrem programování">
         Žebříček nejlepších
       </SectionHeader>
@@ -692,12 +692,12 @@ export default function LeaderboardPage() {
             : 'Chcete se dostat do žebříčku?'}
         </p>
         <Button variant="primary" size="lg" asChild>
-          <Link href="/chapters" aria-label="Pokračovat v učení - přejít na kapitoly">
+          <Link href="/dashboard" aria-label="Pokračovat v učení - přejít na přehled kurzu">
             Pokračovat v učení
             <ChevronRight className="w-5 h-5 ml-2" aria-hidden="true" />
           </Link>
         </Button>
       </motion.div>
-    </UnifiedPageLayout>
+    </PublicPageLayout>
   )
 }

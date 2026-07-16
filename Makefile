@@ -20,10 +20,10 @@ build: ## Build the application image
 	$(COMPOSE) $(COMPOSE_FILES) build $(APP_SERVICE)
 
 compose-config: ## Validate local Docker Compose configuration
-	$(COMPOSE) $(COMPOSE_FILES) config
+	$(COMPOSE) $(COMPOSE_FILES) config --quiet
 
 compose-config-prod: ## Validate production Docker Compose configuration
-	$(COMPOSE) $(PROD_COMPOSE_FILES) config
+	$(COMPOSE) $(PROD_COMPOSE_FILES) config --quiet
 
 up: ## Start local Docker Compose stack
 	$(COMPOSE) $(COMPOSE_FILES) up -d --build

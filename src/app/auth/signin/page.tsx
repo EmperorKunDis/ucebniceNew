@@ -5,7 +5,6 @@ import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { UnifiedPageLayout } from '@/components/layout/unified-page-layout'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { Button } from '@/components/ui/button'
 import { Stack, Box } from '@/components/layout'
@@ -85,7 +84,7 @@ export default function SignInPage() {
   }
 
   return (
-    <UnifiedPageLayout showNav={false} maxWidth="4xl">
+    <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
       <Box className="flex items-center justify-center min-h-[80vh]">
         <Box className="w-full max-w-md">
           <motion.div
@@ -180,7 +179,9 @@ export default function SignInPage() {
                     </label>
                     <input
                       id="email"
+                      name="email"
                       type="email"
+                      autoComplete="email"
                       value={email}
                       onChange={e => {
                         setEmail(e.target.value)
@@ -214,7 +215,9 @@ export default function SignInPage() {
                     </label>
                     <input
                       id="password"
+                      name="password"
                       type="password"
+                      autoComplete="current-password"
                       value={password}
                       onChange={e => {
                         setPassword(e.target.value)
@@ -278,6 +281,6 @@ export default function SignInPage() {
           </motion.div>
         </Box>
       </Box>
-    </UnifiedPageLayout>
+    </main>
   )
 }

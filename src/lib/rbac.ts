@@ -111,19 +111,19 @@ export async function requireRole(minRole: Role): Promise<{
     }
   }
 
-  // isAdmin flag overrides role checks
+  if (isRoleAtLeast(user.role, minRole)) {
+    return { authorized: true, user }
+  }
+
+  // Release A fallback for users not yet backfilled from the legacy flag.
   if (user.isAdmin) {
     return { authorized: true, user: { ...user, role: 'ADMIN' } }
   }
 
-  if (!isRoleAtLeast(user.role, minRole)) {
-    return {
-      authorized: false,
-      error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }),
-    }
+  return {
+    authorized: false,
+    error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }),
   }
-
-  return { authorized: true, user }
 }
 
 /**
@@ -155,19 +155,19 @@ export async function requirePermission(permission: Permission): Promise<{
     }
   }
 
-  // isAdmin has all permissions
+  if (hasPermission(user.role, permission)) {
+    return { authorized: true, user }
+  }
+
+  // Release A fallback for users not yet backfilled from the legacy flag.
   if (user.isAdmin) {
     return { authorized: true, user: { ...user, role: 'ADMIN' } }
   }
 
-  if (!hasPermission(user.role, permission)) {
-    return {
-      authorized: false,
-      error: NextResponse.json({ error: `Missing permission: ${permission}` }, { status: 403 }),
-    }
+  return {
+    authorized: false,
+    error: NextResponse.json({ error: `Missing permission: ${permission}` }, { status: 403 }),
   }
-
-  return { authorized: true, user }
 }
 
 /**
@@ -179,7 +179,6 @@ export function canUserAccess(
   isAdmin: boolean | undefined,
   permission: Permission
 ): boolean {
-  if (isAdmin) return true
-  if (!userRole) return false
-  return hasPermission(userRole, permission)
+  if (userRole && hasPermission(userRole, permission)) return true
+  return isAdmin ?? false
 }

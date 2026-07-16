@@ -8,6 +8,7 @@ export interface AuthenticatedUser {
   email: string
   name?: string | null
   isAdmin?: boolean
+  role?: 'USER' | 'JUDGE' | 'TEAM_LEADER' | 'ADMIN'
 }
 
 export type AuthResult =
@@ -36,10 +37,10 @@ export async function requireAdmin(): Promise<AuthResult> {
 
   const user = await prisma.user.findUnique({
     where: { id: auth.user.id },
-    select: { isAdmin: true },
+    select: { role: true, isAdmin: true },
   })
 
-  if (!user?.isAdmin) {
+  if (user?.role !== 'ADMIN' && !user?.isAdmin) {
     return {
       success: false,
       response: NextResponse.json({ error: 'Nedostatečná oprávnění' }, { status: 403 }),
