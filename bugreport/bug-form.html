@@ -1,0 +1,951 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hlášení chyby</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F4F6F9;
+    --surface:#FFFFFF;
+    --surface-2:#FBFCFE;
+    --ink:#1B2230;
+    --ink-2:#2A3344;
+    --slate:#5A6473;
+    --slate-2:#8A93A2;
+    --border:#E3E7ED;
+    --border-strong:#CBD2DC;
+    --focus:#2F6BFF;
+    --sev-critical:#E5484D;
+    --sev-high:#EC7A1C;
+    --sev-medium:#E0A100;
+    --sev-low:#5A7DA6;
+    --ok:#2FA36B;
+    --shadow-sm:0 1px 2px rgba(20,30,50,.05);
+    --shadow-lg:0 1px 2px rgba(20,30,50,.04), 0 12px 30px -14px rgba(20,30,50,.16);
+    --radius:12px;
+    --radius-sm:8px;
+    font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{
+    color:var(--ink);
+    background-color:var(--bg);
+    background-image:radial-gradient(rgba(27,34,48,.05) 1px, transparent 1px);
+    background-size:22px 22px;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+
+  ::selection{background:rgba(47,107,255,.18);}
+  :focus-visible{outline:2px solid var(--focus); outline-offset:2px; border-radius:4px;}
+
+  .wrap{max-width:1120px; margin:0 auto; padding:24px 20px 64px;}
+
+  /* ---------- topbar ---------- */
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    padding:14px 18px; margin-bottom:22px;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius); box-shadow:var(--shadow-sm); flex-wrap:wrap;
+  }
+  .brand{display:flex; align-items:center; gap:12px; min-width:0;}
+  .mark{
+    width:38px; height:38px; flex:0 0 38px; border-radius:10px;
+    background:var(--ink); color:#fff; display:grid; place-items:center;
+  }
+  .mark svg{width:20px; height:20px;}
+  .brand-title{font-family:"Space Grotesk"; font-weight:600; font-size:16px; letter-spacing:-.01em; line-height:1.2;}
+  .brand-sub{font-size:12.5px; color:var(--slate); margin-top:1px;}
+  .ticket-meta{
+    display:flex; align-items:center; gap:8px;
+    font-family:"JetBrains Mono"; font-size:12.5px; color:var(--slate);
+    background:var(--surface-2); border:1px solid var(--border);
+    padding:7px 12px; border-radius:999px; white-space:nowrap;
+  }
+  .ticket-meta .id{color:var(--ink); font-weight:500;}
+  .ticket-meta .sep{color:var(--slate-2);}
+
+  /* ---------- layout ---------- */
+  .layout{display:grid; grid-template-columns:1.15fr .95fr; gap:22px; align-items:start;}
+  .panel{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-sm);}
+  .form{padding:22px 22px 24px;}
+  .preview{padding:18px 18px 20px; position:sticky; top:20px;}
+
+  .lead{
+    font-size:13px; color:var(--slate); margin:0 0 22px;
+    padding-bottom:16px; border-bottom:1px solid var(--border);
+  }
+
+  /* ---------- form sections ---------- */
+  .sec{padding:20px 0; border-top:1px dashed var(--border);}
+  .sec:first-of-type{padding-top:0; border-top:0;}
+  .eyebrow{
+    font-family:"JetBrains Mono"; font-size:11px; font-weight:500;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--slate-2);
+    margin-bottom:14px;
+  }
+
+  .field{margin-bottom:16px;}
+  .field:last-child{margin-bottom:0;}
+  .row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;}
+
+  .label{display:block; font-size:13px; font-weight:500; color:var(--ink); margin-bottom:6px;}
+  .label .req{color:var(--sev-critical); margin-left:2px;}
+  .hint{font-size:12px; color:var(--slate-2); margin-top:6px;}
+
+  .input, .textarea, select.input{
+    width:100%; font:inherit; font-size:14px; color:var(--ink);
+    background:var(--surface-2); border:1px solid var(--border-strong);
+    border-radius:var(--radius-sm); padding:10px 12px; transition:border-color .15s, box-shadow .15s, background .15s;
+  }
+  .input::placeholder, .textarea::placeholder{color:var(--slate-2);}
+  .textarea{resize:vertical; min-height:76px;}
+  .textarea.tall{min-height:96px;}
+  .mono-input{font-family:"JetBrains Mono"; font-size:12.5px;}
+  .input:focus, .textarea:focus, select.input:focus{
+    outline:none; border-color:var(--focus); background:#fff;
+    box-shadow:0 0 0 3px rgba(47,107,255,.14);
+  }
+  select.input{appearance:none; background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%235A6473' stroke-width='1.8'><path d='M4 6l4 4 4-4'/></svg>"); background-repeat:no-repeat; background-position:right 12px center; padding-right:34px;}
+
+  .field.has-error .input, .field.has-error .textarea{border-color:var(--sev-critical); box-shadow:0 0 0 3px rgba(229,72,77,.12);}
+  .err{display:none; font-size:12px; color:var(--sev-critical); margin-top:6px;}
+  .field.has-error .err{display:block;}
+
+  /* ---------- severity segmented ---------- */
+  .segmented{display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
+  .segmented input{position:absolute; opacity:0; width:1px; height:1px;}
+  .seg{
+    display:flex; align-items:center; justify-content:center; gap:7px;
+    font-size:13px; font-weight:500; color:var(--slate); cursor:pointer;
+    background:var(--surface-2); border:1px solid var(--border-strong);
+    border-radius:var(--radius-sm); padding:9px 6px; text-align:center;
+    transition:background .15s, color .15s, border-color .15s;
+  }
+  .seg::before{content:""; width:8px; height:8px; border-radius:50%; background:var(--dot); flex:0 0 8px;}
+  .seg:hover{border-color:var(--slate-2);}
+  #sev-critical{--dot:var(--sev-critical);} .seg[for="sev-critical"]{--dot:var(--sev-critical);}
+  .seg[data-dot="critical"]{--dot:var(--sev-critical);}
+  .seg[data-dot="high"]{--dot:var(--sev-high);}
+  .seg[data-dot="medium"]{--dot:var(--sev-medium);}
+  .seg[data-dot="low"]{--dot:var(--sev-low);}
+  input:checked + .seg{color:#fff; border-color:transparent; box-shadow:var(--shadow-sm);}
+  input:checked + .seg::before{background:rgba(255,255,255,.9);}
+  #sev-critical:checked + .seg{background:var(--sev-critical);}
+  #sev-high:checked + .seg{background:var(--sev-high);}
+  #sev-medium:checked + .seg{background:var(--sev-medium); color:var(--ink);}
+  #sev-medium:checked + .seg::before{background:rgba(27,34,48,.55);}
+  #sev-low:checked + .seg{background:var(--sev-low);}
+  input:focus-visible + .seg{outline:2px solid var(--focus); outline-offset:2px;}
+
+  /* ---------- dropzone ---------- */
+  .dropzone{
+    border:1.5px dashed var(--border-strong); border-radius:var(--radius-sm);
+    background:var(--surface-2); padding:20px 16px; text-align:center; cursor:pointer;
+    transition:border-color .15s, background .15s; color:var(--slate);
+  }
+  .dropzone:hover{border-color:var(--focus); background:#fff;}
+  .dropzone.drag{border-color:var(--focus); background:rgba(47,107,255,.05);}
+  .dz-icon{color:var(--slate-2); margin-bottom:6px;}
+  .dz-main{font-size:13.5px; color:var(--ink);}
+  .dz-main u{color:var(--focus); text-underline-offset:2px; cursor:pointer;}
+  .dz-hint{font-size:12px; color:var(--slate-2); margin-top:4px;}
+  .thumbs{display:flex; flex-wrap:wrap; gap:10px; margin-top:12px;}
+  .thumb{
+    position:relative; width:74px; border-radius:8px; overflow:hidden;
+    border:1px solid var(--border); background:var(--surface-2);
+  }
+  .thumb img{width:74px; height:56px; object-fit:cover; display:block;}
+  .thumb .vid{width:74px; height:56px; display:grid; place-items:center; color:var(--slate);}
+  .thumb .name{font-size:10px; font-family:"JetBrains Mono"; color:var(--slate); padding:3px 5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .thumb .rm{
+    position:absolute; top:3px; right:3px; width:18px; height:18px; border-radius:50%;
+    border:none; background:rgba(20,30,50,.72); color:#fff; cursor:pointer; font-size:12px; line-height:1;
+    display:grid; place-items:center;
+  }
+  .thumb .rm:hover{background:var(--sev-critical);}
+
+  /* ---------- live ticket ---------- */
+  .preview-eyebrow{
+    font-family:"JetBrains Mono"; font-size:11px; font-weight:500; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--slate-2); margin-bottom:12px; display:flex; align-items:center; gap:8px;
+  }
+  .live-dot{width:7px; height:7px; border-radius:50%; background:var(--ok); box-shadow:0 0 0 3px rgba(47,163,107,.16);}
+
+  .ticket{
+    border:1px solid var(--border); border-left:4px solid var(--c-strip, var(--slate-2));
+    border-radius:10px; background:var(--surface-2); padding:16px 16px 4px; overflow-wrap:anywhere;
+    transition:border-left-color .2s;
+  }
+  .ticket[data-sev="critical"]{--c-strip:var(--sev-critical);}
+  .ticket[data-sev="high"]{--c-strip:var(--sev-high);}
+  .ticket[data-sev="medium"]{--c-strip:var(--sev-medium);}
+  .ticket[data-sev="low"]{--c-strip:var(--sev-low);}
+
+  .tk-top{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+  .tk-badge{
+    font-family:"JetBrains Mono"; font-size:10.5px; font-weight:500; letter-spacing:.06em;
+    padding:3px 8px; border-radius:5px; color:#fff; background:var(--slate-2); text-transform:uppercase;
+  }
+  .ticket[data-sev="critical"] .tk-badge{background:var(--sev-critical);}
+  .ticket[data-sev="high"] .tk-badge{background:var(--sev-high);}
+  .ticket[data-sev="medium"] .tk-badge{background:var(--sev-medium); color:var(--ink);}
+  .ticket[data-sev="low"] .tk-badge{background:var(--sev-low);}
+  .tk-id{font-family:"JetBrains Mono"; font-size:12px; color:var(--slate);}
+
+  .tk-title{font-family:"Space Grotesk"; font-weight:600; font-size:17px; line-height:1.3; letter-spacing:-.01em; margin:2px 0 10px;}
+  .tk-title.empty{color:var(--slate-2); font-weight:500; font-style:italic;}
+
+  .tk-meta{font-family:"JetBrains Mono"; font-size:11.5px; color:var(--slate); margin-bottom:12px; padding-bottom:12px; border-bottom:1px dashed var(--border);}
+  .tk-meta .sep{color:var(--slate-2); margin:0 6px;}
+
+  .tk-sec{margin-bottom:12px;}
+  .tk-h{font-family:"JetBrains Mono"; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--slate-2); margin-bottom:4px;}
+  .tk-body{font-size:13px; color:var(--ink-2); white-space:pre-wrap;}
+  .tk-body.muted{color:var(--slate-2);}
+  .tk-sec ol{margin:2px 0 0; padding-left:20px;}
+  .tk-sec ol li{font-size:13px; color:var(--ink-2); margin:2px 0;}
+  .tk-kv{font-size:12.5px; color:var(--ink-2);}
+  .tk-kv b{color:var(--slate); font-weight:500;}
+  .tk-code{font-family:"JetBrains Mono"; font-size:11.5px; background:#fff; border:1px solid var(--border); border-radius:6px; padding:8px 10px; white-space:pre-wrap; color:var(--ink-2);}
+  .tk-files{font-size:12.5px; color:var(--slate);}
+
+  /* ---------- actions ---------- */
+  .team{margin:16px 0 12px;}
+  .team .label{font-size:12.5px;}
+  .actions{display:grid; grid-template-columns:1fr; gap:9px;}
+  .btn{
+    font:inherit; font-size:14px; font-weight:500; cursor:pointer;
+    padding:11px 14px; border-radius:var(--radius-sm); border:1px solid var(--border-strong);
+    background:var(--surface); color:var(--ink); transition:background .15s, border-color .15s, transform .05s;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .btn:hover{background:var(--surface-2); border-color:var(--slate-2);}
+  .btn:active{transform:translateY(1px);}
+  .btn svg{width:16px; height:16px;}
+  .btn.primary{background:var(--ink); color:#fff; border-color:var(--ink);}
+  .btn.primary:hover{background:var(--ink-2); border-color:var(--ink-2);}
+  .btn.ghost{background:transparent; border:none; color:var(--slate); font-size:13px; padding:8px; margin-top:6px;}
+  .btn.ghost:hover{color:var(--ink); background:transparent;}
+
+  .note{font-size:11.5px; color:var(--slate-2); margin-top:10px; line-height:1.45;}
+
+  /* ---------- toast ---------- */
+  .toast{
+    position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(16px);
+    background:var(--ink); color:#fff; font-size:13.5px; font-weight:500;
+    padding:11px 18px; border-radius:999px; box-shadow:var(--shadow-lg);
+    opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:50;
+    display:flex; align-items:center; gap:9px;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  .toast .tdot{width:7px; height:7px; border-radius:50%; background:var(--ok);}
+  .toast.warn .tdot{background:var(--sev-high);}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:860px){
+    .layout{grid-template-columns:1fr;}
+    .preview{position:static;}
+    .row, .row3{grid-template-columns:1fr;}
+    .segmented{grid-template-columns:repeat(2,1fr);}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important; animation:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <path d="M9 5.5 8 3.5M15 5.5l1-2M12 8a4 4 0 0 0-4 4v2a4 4 0 0 0 8 0v-2a4 4 0 0 0-4-4Z"/>
+          <path d="M8 12H4M20 12h-4M8 16l-3 2M16 16l3 2M8 9 5 7M16 9l3-2"/>
+        </svg>
+      </span>
+      <div>
+        <div class="brand-title" id="appTitle">Naše appka · Hlášení chyby</div>
+        <div class="brand-sub">Formulář pro testery</div>
+      </div>
+    </div>
+    <div class="ticket-meta">
+      <span class="id" id="metaId">BUG-0000</span>
+      <span class="sep">·</span>
+      <span id="metaDate">—</span>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- FORM -->
+    <form class="panel form" id="bugForm" novalidate>
+      <p class="lead">Popiš chybu co nejpřesněji – čím lépe půjde reprodukovat, tím rychleji ji opravíme. Náhled hlášení vpravo se sám aktualizuje.</p>
+
+      <!-- CO SE STALO -->
+      <section class="sec">
+        <div class="eyebrow">Co se stalo</div>
+
+        <div class="field" data-field="summary">
+          <label class="label" for="summary">Shrnutí chyby <span class="req">*</span></label>
+          <input class="input" id="summary" type="text" autocomplete="off"
+                 placeholder="Krátce a výstižně, např. „Uložení profilu selže na kroku 2“">
+          <div class="err" id="err-summary">Doplň krátké shrnutí chyby.</div>
+        </div>
+
+        <div class="field">
+          <label class="label">Závažnost</label>
+          <div class="segmented" role="radiogroup" aria-label="Závažnost">
+            <input type="radio" name="sev" id="sev-critical" value="critical">
+            <label class="seg" for="sev-critical" data-dot="critical">Kritická</label>
+            <input type="radio" name="sev" id="sev-high" value="high">
+            <label class="seg" for="sev-high" data-dot="high">Vysoká</label>
+            <input type="radio" name="sev" id="sev-medium" value="medium" checked>
+            <label class="seg" for="sev-medium" data-dot="medium">Střední</label>
+            <input type="radio" name="sev" id="sev-low" value="low">
+            <label class="seg" for="sev-low" data-dot="low">Nízká</label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="freq">Jak často se chyba objeví</label>
+          <select class="input" id="freq">
+            <option value="Vždy">Vždy (jde spolehlivě zopakovat)</option>
+            <option value="Občas">Občas (nahodile)</option>
+            <option value="Jednou">Stalo se jen jednou</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- KDE -->
+      <section class="sec">
+        <div class="eyebrow">Kde</div>
+        <div class="field">
+          <label class="label" for="url">URL / stránka</label>
+          <input class="input mono-input" id="url" type="text" autocomplete="off"
+                 placeholder="https://app.example.com/onboarding">
+        </div>
+        <div class="field">
+          <label class="label" for="section">Sekce / obrazovka</label>
+          <input class="input" id="section" type="text" list="sectionList" autocomplete="off"
+                 placeholder="Např. Onboarding, Dashboard, Nastavení…">
+          <datalist id="sectionList">
+            <option value="Onboarding"></option>
+            <option value="Přihlášení / registrace"></option>
+            <option value="Dashboard"></option>
+            <option value="Nastavení"></option>
+            <option value="Profil"></option>
+            <option value="Export / import"></option>
+          </datalist>
+        </div>
+      </section>
+
+      <!-- REPRODUKCE -->
+      <section class="sec">
+        <div class="eyebrow">Reprodukce</div>
+
+        <div class="field" data-field="steps">
+          <label class="label" for="steps">Kroky k reprodukci <span class="req">*</span></label>
+          <textarea class="textarea tall" id="steps"
+                    placeholder="Každý krok na nový řádek:&#10;Otevřít stránku onboardingu&#10;Vyplnit formulář a kliknout na Uložit&#10;…"></textarea>
+          <div class="hint">Každý krok napiš na samostatný řádek – čísla doplníme za tebe.</div>
+          <div class="err" id="err-steps">Doplň alespoň jeden krok k reprodukci.</div>
+        </div>
+
+        <div class="row">
+          <div class="field" data-field="expected">
+            <label class="label" for="expected">Očekávané chování <span class="req">*</span></label>
+            <textarea class="textarea" id="expected" placeholder="Co se mělo stát"></textarea>
+            <div class="err" id="err-expected">Doplň očekávané chování.</div>
+          </div>
+          <div class="field" data-field="actual">
+            <label class="label" for="actual">Skutečné chování <span class="req">*</span></label>
+            <textarea class="textarea" id="actual" placeholder="Co se stalo místo toho"></textarea>
+            <div class="err" id="err-actual">Doplň skutečné chování.</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="console">Chybové hlášky / logy z konzole</label>
+          <textarea class="textarea mono-input" id="console" placeholder="Zkopíruj sem chyby z konzole (nepovinné)"></textarea>
+        </div>
+      </section>
+
+      <!-- PROSTŘEDÍ -->
+      <section class="sec">
+        <div class="eyebrow">Prostředí</div>
+        <div class="row3">
+          <div class="field">
+            <label class="label" for="browser">Prohlížeč</label>
+            <input class="input" id="browser" type="text" autocomplete="off">
+          </div>
+          <div class="field">
+            <label class="label" for="os">Systém</label>
+            <input class="input" id="os" type="text" autocomplete="off">
+          </div>
+          <div class="field">
+            <label class="label" for="res">Rozlišení</label>
+            <input class="input mono-input" id="res" type="text" autocomplete="off">
+          </div>
+        </div>
+        <div class="hint">Předvyplněno automaticky – když nesedí, klidně uprav.</div>
+      </section>
+
+      <!-- PŘÍLOHY A POZNÁMKY -->
+      <section class="sec">
+        <div class="eyebrow">Přílohy a poznámky</div>
+
+        <div class="field">
+          <label class="label">Screenshoty / nahrávky</label>
+          <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Přidat screenshoty nebo nahrávky">
+            <div class="dz-icon" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 15V4M8 8l4-4 4 4"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/>
+              </svg>
+            </div>
+            <div class="dz-main">Přetáhni sem soubory nebo <u>vyber z počítače</u></div>
+            <div class="dz-hint">Můžeš i vložit obrázek ze schránky (Ctrl/Cmd + V)</div>
+          </div>
+          <input type="file" id="fileInput" accept="image/*,video/*" multiple hidden>
+          <div class="thumbs" id="thumbs"></div>
+          <div class="hint">Soubory zůstávají jen v prohlížeči. Nezapomeň je přiložit ke zprávě, když hlášení odešleš.</div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="link">Odkaz na nahrávku / screenshot</label>
+          <input class="input mono-input" id="link" type="text" autocomplete="off"
+                 placeholder="Např. odkaz z Loomu nebo Google Disku (nepovinné)">
+        </div>
+
+        <div class="field">
+          <label class="label" for="reporter">Tvoje jméno</label>
+          <input class="input" id="reporter" type="text" autocomplete="name" placeholder="Kdo chybu hlásí (nepovinné)">
+        </div>
+
+        <div class="field">
+          <label class="label" for="notes">Doplňující poznámky</label>
+          <textarea class="textarea" id="notes" placeholder="Cokoli dalšího, co by mohlo pomoct (nepovinné)"></textarea>
+        </div>
+      </section>
+    </form>
+
+    <!-- PREVIEW / ACTIONS -->
+    <aside class="panel preview">
+      <div class="preview-eyebrow"><span class="live-dot" aria-hidden="true"></span> Náhled hlášení</div>
+      <div class="ticket" id="ticket" data-sev="medium" aria-live="polite"></div>
+
+      <div class="team">
+        <label class="label" for="teamEmail">E-mail týmu</label>
+        <input class="input mono-input" id="teamEmail" type="email" autocomplete="off"
+               placeholder="kam poslat hlášení (nepovinné)">
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn primary" id="btnCopy">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+          Kopírovat hlášení
+        </button>
+        <button type="button" class="btn" id="btnEmail">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+          Odeslat e-mailem
+        </button>
+        <button type="button" class="btn" id="btnDownload">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 11 5 4 5-4"/><path d="M5 19h14"/></svg>
+          Stáhnout jako .md
+        </button>
+      </div>
+
+      <button type="button" class="btn ghost" id="btnReset">Vyčistit a začít nové hlášení</button>
+
+      <p class="note">Tip: „Kopírovat“ vloží hlášení ve formátu Markdown – dá se vložit do Jiry, Linearu, Slacku i e-mailu. U e-mailu přílohy přidej ručně (odkaz na ně přežije).</p>
+    </aside>
+
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"><span class="tdot" aria-hidden="true"></span><span id="toastMsg"></span></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ====== KONFIGURACE (uprav podle sebe) ====== */
+  var APP_NAME = "Naše appka";        // ← název vaší aplikace (zobrazí se v hlavičce)
+  var DEFAULT_TEAM_EMAIL = "";         // ← volitelně předvyplň e-mail týmu, např. "bugs@firma.cz"
+  /* ============================================ */
+
+  var SEV = {
+    critical: "Kritická",
+    high: "Vysoká",
+    medium: "Střední",
+    low: "Nízká"
+  };
+
+  var files = [];      // { name, url, isImage }
+  var ticketId = genId();
+  var dateStr = fmtDate(new Date());
+
+  // --- pomocné ---
+  function $(id){ return document.getElementById(id); }
+  function h(tag, cls, text){
+    var e = document.createElement(tag);
+    if(cls) e.className = cls;
+    if(text != null) e.textContent = text;
+    return e;
+  }
+  function genId(){
+    var s = "";
+    for(var i=0;i<4;i++){ s += "0123456789ABCDEF"[Math.floor(Math.random()*16)]; }
+    return "BUG-" + s;
+  }
+  function fmtDate(d){
+    try{
+      return d.toLocaleString("cs-CZ", {day:"numeric", month:"numeric", year:"numeric", hour:"2-digit", minute:"2-digit"});
+    }catch(e){
+      return d.toISOString().slice(0,16).replace("T"," ");
+    }
+  }
+  function splitSteps(text){
+    if(!text) return [];
+    return text.split(/\r?\n/)
+      .map(function(l){ return l.replace(/^\s*(\d+[.)]|[-*•])\s*/, "").trim(); })
+      .filter(function(l){ return l.length > 0; });
+  }
+  function selectedSev(){
+    var r = document.querySelector('input[name="sev"]:checked');
+    return r ? r.value : "medium";
+  }
+
+  // --- detekce prostředí ---
+  function detectEnv(){
+    var ua = navigator.userAgent || "";
+    var browser = "Neznámý", version = "";
+    if(/Edg\//.test(ua)){ browser = "Edge"; version = (ua.match(/Edg\/([\d.]+)/) || [])[1] || ""; }
+    else if(/OPR\//.test(ua) || /\bOpera\b/.test(ua)){ browser = "Opera"; version = (ua.match(/OPR\/([\d.]+)/) || [])[1] || ""; }
+    else if(/Firefox\//.test(ua)){ browser = "Firefox"; version = (ua.match(/Firefox\/([\d.]+)/) || [])[1] || ""; }
+    else if(/Chrome\//.test(ua)){ browser = "Chrome"; version = (ua.match(/Chrome\/([\d.]+)/) || [])[1] || ""; }
+    else if(/Safari\//.test(ua) && /Version\//.test(ua)){ browser = "Safari"; version = (ua.match(/Version\/([\d.]+)/) || [])[1] || ""; }
+    if(version) version = version.split(".")[0];
+
+    var os = "Neznámý";
+    if(/Windows NT 10/.test(ua)) os = "Windows 10/11";
+    else if(/Windows/.test(ua)) os = "Windows";
+    else if(/Mac OS X/.test(ua)) os = "macOS";
+    else if(/Android/.test(ua)) os = "Android";
+    else if(/(iPhone|iPad|iPod)/.test(ua)) os = "iOS";
+    else if(/Linux/.test(ua)) os = "Linux";
+
+    var res = (window.screen.width || "?") + "×" + (window.screen.height || "?");
+    var vp = (window.innerWidth || "?") + "×" + (window.innerHeight || "?");
+    return { browser: browser + (version ? (" " + version) : ""), os: os, res: res, vp: vp };
+  }
+
+  // --- čtení hodnot ---
+  function getValues(){
+    var sev = selectedSev();
+    return {
+      summary:  $("summary").value.trim(),
+      sev:      sev,
+      sevLabel: SEV[sev],
+      freq:     $("freq").value,
+      url:      $("url").value.trim(),
+      section:  $("section").value.trim(),
+      steps:    $("steps").value,
+      expected: $("expected").value.trim(),
+      actual:   $("actual").value.trim(),
+      console:  $("console").value.trim(),
+      browser:  $("browser").value.trim(),
+      os:       $("os").value.trim(),
+      res:      $("res").value.trim(),
+      link:     $("link").value.trim(),
+      reporter: $("reporter").value.trim(),
+      notes:    $("notes").value.trim()
+    };
+  }
+
+  // --- vykreslení živého ticketu ---
+  function renderTicket(){
+    var v = getValues();
+    var t = $("ticket");
+    t.dataset.sev = v.sev;
+    t.innerHTML = "";
+
+    // top
+    var top = h("div", "tk-top");
+    top.appendChild(h("span", "tk-badge", v.sevLabel));
+    top.appendChild(h("span", "tk-id", ticketId));
+    t.appendChild(top);
+
+    // title
+    if(v.summary){
+      t.appendChild(h("h2", "tk-title", v.summary));
+    } else {
+      t.appendChild(h("h2", "tk-title empty", "Zatím bez shrnutí"));
+    }
+
+    // meta
+    var meta = h("div", "tk-meta");
+    if(v.reporter){ meta.appendChild(h("span", null, v.reporter)); meta.appendChild(h("span", "sep", "·")); }
+    meta.appendChild(h("span", null, "Frekvence: " + v.freq));
+    meta.appendChild(h("span", "sep", "·"));
+    meta.appendChild(h("span", null, dateStr));
+    t.appendChild(meta);
+
+    // kde
+    if(v.url || v.section){
+      var kde = h("div", "tk-sec");
+      kde.appendChild(h("div", "tk-h", "Kde"));
+      if(v.url){ var k1 = h("div", "tk-kv"); k1.appendChild(h("b", null, "URL: ")); k1.appendChild(document.createTextNode(v.url)); kde.appendChild(k1); }
+      if(v.section){ var k2 = h("div", "tk-kv"); k2.appendChild(h("b", null, "Sekce: ")); k2.appendChild(document.createTextNode(v.section)); kde.appendChild(k2); }
+      t.appendChild(kde);
+    }
+
+    // kroky
+    var stepsArr = splitSteps(v.steps);
+    var sSec = h("div", "tk-sec");
+    sSec.appendChild(h("div", "tk-h", "Kroky k reprodukci"));
+    if(stepsArr.length){
+      var ol = document.createElement("ol");
+      stepsArr.forEach(function(s){ ol.appendChild(h("li", null, s)); });
+      sSec.appendChild(ol);
+    } else {
+      sSec.appendChild(h("div", "tk-body muted", "—"));
+    }
+    t.appendChild(sSec);
+
+    // očekávané / skutečné
+    t.appendChild(simpleSec("Očekávané chování", v.expected));
+    t.appendChild(simpleSec("Skutečné chování", v.actual));
+
+    // logy
+    if(v.console){
+      var cSec = h("div", "tk-sec");
+      cSec.appendChild(h("div", "tk-h", "Chybové hlášky / logy"));
+      cSec.appendChild(h("div", "tk-code", v.console));
+      t.appendChild(cSec);
+    }
+
+    // prostředí
+    var eSec = h("div", "tk-sec");
+    eSec.appendChild(h("div", "tk-h", "Prostředí"));
+    var envLine = h("div", "tk-kv");
+    envLine.textContent = [v.browser, v.os, v.res].filter(Boolean).join("  ·  ");
+    eSec.appendChild(envLine);
+    t.appendChild(eSec);
+
+    // přílohy
+    if(files.length || v.link){
+      var aSec = h("div", "tk-sec");
+      aSec.appendChild(h("div", "tk-h", "Přílohy"));
+      if(files.length){
+        aSec.appendChild(h("div", "tk-files", files.length + " soubor(ů): " + files.map(function(f){ return f.name; }).join(", ")));
+      }
+      if(v.link){
+        var lk = h("div", "tk-kv"); lk.appendChild(h("b", null, "Odkaz: ")); lk.appendChild(document.createTextNode(v.link)); aSec.appendChild(lk);
+      }
+      t.appendChild(aSec);
+    }
+
+    // poznámky
+    if(v.notes){
+      t.appendChild(simpleSec("Poznámky", v.notes));
+    }
+  }
+
+  function simpleSec(title, body){
+    var s = h("div", "tk-sec");
+    s.appendChild(h("div", "tk-h", title));
+    if(body){ s.appendChild(h("div", "tk-body", body)); }
+    else { s.appendChild(h("div", "tk-body muted", "—")); }
+    return s;
+  }
+
+  // --- Markdown ---
+  function buildMarkdown(){
+    var v = getValues();
+    var L = [];
+    L.push("# [" + v.sevLabel + "] " + ticketId + " — " + (v.summary || "Chyba"));
+    L.push("");
+    var meta = [];
+    if(v.reporter) meta.push("**Reportér:** " + v.reporter);
+    meta.push("**Datum:** " + dateStr);
+    meta.push("**Závažnost:** " + v.sevLabel);
+    meta.push("**Frekvence:** " + v.freq);
+    L.push(meta.join("  \n"));
+    L.push("");
+
+    if(v.url || v.section){
+      L.push("## Kde");
+      if(v.url) L.push("- URL / stránka: " + v.url);
+      if(v.section) L.push("- Sekce / obrazovka: " + v.section);
+      L.push("");
+    }
+
+    L.push("## Kroky k reprodukci");
+    var steps = splitSteps(v.steps);
+    if(steps.length){ steps.forEach(function(s, i){ L.push((i+1) + ". " + s); }); }
+    else { L.push("_(nevyplněno)_"); }
+    L.push("");
+
+    L.push("## Očekávané chování");
+    L.push(v.expected || "_(nevyplněno)_");
+    L.push("");
+
+    L.push("## Skutečné chování");
+    L.push(v.actual || "_(nevyplněno)_");
+    L.push("");
+
+    if(v.console){
+      L.push("## Chybové hlášky / logy");
+      L.push("```");
+      L.push(v.console);
+      L.push("```");
+      L.push("");
+    }
+
+    L.push("## Prostředí");
+    L.push("- Prohlížeč: " + v.browser);
+    L.push("- Systém: " + v.os);
+    L.push("- Rozlišení: " + v.res);
+    L.push("");
+
+    if(files.length || v.link){
+      L.push("## Přílohy");
+      if(files.length) L.push("- " + files.length + " soubor(ů) přiloženo lokálně (přilož ručně ke zprávě): " + files.map(function(f){ return f.name; }).join(", "));
+      if(v.link) L.push("- Odkaz: " + v.link);
+      L.push("");
+    }
+
+    if(v.notes){
+      L.push("## Poznámky");
+      L.push(v.notes);
+      L.push("");
+    }
+
+    return L.join("\n").replace(/\n{3,}/g, "\n\n").trim() + "\n";
+  }
+
+  // --- validace ---
+  var REQUIRED = ["summary", "steps", "expected", "actual"];
+  function validate(){
+    var ok = true, firstBad = null;
+    REQUIRED.forEach(function(id){
+      var field = document.querySelector('.field[data-field="' + id + '"]');
+      var val = $(id).value.trim();
+      var empty = (id === "steps") ? (splitSteps(val).length === 0) : (val === "");
+      if(empty){
+        if(field) field.classList.add("has-error");
+        if(!firstBad) firstBad = field || $(id);
+        ok = false;
+      } else if(field){
+        field.classList.remove("has-error");
+      }
+    });
+    if(!ok && firstBad){
+      firstBad.scrollIntoView({behavior:"smooth", block:"center"});
+      var input = firstBad.querySelector ? firstBad.querySelector(".input, .textarea") : firstBad;
+      if(input && input.focus) input.focus({preventScroll:true});
+      toast("Doplň prosím povinná pole (označená *).", true);
+    }
+    return ok;
+  }
+
+  // --- akce ---
+  function copyText(text){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      return navigator.clipboard.writeText(text).then(function(){ return true; }, function(){ return fallbackCopy(text); });
+    }
+    return Promise.resolve(fallbackCopy(text));
+  }
+  function fallbackCopy(text){
+    try{
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed"; ta.style.top = "-9999px"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      var ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return ok;
+    }catch(e){ return false; }
+  }
+
+  function doCopy(){
+    if(!validate()) return;
+    copyText(buildMarkdown()).then(function(ok){
+      toast(ok ? "Hlášení zkopírováno do schránky." : "Kopírování se nepovedlo – zkus stáhnout .md.", !ok);
+    });
+  }
+
+  function doEmail(){
+    if(!validate()) return;
+    var v = getValues();
+    var subject = "[" + v.sevLabel + "] " + ticketId + " — " + (v.summary || "Chyba");
+    var body = buildMarkdown();
+    var to = ($("teamEmail").value.trim());
+    var href = "mailto:" + encodeURIComponent(to) + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+    if(href.length > 1900){
+      // některé e-mailové klienty ořezávají dlouhé mailto odkazy
+      copyText(body);
+      toast("Hlášení je dlouhé – zkopíroval jsem ho do schránky, vlož ho do e-mailu.", true);
+    }
+    window.location.href = href;
+  }
+
+  function doDownload(){
+    if(!validate()) return;
+    var blob = new Blob([buildMarkdown()], {type:"text/markdown;charset=utf-8"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = ticketId + ".md";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 500);
+    toast("Staženo jako " + ticketId + ".md");
+  }
+
+  function doReset(){
+    $("bugForm").reset();
+    document.querySelector('#sev-medium').checked = true;
+    files.forEach(function(f){ if(f.url) URL.revokeObjectURL(f.url); });
+    files = [];
+    $("thumbs").innerHTML = "";
+    document.querySelectorAll(".field.has-error").forEach(function(el){ el.classList.remove("has-error"); });
+    ticketId = genId();
+    dateStr = fmtDate(new Date());
+    fillEnv();
+    $("teamEmail").value = DEFAULT_TEAM_EMAIL;
+    updateMeta();
+    renderTicket();
+    window.scrollTo({top:0, behavior:"smooth"});
+    toast("Připraveno nové hlášení: " + ticketId);
+  }
+
+  // --- přílohy ---
+  function addFiles(list){
+    var arr = Array.prototype.slice.call(list || []);
+    arr.forEach(function(file){
+      var isImage = /^image\//.test(file.type);
+      var isVideo = /^video\//.test(file.type);
+      if(!isImage && !isVideo) return;
+      var url = isImage ? URL.createObjectURL(file) : null;
+      files.push({ name: file.name || (isImage ? "obrazek" : "video"), url: url, isImage: isImage });
+    });
+    renderThumbs();
+    renderTicket();
+  }
+  function renderThumbs(){
+    var box = $("thumbs");
+    box.innerHTML = "";
+    files.forEach(function(f, idx){
+      var th = h("div", "thumb");
+      if(f.isImage && f.url){
+        var img = document.createElement("img");
+        img.src = f.url; img.alt = f.name;
+        th.appendChild(img);
+      } else {
+        var vid = h("div", "vid");
+        vid.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3z"/></svg>';
+        th.appendChild(vid);
+      }
+      var name = h("div", "name", f.name);
+      th.appendChild(name);
+      var rm = h("button", "rm", "×");
+      rm.type = "button";
+      rm.setAttribute("aria-label", "Odebrat " + f.name);
+      rm.addEventListener("click", function(){
+        if(f.url) URL.revokeObjectURL(f.url);
+        files.splice(idx, 1);
+        renderThumbs();
+        renderTicket();
+      });
+      th.appendChild(rm);
+      box.appendChild(th);
+    });
+  }
+
+  // --- toast ---
+  var toastTimer = null;
+  function toast(msg, warn){
+    var t = $("toast");
+    $("toastMsg").textContent = msg;
+    t.classList.toggle("warn", !!warn);
+    t.classList.add("show");
+    if(toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.classList.remove("show"); }, 3200);
+  }
+
+  // --- init ---
+  function fillEnv(){
+    var env = detectEnv();
+    $("browser").value = env.browser;
+    $("os").value = env.os;
+    $("res").value = env.res + (env.vp && env.vp !== env.res ? (" (viewport " + env.vp + ")") : "");
+  }
+  function updateMeta(){
+    $("metaId").textContent = ticketId;
+    $("metaDate").textContent = dateStr;
+    $("appTitle").textContent = APP_NAME + " · Hlášení chyby";
+  }
+
+  function init(){
+    updateMeta();
+    fillEnv();
+    $("teamEmail").value = DEFAULT_TEAM_EMAIL;
+
+    // live update na všech vstupech
+    $("bugForm").addEventListener("input", renderTicket);
+    $("bugForm").addEventListener("change", renderTicket);
+
+    // vymazání chyby při psaní do povinného pole
+    REQUIRED.forEach(function(id){
+      $(id).addEventListener("input", function(){
+        var field = document.querySelector('.field[data-field="' + id + '"]');
+        if(field) field.classList.remove("has-error");
+      });
+    });
+
+    // akce
+    $("btnCopy").addEventListener("click", doCopy);
+    $("btnEmail").addEventListener("click", doEmail);
+    $("btnDownload").addEventListener("click", doDownload);
+    $("btnReset").addEventListener("click", doReset);
+
+    // dropzone
+    var dz = $("dropzone"), fi = $("fileInput");
+    dz.addEventListener("click", function(){ fi.click(); });
+    dz.addEventListener("keydown", function(e){ if(e.key === "Enter" || e.key === " "){ e.preventDefault(); fi.click(); } });
+    fi.addEventListener("change", function(){ addFiles(fi.files); fi.value = ""; });
+    ["dragenter","dragover"].forEach(function(ev){
+      dz.addEventListener(ev, function(e){ e.preventDefault(); dz.classList.add("drag"); });
+    });
+    ["dragleave","drop"].forEach(function(ev){
+      dz.addEventListener(ev, function(e){ e.preventDefault(); dz.classList.remove("drag"); });
+    });
+    dz.addEventListener("drop", function(e){ if(e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files); });
+
+    // vložení obrázku ze schránky
+    document.addEventListener("paste", function(e){
+      if(e.clipboardData && e.clipboardData.files && e.clipboardData.files.length){
+        addFiles(e.clipboardData.files);
+      }
+    });
+
+    renderTicket();
+  }
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>
