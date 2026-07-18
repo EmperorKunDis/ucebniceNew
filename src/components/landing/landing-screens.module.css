@@ -182,9 +182,7 @@
   place-items: center;
   border: 1px solid rgba(184, 191, 210, 0.16);
   border-radius: 20px;
-  background:
-    radial-gradient(circle at 50% 42%, rgba(103, 71, 255, 0.3), transparent 58%),
-    #10111a;
+  background: radial-gradient(circle at 50% 42%, rgba(103, 71, 255, 0.3), transparent 58%), #10111a;
 }
 
 .playButton {
