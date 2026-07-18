@@ -93,6 +93,8 @@ export function LandingScrollStory() {
       if (!shouldScrub) {
         openingRef.current = 'done'
         setOpeningDone(true)
+        setActiveCue(0)
+        setHold(true)
         if (videoRef.current && videoRef.current.readyState >= HTMLMediaElement.HAVE_METADATA) {
           videoRef.current.currentTime = INTRO_POSE
         }
@@ -181,6 +183,7 @@ export function LandingScrollStory() {
 
   const activeStoryCue = LANDING_STORY_CUES[activeCue]!
   const screensVisible = openingDone && hold
+  const introCtaVisible = activeCue === 0 && openingDone
 
   return (
     <section
@@ -289,19 +292,20 @@ export function LandingScrollStory() {
 
           <div
             className={styles.introCta}
-            data-visible={activeCue === 0 && openingDone ? 'true' : 'false'}
+            data-visible={introCtaVisible ? 'true' : 'false'}
+            aria-hidden={!introCtaVisible}
           >
             <Link
               className={styles.primaryButton}
               href="/dashboard"
-              tabIndex={activeCue === 0 ? 0 : -1}
+              tabIndex={introCtaVisible ? 0 : -1}
             >
               Začít kurz <ArrowRight size={20} aria-hidden="true" />
             </Link>
             <Link
               className={styles.secondaryButton}
               href="#obsah"
-              tabIndex={activeCue === 0 ? 0 : -1}
+              tabIndex={introCtaVisible ? 0 : -1}
             >
               Prohlédnout obsah
             </Link>
