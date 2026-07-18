@@ -247,6 +247,13 @@ nav *:focus {
   border: none !important;
 }
 
+/* Public navigation links keep a visible keyboard focus despite the legacy nav reset. */
+nav a.public-focus-ring:focus-visible {
+  outline: 3px solid #44d8ed !important;
+  outline-offset: 3px !important;
+  box-shadow: none !important;
+}
+
 /* Disable browser tooltips completely */
 nav [title] {
   pointer-events: none;
