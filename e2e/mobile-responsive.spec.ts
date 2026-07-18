@@ -45,7 +45,7 @@ test.describe('Public responsive shell', () => {
 
     const mobileNavigation = page.getByRole('navigation', { name: 'Mobilní navigace' })
     await expect(mobileNavigation).toBeVisible()
-    await expect(mobileNavigation.getByRole('link', { name: 'Kurz' })).toBeVisible()
+    await expect(mobileNavigation.getByRole('link', { name: 'Kurz', exact: true })).toBeVisible()
     await expect(mobileNavigation.getByRole('link', { name: 'Apex Aréna' })).toBeVisible()
     await expect(mobileNavigation.getByRole('link', { name: 'Žebříček' })).toBeVisible()
 
@@ -96,7 +96,7 @@ test.describe('Public responsive shell', () => {
     await page.getByRole('button', { name: 'Otevřít hlavní navigaci' }).click()
 
     const mobileNavigation = page.getByRole('navigation', { name: 'Mobilní navigace' })
-    await expect(mobileNavigation.getByRole('link', { name: 'Kurz' })).toHaveAttribute(
+    await expect(mobileNavigation.getByRole('link', { name: 'Kurz', exact: true })).toHaveAttribute(
       'href',
       '/dashboard'
     )
@@ -108,7 +108,12 @@ test.describe('Public responsive shell', () => {
     await page.goto('/')
 
     await expect(page.getByRole('main')).toBeVisible()
-    await expect(page.getByRole('heading', { level: 1, name: /Nauč se programovat/ })).toBeVisible()
+    await expect(
+      page.getByRole('heading', {
+        level: 1,
+        name: 'Nauč se programovat AI. A programovat s AI.',
+      })
+    ).toBeVisible()
     await expect(page.getByRole('button', { name: 'Otevřít hlavní navigaci' })).toBeVisible()
   })
 })
