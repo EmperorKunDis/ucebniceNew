@@ -1,5 +1,64 @@
 import { expect, test, type Page } from '@playwright/test'
 
+const HERO_TAGS = [
+  '40 kapitol a 400 cvičení',
+  'Video, NotebookLM a Google Colab',
+  'AI Tutor a zpětná vazba k projektům',
+  'Gamifikovaná cesta s viditelným progresem',
+  'Certifikát a prezentace projektů v Apex Aréně',
+]
+
+const FEATURES = [
+  {
+    id: 'course',
+    heading: 'Kompletní kurz AI a programování',
+    description:
+      '40 navazujících kapitol od základů AI přes algoritmy a machine learning až po neuronové sítě, etiku a budoucnost AI.',
+  },
+  {
+    id: 'multimedia',
+    heading: 'Multimediální výuka bez instalace',
+    description:
+      'Plné textové lekce, 38 videí, 38 NotebookLM zdrojů a 40 praktických Google Colab notebooků.',
+  },
+  {
+    id: 'practice',
+    heading: 'Procvičování a praktické projekty',
+    description:
+      '400 interaktivních testových otázek s vysvětlením a projekty ve vybraných kapitolách, včetně AI zpětné vazby.',
+  },
+  {
+    id: 'path',
+    heading: 'Duolingo-style cesta kurzem',
+    description:
+      'Vizuální skill tree, postupné odemykání kapitol a hvězdičkový progres za obsah, cvičení a schválené projekty.',
+  },
+  {
+    id: 'gamification',
+    heading: 'Silná gamifikace',
+    description:
+      'XP, levely, streaky, srdíčka, gemy, achievementy, denní a týdenní questy, ligy, žebříčky a obchod.',
+  },
+  {
+    id: 'tutor',
+    heading: 'AI Tutor a chytré opakování',
+    description:
+      'Osobní AI pomocník a spaced repetition pro opakování témat, která student potřebuje procvičit.',
+  },
+  {
+    id: 'certificate',
+    heading: 'Testy a ověřitelný certifikát',
+    description:
+      'Milníkové testy, závěrečný test a projekt, PDF certifikát s unikátním veřejně ověřitelným kódem.',
+  },
+  {
+    id: 'arena',
+    heading: 'Komunita a Apex Aréna',
+    description:
+      'Přátelé, hackathony, týmy, prezentace projektů a profily absolventů směrem k firmám a zaměstnavatelům.',
+  },
+]
+
 async function isolatePublicPageFromBackendApis(page: Page) {
   const unexpectedApiRequests: string[] = []
 
@@ -39,12 +98,107 @@ test.describe('Database-independent public Chromium smoke', () => {
     const response = await page.goto('/', { waitUntil: 'domcontentloaded' })
 
     expect(response?.status()).toBe(200)
-    await expect(page.getByRole('main')).toBeVisible()
-    await expect(page.getByRole('heading', { level: 1, name: /Nauč se programovat/ })).toBeVisible()
+    const main = page.getByRole('main')
+    await expect(main).toBeVisible()
+    await expect(
+      page.getByRole('heading', {
+        level: 1,
+        name: 'Nauč se programovat AI. A programovat s AI.',
+      })
+    ).toBeVisible()
+    await expect(
+      main.getByRole('link', { name: 'Začít kurz', exact: true }).first()
+    ).toHaveAttribute('href', '/dashboard')
+    await expect(main.getByRole('link', { name: 'Prohlédnout obsah' }).first()).toHaveAttribute(
+      'href',
+      '#obsah'
+    )
+
+    for (const tag of HERO_TAGS) {
+      await expect(page.getByText(tag, { exact: true })).toBeVisible()
+    }
+
+    for (const feature of FEATURES) {
+      const panel = page.locator(`[data-story-cue="${feature.id}"]`)
+      await expect(panel.locator('h3')).toHaveText(feature.heading)
+      await expect(panel).toContainText(feature.description)
+    }
+
+    const heroVideo = page.getByTestId('landing-macbook-video')
+    await expect(heroVideo).toBeVisible()
+    await expect(heroVideo).toHaveAttribute('poster', '/media/landing/ucebnice-scroll-poster.jpg')
+    await expect(heroVideo.locator('source')).toHaveCount(3)
+    await expect(heroVideo).not.toHaveAttribute('autoplay')
+    await expect(heroVideo).not.toHaveAttribute('loop')
+    // The lid-opening shot may still be auto-playing right after load; once it
+    // finishes, the reel parks on the intro pose and stays paused.
+    await expect
+      .poll(() => heroVideo.evaluate(video => (video as HTMLVideoElement).paused), {
+        timeout: 15_000,
+      })
+      .toBe(true)
+    await expect(page.getByText(/24\/7|GPU zdarma|tisícům studentů|Začít zdarma/)).toHaveCount(0)
     await expect(page.getByRole('contentinfo')).toBeVisible()
     await expect(page.getByAltText('Loga partnerů Učebnice AI')).toBeVisible()
     expect(unexpectedApiRequests).toEqual([])
     expect(hydrationErrors).toEqual([])
+  })
+
+  test('should scrub the paused MacBook reel forward and backward with native page scroll', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await isolatePublicPageFromBackendApis(page)
+    await page.goto('/', { waitUntil: 'networkidle' })
+
+    const heroVideo = page.getByTestId('landing-macbook-video')
+    const sceneHeight = 900 - 64
+    await expect(heroVideo).toHaveAttribute('data-scrub', 'enabled')
+
+    await page.evaluate(y => {
+      document.documentElement.style.scrollBehavior = 'auto'
+      window.scrollTo(0, y)
+    }, sceneHeight * 4.5)
+
+    // Half-way through a scene is inside the hold window, so the video is
+    // pinned to the cue pose and the copy panel is active.
+    await expect(page.locator('[data-story-cue="path"]')).toHaveAttribute('data-active', 'true')
+    await expect
+      .poll(() => heroVideo.evaluate(video => (video as HTMLVideoElement).currentTime))
+      .toBeCloseTo(21.2, 1)
+
+    await page.evaluate(y => window.scrollTo(0, y), sceneHeight * 1.5)
+
+    await expect(page.locator('[data-story-cue="course"]')).toHaveAttribute('data-active', 'true')
+    await expect
+      .poll(() => heroVideo.evaluate(video => (video as HTMLVideoElement).currentTime))
+      .toBeCloseTo(10.5, 1)
+    expect(await heroVideo.evaluate(video => (video as HTMLVideoElement).paused)).toBe(true)
+  })
+
+  test('should respect reduced motion for the MacBook feature reel', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await isolatePublicPageFromBackendApis(page)
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
+
+    const heroVideo = page.getByTestId('landing-macbook-video')
+    await expect(heroVideo).toHaveAttribute('data-motion', 'reduced')
+    await expect(heroVideo).toHaveAttribute('data-scrub', 'disabled')
+    await expect(heroVideo).not.toHaveAttribute('autoplay')
+
+    expect(await heroVideo.evaluate(video => (video as HTMLVideoElement).paused)).toBe(true)
+    // Without scrubbing the reel parks on the intro pose instead of playing.
+    await expect
+      .poll(() => heroVideo.evaluate(video => (video as HTMLVideoElement).currentTime))
+      .toBeCloseTo(5.9, 1)
+
+    const timeBeforeScroll = await heroVideo.evaluate(
+      video => (video as HTMLVideoElement).currentTime
+    )
+    await page.evaluate(() => window.scrollTo(0, 2200))
+    await expect
+      .poll(() => heroVideo.evaluate(video => (video as HTMLVideoElement).currentTime))
+      .toBeCloseTo(timeBeforeScroll, 1)
   })
 
   test('should expose the mobile navigation to keyboard users', async ({ page }) => {
@@ -74,7 +228,7 @@ test.describe('Database-independent public Chromium smoke', () => {
 
     const mobileNavigation = page.getByRole('navigation', { name: 'Mobilní navigace' })
     await expect(mobileNavigation).toBeVisible()
-    await expect(mobileNavigation.getByRole('link', { name: 'Kurz' })).toHaveAttribute(
+    await expect(mobileNavigation.getByRole('link', { name: 'Kurz', exact: true })).toHaveAttribute(
       'href',
       '/dashboard'
     )

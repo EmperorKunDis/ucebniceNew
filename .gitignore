@@ -79,3 +79,7 @@ storybook-static
 *-secret.yaml
 *.env.production
 *.env.staging
+
+# working artifacts
+.screenshots/
+*.mov

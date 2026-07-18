@@ -86,6 +86,7 @@ components/
 ├── providers.tsx          # App-level providers (CRITICAL)
 ├── auth-provider.tsx      # Auth context provider
 ├── ErrorBoundary.tsx      # Error boundary component
+├── landing/               # Public Učebnice AI 1.0 scroll story and static fallback
 ├── ui/                    # Design system primitives
 │   ├── button.tsx        # Button component
 │   ├── glass-surface.tsx # Glass effect wrapper

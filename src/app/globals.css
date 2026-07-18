@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+.public-focus-ring:focus-visible {
+  outline: 3px solid #44d8ed !important;
+  outline-offset: 3px !important;
+  box-shadow: none !important;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

@@ -1,0 +1,538 @@
+/* Screens are authored on a fixed 1240x800 canvas and projected onto the
+   laptop display with a matrix3d homography — sizes here are canvas pixels. */
+
+.screenFrame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #0d0f17;
+  font-family: var(--landing-body), sans-serif;
+}
+
+.notch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 11%;
+  height: 3.4%;
+  background: #000;
+  border-radius: 0 0 14px 14px;
+  transform: translateX(-50%);
+}
+
+.glare {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(112deg, rgba(255, 255, 255, 0.055) 0%, transparent 38%);
+  pointer-events: none;
+}
+
+.screen {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  justify-content: center;
+  gap: 44px;
+  padding: 84px 96px;
+  background:
+    radial-gradient(circle at 84% 0%, rgba(103, 71, 255, 0.16), transparent 42%),
+    linear-gradient(160deg, #12141f, #0d0f17);
+  color: #f8f8fc;
+}
+
+.screenHead {
+  display: grid;
+  gap: 14px;
+}
+
+.screenHead span {
+  color: #44d8ed;
+  font-family: var(--landing-mono), monospace;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.screenHead strong {
+  font-family: var(--landing-display), sans-serif;
+  font-size: 46px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+/* Intro — white slide with the brand claim. */
+
+.introScreen {
+  align-items: center;
+  gap: 30px;
+  background: linear-gradient(165deg, #ffffff, #eef0fa);
+  color: #12131a;
+  text-align: center;
+}
+
+.introEyebrow {
+  margin: 0;
+  color: #6747ff;
+  font-family: var(--landing-mono), monospace;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+/* Doubled class beats the generic `.landing h1` color rule. */
+.introScreen .introTitle {
+  margin: 0;
+  color: #12131a;
+  font-family: var(--landing-display), sans-serif;
+  font-size: 74px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.12;
+  text-wrap: balance;
+}
+
+.introScreen .introTitle span {
+  display: block;
+  background: linear-gradient(100deg, #44d8ed 0%, #5d9cff 30%, #b371ff 67%, #ed6be8 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.introSub {
+  margin: 0;
+  max-width: 760px;
+  color: #4c5165;
+  font-size: 30px;
+  line-height: 1.5;
+}
+
+.introStats {
+  margin: 6px 0 0;
+  color: #6747ff;
+  font-family: var(--landing-mono), monospace;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+/* Course — chapter grid. */
+
+.chapterGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.chapterCard {
+  display: grid;
+  gap: 14px;
+  padding: 28px;
+  border: 1px solid rgba(184, 191, 210, 0.14);
+  border-radius: 16px;
+  background: rgba(21, 23, 36, 0.9);
+}
+
+.chapterCard strong {
+  font-family: var(--landing-display), sans-serif;
+  font-size: 26px;
+  letter-spacing: -0.02em;
+}
+
+.chapterCard[data-state='active'] {
+  border-color: rgba(103, 71, 255, 0.6);
+  box-shadow: 0 0 0 1px rgba(103, 71, 255, 0.5);
+}
+
+.chapterNumber {
+  color: #939bae;
+  font-family: var(--landing-mono), monospace;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.chapterCard[data-state='done'] .chapterNumber {
+  color: #43d69a;
+}
+
+.miniProgress {
+  height: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #282c3e;
+}
+
+.miniProgress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(100deg, #44d8ed, #5d9cff 40%, #b371ff);
+}
+
+/* Multimedia — player + chips. */
+
+.player {
+  position: relative;
+  display: grid;
+  height: 430px;
+  place-items: center;
+  border: 1px solid rgba(184, 191, 210, 0.16);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(103, 71, 255, 0.3), transparent 58%),
+    #10111a;
+}
+
+.playButton {
+  display: grid;
+  width: 118px;
+  height: 118px;
+  place-items: center;
+  border-radius: 50%;
+  background: #6747ff;
+  box-shadow: 0 24px 60px rgba(103, 71, 255, 0.45);
+  color: #fff;
+}
+
+.playerBar {
+  position: absolute;
+  right: 34px;
+  bottom: 30px;
+  left: 34px;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(184, 191, 210, 0.22);
+}
+
+.playerBar span {
+  display: block;
+  width: 38%;
+  height: 100%;
+  background: linear-gradient(100deg, #44d8ed, #b371ff);
+}
+
+.chipRow {
+  display: flex;
+  gap: 18px;
+}
+
+.chipRow span {
+  padding: 16px 26px;
+  border: 1px solid rgba(184, 191, 210, 0.24);
+  border-radius: 999px;
+  background: rgba(21, 23, 36, 0.85);
+  font-family: var(--landing-mono), monospace;
+  font-size: 21px;
+  font-weight: 600;
+}
+
+/* Practice — quiz answers. */
+
+.answerList {
+  display: grid;
+  gap: 16px;
+}
+
+.answerList span {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 24px 28px;
+  border: 1px solid rgba(184, 191, 210, 0.16);
+  border-radius: 16px;
+  background: rgba(21, 23, 36, 0.9);
+  font-size: 26px;
+}
+
+.answerList span[data-state='correct'] {
+  border-color: rgba(67, 214, 154, 0.6);
+  background: rgba(67, 214, 154, 0.12);
+  color: #43d69a;
+  font-weight: 700;
+}
+
+.xpToast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  color: #ffd166;
+  font-family: var(--landing-mono), monospace;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* Path — skill tree. */
+
+.pathTrack {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  padding-top: 26px;
+}
+
+.pathTrack::before {
+  position: absolute;
+  top: 62px;
+  right: 44px;
+  left: 44px;
+  height: 6px;
+  border-radius: 999px;
+  background: #282c3e;
+  content: '';
+}
+
+.pathNode {
+  position: relative;
+  display: grid;
+  gap: 16px;
+  justify-items: center;
+}
+
+.pathNode span {
+  display: grid;
+  width: 78px;
+  height: 78px;
+  place-items: center;
+  border-radius: 50%;
+  background: #282c3e;
+  color: #939bae;
+}
+
+.pathNode[data-state='done'] span {
+  background: linear-gradient(120deg, #44d8ed, #5d9cff);
+  color: #071018;
+}
+
+.pathNode[data-state='current'] span {
+  background: #6747ff;
+  box-shadow: 0 0 0 12px rgba(103, 71, 255, 0.24);
+  color: #fff;
+}
+
+.pathNode small {
+  color: #b8bfd2;
+  font-family: var(--landing-mono), monospace;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+/* Gamification — stats + XP. */
+
+.statRow {
+  display: flex;
+  gap: 18px;
+}
+
+.statPill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  border: 1px solid rgba(184, 191, 210, 0.2);
+  border-radius: 999px;
+  background: rgba(21, 23, 36, 0.9);
+  font-family: var(--landing-mono), monospace;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.statPill[data-tone='fire'] {
+  color: #ff9f43;
+}
+
+.statPill[data-tone='gold'] {
+  color: #ffd166;
+}
+
+.xpBlock {
+  display: grid;
+  gap: 16px;
+}
+
+.xpMeta {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--landing-display), sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.xpMeta span {
+  color: #ffd166;
+  font-family: var(--landing-mono), monospace;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.xpBar {
+  height: 18px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 209, 102, 0.16);
+}
+
+.xpBar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f5a524, #ff9f43 52%, #ffd166);
+  box-shadow: 0 0 26px rgba(255, 209, 102, 0.35);
+}
+
+.questRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  color: #43d69a;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+/* Tutor — chat. */
+
+.chat {
+  display: grid;
+  gap: 22px;
+}
+
+.chatUser,
+.chatAi {
+  margin: 0;
+  max-width: 78%;
+  padding: 24px 30px;
+  border-radius: 22px;
+  font-size: 27px;
+  line-height: 1.45;
+}
+
+.chatUser {
+  justify-self: end;
+  border-bottom-right-radius: 6px;
+  background: #282c3e;
+}
+
+.chatAi {
+  display: flex;
+  gap: 16px;
+  border-bottom-left-radius: 6px;
+  background: rgba(103, 71, 255, 0.18);
+  border: 1px solid rgba(103, 71, 255, 0.4);
+}
+
+.chatAi span {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: #6747ff;
+  color: #fff;
+}
+
+.chatInput {
+  padding: 24px 30px;
+  border: 1px solid rgba(184, 191, 210, 0.24);
+  border-radius: 999px;
+  background: #1b1e2d;
+  color: #939bae;
+  font-size: 24px;
+}
+
+/* Certificate. */
+
+.certificate {
+  display: grid;
+  gap: 20px;
+  justify-items: center;
+  padding: 64px;
+  border: 1px solid rgba(255, 209, 102, 0.4);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 209, 102, 0.14), transparent 55%),
+    rgba(21, 23, 36, 0.94);
+  color: #ffd166;
+  text-align: center;
+}
+
+.certEyebrow {
+  font-family: var(--landing-mono), monospace;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+}
+
+.certificate strong {
+  color: #f8f8fc;
+  font-family: var(--landing-display), sans-serif;
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.certificate code {
+  color: #939bae;
+  font-family: var(--landing-mono), monospace;
+  font-size: 21px;
+  letter-spacing: 0.1em;
+}
+
+/* Arena — leaderboard. */
+
+.leaderboard {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.leaderboard li {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 24px 30px;
+  border: 1px solid rgba(184, 191, 210, 0.16);
+  border-radius: 16px;
+  background: rgba(21, 23, 36, 0.9);
+  font-family: var(--landing-display), sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.leaderboard li span {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border-radius: 50%;
+  background: #282c3e;
+  font-family: var(--landing-mono), monospace;
+  font-size: 22px;
+}
+
+.leaderboard li[data-rank='1'] {
+  border-color: rgba(255, 209, 102, 0.5);
+}
+
+.leaderboard li[data-rank='1'] span {
+  background: linear-gradient(120deg, #f5a524, #ffd166);
+  color: #201503;
+}
+
+.leaderboard li em {
+  margin-left: auto;
+  color: #ffd166;
+  font-family: var(--landing-mono), monospace;
+  font-size: 22px;
+  font-style: normal;
+  font-weight: 700;
+}

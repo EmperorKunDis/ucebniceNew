@@ -22,6 +22,7 @@ playwright-report
 # Misc
 .DS_Store
 *.pem
+ucebnice-design-system.html
 
 # Debug
 npm-debug.log*
