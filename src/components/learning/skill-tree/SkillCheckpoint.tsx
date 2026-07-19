@@ -57,9 +57,9 @@ export function SkillCheckpoint({
           'text-sm font-semibold',
           'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-300/70 focus-visible:ring-offset-4 focus-visible:ring-offset-gray-900',
           isCompleted
-            ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white'
+            ? 'bg-gradient-to-r from-[#f5a524] to-[#ffd166] text-[#3a2c07]'
             : isUnlocked
-              ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white'
+              ? 'bg-[#6747ff] text-white'
               : 'bg-gray-700 text-gray-400',
           isUnlocked && onClick && 'cursor-pointer hover:scale-105 transition-transform',
           (!isUnlocked || !onClick) && 'cursor-default'
@@ -91,8 +91,8 @@ export function SkillCheckpoint({
             className={cn(
               'h-full rounded-full',
               isCompleted
-                ? 'bg-gradient-to-r from-yellow-400 to-amber-400'
-                : 'bg-gradient-to-r from-indigo-400 to-purple-400'
+                ? 'bg-gradient-to-r from-[#f5a524] to-[#ffd166]'
+                : 'bg-gradient-to-r from-[#44d8ed] via-[#b371ff] to-[#ed6be8]'
             )}
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}

@@ -261,7 +261,10 @@ export function LandingScrollStory() {
                   data-visible={screensVisible && index === activeCue ? 'true' : 'false'}
                   aria-hidden={!(screensVisible && index === activeCue) && cue.kind !== 'intro'}
                 >
-                  <LandingScreenContent cueId={cue.id} />
+                  <LandingScreenContent
+                    cueId={cue.id}
+                    reducedMotion={motionPreference === 'reduced'}
+                  />
                 </div>
               ))}
             </div>

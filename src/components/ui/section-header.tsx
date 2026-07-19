@@ -31,7 +31,7 @@ export function SectionHeader({
         transition={{ delay, duration: 0.5 }}
         className="text-4xl md:text-5xl font-bold mb-4"
       >
-        <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+        <span className="bg-gradient-to-r from-[#44d8ed] via-[#b371ff] to-[#ed6be8] bg-clip-text text-transparent">
           {children}
         </span>
       </motion.h2>

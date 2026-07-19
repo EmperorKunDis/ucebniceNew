@@ -29,12 +29,12 @@ export function MobileNav() {
               href={item.href}
               className={cn(
                 'flex flex-col items-center justify-center flex-1 h-full relative',
-                isActive ? 'text-pink-300' : 'text-gray-500'
+                isActive ? 'text-[#a895ff]' : 'text-gray-500'
               )}
             >
               {isActive && (
                 <motion.div
-                  className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-gradient-to-r from-sky-400 via-purple-400 to-pink-400 rounded-full"
+                  className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-[#6747ff] rounded-full"
                   layoutId="mobile-nav-indicator"
                   transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                 />

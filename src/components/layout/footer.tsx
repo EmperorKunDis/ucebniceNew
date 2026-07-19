@@ -1,6 +1,5 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { Sparkle } from '@phosphor-icons/react/ssr'
 
 const FOOTER_LINKS = [
   { href: '/#obsah', label: 'Obsah kurzu' },
@@ -21,9 +20,13 @@ export function Footer() {
               className="public-focus-ring inline-flex min-h-11 items-center gap-3 rounded-xl text-[#f8f8fc]"
               aria-label="Učebnice AI – zpět na úvod"
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#6747ff] text-white">
-                <Sparkle size={19} weight="fill" aria-hidden="true" />
-              </span>
+              <Image
+                src="/ucebnice-logo.png"
+                alt=""
+                width={47}
+                height={36}
+                className="h-9 w-auto"
+              />
               <span className="public-display text-lg font-extrabold tracking-[-0.04em]">
                 Učebnice AI
               </span>

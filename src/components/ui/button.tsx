@@ -71,7 +71,7 @@ const ButtonComponent = forwardRef<HTMLButtonElement, ButtonProps>(
 
           // Varianty
           {
-            'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 focus-visible:ring-purple-500':
+            'bg-[#6747ff] text-white shadow-lg shadow-[#6747ff]/30 hover:bg-[#846bff] focus-visible:ring-[#44d8ed]':
               variant === 'primary',
             'bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm border border-white/20':
               variant === 'secondary',

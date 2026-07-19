@@ -64,31 +64,41 @@
   line-height: 1.1;
 }
 
-/* Intro — white slide with the brand claim. */
+/* Intro — dark boot screen with the animated brand mark. */
 
 .introScreen {
+  position: relative;
+  justify-content: flex-end;
   align-items: center;
-  gap: 30px;
-  background: linear-gradient(165deg, #ffffff, #eef0fa);
-  color: #12131a;
+  gap: 18px;
+  padding-bottom: 64px;
+  background: #04050a;
+  color: #f8f8fc;
   text-align: center;
 }
 
-.introEyebrow {
-  margin: 0;
-  color: #6747ff;
-  font-family: var(--landing-mono), monospace;
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
+.introLogoVideo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center 24%;
+}
+
+.introCopy {
+  position: relative;
+  display: grid;
+  gap: 16px;
+  justify-items: center;
 }
 
 /* Doubled class beats the generic `.landing h1` color rule. */
 .introScreen .introTitle {
   margin: 0;
-  color: #12131a;
+  color: #f8f8fc;
   font-family: var(--landing-display), sans-serif;
-  font-size: 74px;
+  font-size: 64px;
   font-weight: 800;
   letter-spacing: -0.04em;
   line-height: 1.12;
@@ -106,14 +116,14 @@
 .introSub {
   margin: 0;
   max-width: 760px;
-  color: #4c5165;
+  color: #b8bfd2;
   font-size: 30px;
   line-height: 1.5;
 }
 
 .introStats {
   margin: 6px 0 0;
-  color: #6747ff;
+  color: #a895ff;
   font-family: var(--landing-mono), monospace;
   font-size: 22px;
   font-weight: 600;

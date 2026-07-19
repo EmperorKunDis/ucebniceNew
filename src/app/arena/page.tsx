@@ -112,7 +112,7 @@ const formatDate = (dateString: string) => {
 // Memoized HackathonCard component for better performance
 const HackathonCard = memo(({ hackathon }: { hackathon: HackathonData }) => {
   return (
-    <div className="h-full rounded-lg bg-gradient-to-br from-purple-500/10 to-pink-500/10 p-[1px] transition-all hover:scale-[1.02] hover:from-purple-500/20 hover:to-pink-500/20">
+    <div className="h-full rounded-lg bg-gradient-to-br from-[#6747ff]/15 to-[#44d8ed]/15 p-[1px] transition-all hover:scale-[1.02] hover:from-[#6747ff]/25 hover:to-[#44d8ed]/25">
       <GlassSurface className="p-6 h-full">
         <Stack direction="col" gap={4}>
           <Stack direction="row" justify="between" align="start">
@@ -432,7 +432,7 @@ export default function ArenaPage() {
                             />
                           </>
                         ) : (
-                          <Box className="w-24 h-24 mb-3 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-3xl font-bold text-white">
+                          <Box className="w-24 h-24 mb-3 rounded-full bg-gradient-to-br from-[#846bff] to-[#6747ff] flex items-center justify-center text-3xl font-bold text-white">
                             {initials}
                           </Box>
                         )}

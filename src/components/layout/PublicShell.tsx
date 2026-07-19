@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { BookOpen, List, Sparkle, SquaresFour, X } from '@phosphor-icons/react'
+import { BookOpen, List, SquaresFour, X } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { Footer } from './footer'
 
@@ -95,9 +96,14 @@ export function PublicShell({
               className="public-focus-ring flex min-h-11 items-center gap-3 rounded-xl"
               aria-label="Učebnice AI – domů"
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#44d8ed_0%,#5d9cff_35%,#b371ff_70%,#ed6be8_100%)] shadow-lg shadow-purple-950/40">
-                <Sparkle className="h-5 w-5 text-white" weight="fill" aria-hidden="true" />
-              </span>
+              <Image
+                src="/ucebnice-logo.png"
+                alt=""
+                width={47}
+                height={36}
+                priority
+                className="h-9 w-auto"
+              />
               <span className="public-display text-lg font-bold tracking-tight text-white">
                 Učebnice AI
               </span>

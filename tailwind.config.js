@@ -69,8 +69,9 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: ['var(--font-exo2)', 'Exo 2', 'system-ui', 'sans-serif'],
-        mono: ['monospace'],
+        sans: ['var(--font-open-sans)', 'Open Sans', 'system-ui', 'sans-serif'],
+        display: ['var(--font-montserrat)', 'Montserrat', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-jetbrains-mono)', 'JetBrains Mono', 'monospace'],
       },
     },
   },

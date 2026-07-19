@@ -19,6 +19,7 @@ export default function PracticePage() {
   const chapterId = params.chapterId as string
 
   const [data, setData] = useState<PracticeData | null>(null)
+  const [lockedReason, setLockedReason] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [score, setScore] = useState({ correct: 0, total: 0 })
@@ -29,7 +30,16 @@ export default function PracticePage() {
     try {
       // Fetch random exercises for practice
       const res = await fetch(`/api/micro-lessons/${chapterId}?practice=true&limit=10`)
-      if (!res.ok) throw new Error('Failed to fetch')
+      if (!res.ok) {
+        // Surface the real reason (e.g. "finish the chapter first") instead of
+        // a generic empty state.
+        const body = await res.json().catch(() => null)
+        if (body?.error) {
+          setLockedReason(body.error)
+          return
+        }
+        throw new Error('Failed to fetch')
+      }
       const json = await res.json()
 
       const exercises =
@@ -86,13 +96,19 @@ export default function PracticePage() {
     )
   }
 
-  if (!data || data.exercises.length === 0) {
+  if (lockedReason || !data || data.exercises.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gray-900">
+      <div className="flex flex-col items-center justify-center h-screen bg-gray-900 px-6 text-center">
         <Target className="w-16 h-16 text-gray-600 mb-4" />
-        <h2 className="text-xl font-semibold text-white mb-2">Žádná cvičení k dispozici</h2>
-        <button onClick={handleClose} className="text-indigo-400 hover:underline">
-          Zpět na kapitolu
+        <h2 className="text-xl font-semibold text-white mb-2">
+          {lockedReason ? 'Procvičování je zatím zamčené' : 'Žádná cvičení k dispozici'}
+        </h2>
+        {lockedReason && <p className="mb-4 max-w-sm text-sm text-gray-400">{lockedReason}</p>}
+        <button
+          onClick={handleClose}
+          className="rounded-lg bg-[#6747ff] px-5 py-2.5 font-semibold text-white transition hover:bg-[#846bff]"
+        >
+          {lockedReason ? 'Otevřít kapitolu' : 'Zpět na kapitolu'}
         </button>
       </div>
     )

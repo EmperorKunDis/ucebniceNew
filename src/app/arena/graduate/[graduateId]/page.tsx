@@ -234,7 +234,7 @@ export default function GraduateDetailPage() {
         {/* Profile sidebar */}
         <div className="lg:col-span-1 space-y-6">
           <GlassSurface className="p-6 text-center">
-            <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-4xl font-bold text-white">
+            <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#846bff] to-[#6747ff] flex items-center justify-center text-4xl font-bold text-white">
               {graduate.avatar ? (
                 <>
                   {/* Dynamic user avatars can be arbitrary remote URLs outside next/image config. */}

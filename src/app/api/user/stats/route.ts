@@ -239,6 +239,9 @@ export async function GET(request: NextRequest) {
 
     // Format response
     return NextResponse.json({
+      // Top-level for useGems(); keeps the topbar on the same source of truth
+      // as the shop balance.
+      gems: user.gems,
       user: {
         id: user.id,
         name: user.name,

@@ -235,7 +235,7 @@ export default function LessonPage() {
               type="button"
               onClick={handleContentContinue}
               disabled={contentSubmitting}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 px-5 py-3.5 font-bold text-white transition hover:from-purple-500 hover:to-pink-500"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#6747ff] px-5 py-3.5 font-bold text-white transition hover:bg-[#846bff]"
             >
               {contentSubmitting ? (
                 <>

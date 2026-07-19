@@ -482,7 +482,7 @@ export default function HackathonDetailPage() {
                             transition={{ delay: 0.35 + i * 0.1 }}
                           >
                             <Stack direction="row" gap={4} align="start">
-                              <Box className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
+                              <Box className="w-16 h-16 rounded-full bg-gradient-to-br from-[#846bff] to-[#6747ff] flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
                                 {judge.name
                                   .split(' ')
                                   .map(n => n[0])

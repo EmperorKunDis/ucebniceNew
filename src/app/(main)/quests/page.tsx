@@ -156,7 +156,7 @@ export default function QuestsPage() {
                   'h-full rounded-full',
                   quest.completed
                     ? 'bg-gradient-to-r from-green-500 to-emerald-500'
-                    : 'bg-gradient-to-r from-purple-500 to-pink-500'
+                    : 'bg-[#6747ff]'
                 )}
                 initial={{ width: 0 }}
                 animate={{ width: `${quest.percentage}%` }}
@@ -228,7 +228,7 @@ export default function QuestsPage() {
           {/* Bonus quest */}
           {data.daily.bonusQuest.allCompleted && !data.daily.bonusQuest.claimed && (
             <motion.div
-              className="mt-4 p-4 bg-gradient-to-r from-purple-900/50 to-pink-900/50 rounded-xl border border-purple-500/50"
+              className="mt-4 p-4 bg-[#6747ff]/15 rounded-xl border border-[#846bff]/40"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
             >
@@ -240,7 +240,7 @@ export default function QuestsPage() {
                     <span className="text-cyan-400">+{data.daily.bonusQuest.rewards.gems} 💎</span>
                   </div>
                 </div>
-                <button className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-lg">
+                <button className="px-4 py-2 bg-[#6747ff] text-white font-semibold rounded-lg">
                   Claim
                 </button>
               </div>

@@ -311,7 +311,7 @@ export const ProjectSubmission = memo(function ProjectSubmission({
           <Button
             type="submit"
             disabled={submitting || !projectUrl}
-            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+            className="w-full bg-[#6747ff] hover:bg-[#846bff]"
           >
             {submitting ? (
               <>

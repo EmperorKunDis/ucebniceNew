@@ -79,7 +79,7 @@ export function OnboardingFlow({
       icon: <Sparkles className="w-8 h-8 text-purple-400" />,
       content: (
         <Stack gap={6} align="center">
-          <Box className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+          <Box className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-[#846bff] to-[#6747ff] flex items-center justify-center">
             <Rocket className="w-16 h-16 text-white" />
           </Box>
           <Box as="p" className="text-lg text-gray-300 text-center">
@@ -94,7 +94,7 @@ export function OnboardingFlow({
               </Box>
             </Stack>
             <Stack gap={1} align="center">
-              <Box className="text-3xl font-bold text-pink-400">AI</Box>
+              <Box className="text-3xl font-bold text-[#a895ff]">AI</Box>
               <Box as="p" className="text-sm text-gray-400">
                 Asistent 24/7
               </Box>
@@ -117,7 +117,7 @@ export function OnboardingFlow({
       content: (
         <Stack gap={6}>
           <Stack gap={4} align="center">
-            <Box className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-4xl font-bold text-white">
+            <Box className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-[#846bff] to-[#6747ff] flex items-center justify-center text-4xl font-bold text-white">
               {name ? name.charAt(0).toUpperCase() : '?'}
             </Box>
           </Stack>
@@ -395,7 +395,7 @@ export function OnboardingFlow({
       content: (
         <Stack gap={6} align="center">
           <Box className="relative">
-            <Box className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-5xl">
+            <Box className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-[#846bff] to-[#6747ff] flex items-center justify-center text-5xl">
               🚀
             </Box>
             <motion.div
@@ -447,7 +447,7 @@ export function OnboardingFlow({
                   <Box as="span">AI asistent připravený pomoci 24/7</Box>
                 </Stack>
                 <Stack direction="horizontal" gap={2} align="center" as="li">
-                  <Award className="w-4 h-4 text-pink-400" />
+                  <Award className="w-4 h-4 text-[#a895ff]" />
                   <Box as="span">Systém odznaků a úrovní pro motivaci</Box>
                 </Stack>
               </Stack>
