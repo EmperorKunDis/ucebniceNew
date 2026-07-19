@@ -105,6 +105,15 @@ export default function ShopPage() {
         </div>
 
         {/* Categories */}
+        {!loading && categories.length === 0 && (
+          <div className="rounded-2xl border border-white/10 bg-gray-800/60 px-6 py-16 text-center">
+            <Gem className="mx-auto mb-4 h-10 w-10 text-[#a895ff]" aria-hidden="true" />
+            <h2 className="text-lg font-semibold text-white">Obchod se právě zaváží</h2>
+            <p className="mx-auto mt-2 max-w-sm text-sm text-gray-400">
+              Zatím tu nic není. Sbírej gemy dál — první nabídka se tu brzy objeví.
+            </p>
+          </div>
+        )}
         <div className="space-y-8">
           {categories.map((category, catIndex) => (
             <motion.div

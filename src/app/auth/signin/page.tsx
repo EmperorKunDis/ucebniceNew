@@ -108,7 +108,7 @@ export default function SignInPage() {
                   transition={{ delay: 0.1, duration: 0.5 }}
                   className="text-center"
                 >
-                  <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent mb-2">
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-[#44d8ed] via-[#b371ff] to-[#ed6be8] bg-clip-text text-transparent mb-2">
                     Přihlášení
                   </h1>
                   <p className="text-gray-300">Vítejte zpět! Přihlaste se ke svému účtu</p>
@@ -245,7 +245,7 @@ export default function SignInPage() {
                   <Button
                     type="submit"
                     variant="primary"
-                    className="w-full justify-center bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0"
+                    className="w-full justify-center bg-[#6747ff] hover:bg-[#846bff] border-0"
                     disabled={isLoading}
                   >
                     {isLoading ? (

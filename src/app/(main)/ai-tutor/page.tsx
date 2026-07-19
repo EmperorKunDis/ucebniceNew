@@ -136,7 +136,7 @@ export default function AITutorPage() {
         <div
           className={cn(
             'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0',
-            isUser ? 'bg-indigo-500' : 'bg-gradient-to-br from-purple-500 to-pink-500'
+            isUser ? 'bg-indigo-500' : 'bg-gradient-to-br from-[#846bff] to-[#6747ff]'
           )}
         >
           {isUser ? (
@@ -184,7 +184,7 @@ export default function AITutorPage() {
     return (
       <div className="flex h-screen flex-col bg-gray-900">
         <div className="flex items-center gap-3 border-b border-gray-800 p-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#846bff] to-[#6747ff]">
             <Bot className="h-5 w-5 text-white" />
           </div>
           <div>
@@ -195,7 +195,7 @@ export default function AITutorPage() {
 
         <div className="flex flex-1 items-center justify-center p-8 text-center">
           <div className="max-w-md">
-            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500">
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-[#846bff] to-[#6747ff]">
               <Sparkles className="h-8 w-8 text-white" />
             </div>
             <h2 className="mb-3 text-2xl font-semibold text-white">AI Tutor bude brzy dostupný</h2>
@@ -213,7 +213,7 @@ export default function AITutorPage() {
     <div className="flex flex-col h-screen bg-gray-900">
       {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b border-gray-800">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#846bff] to-[#6747ff] flex items-center justify-center">
           <Bot className="w-5 h-5 text-white" />
         </div>
         <div>
@@ -226,7 +226,7 @@ export default function AITutorPage() {
       <div className="flex-1 overflow-y-auto">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mb-4">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#846bff] to-[#6747ff] flex items-center justify-center mb-4">
               <Sparkles className="w-8 h-8 text-white" />
             </div>
             <h2 className="text-xl font-semibold text-white mb-2">Ahoj! Jsem tvůj AI Tutor</h2>
@@ -241,7 +241,7 @@ export default function AITutorPage() {
 
         {loading && (
           <div className="flex gap-3 p-4 bg-gray-900/50">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#846bff] to-[#6747ff] flex items-center justify-center">
               <Bot className="w-4 h-4 text-white" />
             </div>
             <div className="flex items-center gap-2 text-gray-400">
@@ -293,7 +293,7 @@ export default function AITutorPage() {
           <button
             onClick={() => handleSend()}
             disabled={!input.trim() || loading || tutorAvailable !== true}
-            className="px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="px-4 py-3 bg-[#6747ff] text-white rounded-xl hover:bg-[#846bff] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
           </button>

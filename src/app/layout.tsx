@@ -1,23 +1,34 @@
 import './globals.css'
 import type { Metadata, Viewport } from 'next'
-import { Montserrat, Exo_2 } from 'next/font/google'
+import { JetBrains_Mono, Montserrat, Open_Sans } from 'next/font/google'
 import { Providers } from '@/components/providers'
 
+// Design system type stack: Montserrat = display voice, Open Sans = body,
+// JetBrains Mono = technical voice (code, meta, stats).
 const montserrat = Montserrat({
   subsets: ['latin', 'latin-ext'],
-  weight: ['400', '600', '700'],
+  weight: ['500', '600', '700', '800'],
   variable: '--font-montserrat',
   display: 'swap',
   preload: true,
   adjustFontFallback: true,
 })
 
-const exo2 = Exo_2({
+const openSans = Open_Sans({
   subsets: ['latin', 'latin-ext'],
-  weight: ['400', '500', '600', '700', '800', '900'],
-  variable: '--font-exo2',
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-open-sans',
   display: 'swap',
   preload: true,
+  adjustFontFallback: true,
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin', 'latin-ext'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-jetbrains-mono',
+  display: 'swap',
+  preload: false,
   adjustFontFallback: true,
 })
 
@@ -85,7 +96,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="cs" className={`${montserrat.variable} ${exo2.variable}`}>
+    <html
+      lang="cs"
+      className={`${montserrat.variable} ${openSans.variable} ${jetbrainsMono.variable}`}
+    >
       <body className="font-sans bg-gray-900 text-gray-100 min-h-screen flex flex-col">
         <Providers>{children}</Providers>
       </body>

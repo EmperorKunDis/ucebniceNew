@@ -62,7 +62,7 @@ export function Sidebar({ className }: SidebarProps) {
         className={cn(
           'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all relative group',
           isActive
-            ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-950/30'
+            ? 'bg-[#6747ff] text-white shadow-lg shadow-[#6747ff]/25'
             : 'text-gray-400 hover:text-white hover:bg-white/10'
         )}
       >

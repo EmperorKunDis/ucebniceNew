@@ -154,7 +154,7 @@ export function SkillTreeContainer() {
           </div>
           <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
             <motion.div
-              className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full"
+              className="h-full bg-gradient-to-r from-[#44d8ed] via-[#b371ff] to-[#ed6be8] rounded-full"
               initial={{ width: 0 }}
               animate={{ width: `${data.userProgress.percentage}%` }}
               transition={{ duration: 0.8, ease: 'easeOut' }}

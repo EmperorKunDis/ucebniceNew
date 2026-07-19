@@ -166,17 +166,24 @@ export default function AchievementsPage() {
                           <Box
                             className={`relative bg-white/5 backdrop-blur-sm rounded-xl p-6 border ${
                               isUnlocked
-                                ? 'border-white/10 hover:bg-white/10 hover:border-purple-500/30'
-                                : 'border-white/5 opacity-50'
+                                ? 'border-white/10 hover:bg-white/10 hover:border-[#846bff]/40'
+                                : 'border-white/5 opacity-80'
                             } transition-all text-center group h-full`}
                           >
                             {!isUnlocked && (
-                              <div className="absolute inset-0 bg-gray-900/50 rounded-xl flex items-center justify-center backdrop-blur-sm z-10">
-                                <Lock className="w-8 h-8 text-gray-500" />
+                              <div
+                                className="absolute right-3 top-3 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-gray-900/80"
+                                aria-label="Zamčeno"
+                              >
+                                <Lock className="h-3.5 w-3.5 text-gray-400" />
                               </div>
                             )}
 
-                            <div className="text-4xl mb-3">{badge.icon}</div>
+                            <div
+                              className={`text-4xl mb-3 ${isUnlocked ? '' : 'grayscale opacity-60'}`}
+                            >
+                              {badge.icon}
+                            </div>
                             <h3 className="text-sm font-semibold text-white mb-1">{badge.name}</h3>
                             <p className="text-xs text-gray-400 mb-2 line-clamp-2">
                               {badge.description}

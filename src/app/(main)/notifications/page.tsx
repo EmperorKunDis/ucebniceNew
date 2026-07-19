@@ -36,7 +36,7 @@ const typeIcons: Record<string, React.ReactNode> = {
   FRIEND_REQUEST: <Users className="w-5 h-5 text-blue-500" />,
   LEAGUE: <Trophy className="w-5 h-5 text-purple-500" />,
   QUEST: <Target className="w-5 h-5 text-green-500" />,
-  REWARD: <Gift className="w-5 h-5 text-pink-500" />,
+  REWARD: <Gift className="w-5 h-5 text-[#ffd166]" />,
   XP: <Star className="w-5 h-5 text-yellow-500" />,
   DEFAULT: <Bell className="w-5 h-5 text-gray-400" />,
 }

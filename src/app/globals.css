@@ -46,37 +46,32 @@
 @layer base {
   * {
     @apply border-border;
-    font-family: var(--font-exo2), sans-serif !important;
   }
 
+  /* Design system type stack: Open Sans carries reading, Montserrat carries
+     hierarchy, JetBrains Mono is the technical voice. */
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-exo2), sans-serif !important;
+    font-family: var(--font-open-sans), sans-serif;
   }
 
-  /* Futuristic font for all headings - extra bold */
   h1,
   h2,
   h3,
   h4,
   h5,
   h6 {
-    font-family: var(--font-exo2), sans-serif !important;
+    font-family: var(--font-montserrat), sans-serif;
     font-weight: 700;
-    letter-spacing: 0.02em;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
   }
 
-  /* Apply to all interactive elements */
-  button,
-  input,
-  textarea,
-  select,
-  a,
-  span,
-  p,
-  div,
-  label {
-    font-family: var(--font-exo2), sans-serif !important;
+  code,
+  kbd,
+  pre,
+  samp {
+    font-family: var(--font-jetbrains-mono), monospace;
   }
 }
 

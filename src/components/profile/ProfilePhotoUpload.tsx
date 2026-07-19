@@ -97,7 +97,7 @@ export function ProfilePhotoUpload({
 
         <motion.div className="relative" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           {/* Gradient border */}
-          <div className="w-32 h-32 rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 p-1 shadow-lg shadow-purple-500/50">
+          <div className="w-32 h-32 rounded-full bg-gradient-to-r from-[#44d8ed] via-[#b371ff] to-[#ed6be8] p-1 shadow-lg shadow-purple-500/50">
             <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden relative">
               {currentImage || previewUrl ? (
                 <>

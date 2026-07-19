@@ -514,7 +514,7 @@ export default function LeaderboardPage() {
                         <Stack direction="col" gap={4} align="center">
                           {/* Avatar */}
                           <div
-                            className={`${i === 0 ? 'w-32 h-32 text-4xl' : 'w-28 h-28 text-3xl'} rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shrink-0 transition-all duration-500 overflow-hidden`}
+                            className={`${i === 0 ? 'w-32 h-32 text-4xl' : 'w-28 h-28 text-3xl'} rounded-full bg-gradient-to-br from-[#846bff] to-[#6747ff] flex items-center justify-center text-white font-bold shrink-0 transition-all duration-500 overflow-hidden`}
                           >
                             {entry.image ? (
                               <>
@@ -611,7 +611,7 @@ export default function LeaderboardPage() {
                             </span>
                           </Box>
 
-                          <Box className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shrink-0 overflow-hidden">
+                          <Box className="w-12 h-12 rounded-full bg-gradient-to-br from-[#846bff] to-[#6747ff] flex items-center justify-center text-white font-bold shrink-0 overflow-hidden">
                             {entry.image ? (
                               <>
                                 {/* Dynamic user avatars can be arbitrary remote URLs outside next/image config. */}

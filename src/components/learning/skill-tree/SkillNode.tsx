@@ -37,18 +37,20 @@ export function SkillNode({ node, onClick, isSelected }: SkillNodeProps) {
   const tooltipId = `skill-node-${node.id}-tooltip`
 
   // Colors based on status
+  // Design system: success green marks completion, violet marks the one
+  // actionable node, locked stays quiet.
   const statusStyles = {
     completed: {
-      bg: 'bg-gradient-to-br from-yellow-400 to-yellow-600',
-      border: 'border-yellow-300',
-      shadow: 'shadow-yellow-400/50',
-      ring: 'ring-yellow-300/50',
+      bg: 'bg-gradient-to-br from-[#43d69a] to-[#2fae7b]',
+      border: 'border-[#7ee6bd]',
+      shadow: 'shadow-[#43d69a]/50',
+      ring: 'ring-[#43d69a]/50',
     },
     active: {
-      bg: 'bg-gradient-to-br from-green-400 to-green-600',
-      border: 'border-green-300',
-      shadow: 'shadow-green-400/50',
-      ring: 'ring-green-300/50',
+      bg: 'bg-gradient-to-br from-[#846bff] to-[#5234e8]',
+      border: 'border-[#a895ff]',
+      shadow: 'shadow-[#6747ff]/50',
+      ring: 'ring-[#a895ff]/50',
     },
     locked: {
       bg: 'bg-gradient-to-br from-gray-500 to-gray-700',
@@ -60,16 +62,17 @@ export function SkillNode({ node, onClick, isSelected }: SkillNodeProps) {
 
   const styles = statusStyles[status]
 
-  // Module colors for variety
+  // Modules walk the learning gradient (cyan → magenta): the colour of the
+  // path itself tells how far in the course you are.
   const moduleColors = [
-    'from-blue-500 to-blue-700',
-    'from-purple-500 to-purple-700',
-    'from-pink-500 to-pink-700',
-    'from-indigo-500 to-indigo-700',
-    'from-cyan-500 to-cyan-700',
-    'from-teal-500 to-teal-700',
-    'from-orange-500 to-orange-700',
-    'from-red-500 to-red-700',
+    'from-[#44d8ed] to-[#2fa8c9]',
+    'from-[#5d9cff] to-[#3f74d6]',
+    'from-[#846bff] to-[#5234e8]',
+    'from-[#b371ff] to-[#8a46d9]',
+    'from-[#ed6be8] to-[#c247bd]',
+    'from-[#6747ff] to-[#4a2fd0]',
+    'from-[#44d8ed] to-[#3f74d6]',
+    'from-[#b371ff] to-[#c247bd]',
   ]
 
   const moduleColor =
