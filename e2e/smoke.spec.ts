@@ -177,28 +177,37 @@ test.describe('Database-independent public Chromium smoke', () => {
   })
 
   test('should respect reduced motion for the MacBook feature reel', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await isolatePublicPageFromBackendApis(page)
-    await page.goto('/', { waitUntil: 'domcontentloaded' })
+    await page.goto('/', { waitUntil: 'networkidle' })
 
     const heroVideo = page.getByTestId('landing-macbook-video')
     await expect(heroVideo).toHaveAttribute('data-motion', 'reduced')
-    await expect(heroVideo).toHaveAttribute('data-scrub', 'disabled')
+    // Scrubbing stays available: every frame is driven by the user's own
+    // scroll, so it does not count as self-playing motion.
+    await expect(heroVideo).toHaveAttribute('data-scrub', 'enabled')
     await expect(heroVideo).not.toHaveAttribute('autoplay')
 
+    // The self-playing lid-opening intro is skipped; the reel parks on the
+    // intro pose and waits for the user.
     expect(await heroVideo.evaluate(video => (video as HTMLVideoElement).paused)).toBe(true)
-    // Without scrubbing the reel parks on the intro pose instead of playing.
     await expect
       .poll(() => heroVideo.evaluate(video => (video as HTMLVideoElement).currentTime))
       .toBeCloseTo(5.9, 1)
 
-    const timeBeforeScroll = await heroVideo.evaluate(
-      video => (video as HTMLVideoElement).currentTime
-    )
-    await page.evaluate(() => window.scrollTo(0, 2200))
+    // Scroll still scrubs the reel to the cue pose, with playback paused.
+    const sceneHeight = 900 - 64
+    await page.evaluate(y => {
+      document.documentElement.style.scrollBehavior = 'auto'
+      window.scrollTo(0, y)
+    }, sceneHeight * 1.5)
+
+    await expect(page.locator('[data-story-cue="course"]')).toHaveAttribute('data-active', 'true')
     await expect
       .poll(() => heroVideo.evaluate(video => (video as HTMLVideoElement).currentTime))
-      .toBeCloseTo(timeBeforeScroll, 1)
+      .toBeCloseTo(10.5, 1)
+    expect(await heroVideo.evaluate(video => (video as HTMLVideoElement).paused)).toBe(true)
   })
 
   test('should expose the mobile navigation to keyboard users', async ({ page }) => {
