@@ -84,20 +84,25 @@ export function LandingScrollStory() {
 
     const applyMode = () => {
       const shouldReduce = reducedMotion.matches
-      const shouldScrub = desktopViewport.matches && !shouldReduce
+      // Scroll scrubbing stays available under reduced motion: the user drives
+      // every frame themselves. Only the self-playing intro is disabled.
+      const shouldScrub = desktopViewport.matches
 
       setMotionPreference(shouldReduce ? 'reduced' : 'standard')
       setScrubEnabled(shouldScrub)
       videoRef.current?.pause()
 
-      if (!shouldScrub) {
+      if (!shouldScrub || shouldReduce) {
         openingRef.current = 'done'
         setOpeningDone(true)
-        setActiveCue(0)
-        setHold(true)
         if (videoRef.current && videoRef.current.readyState >= HTMLMediaElement.HAVE_METADATA) {
           videoRef.current.currentTime = INTRO_POSE
         }
+      }
+
+      if (!shouldScrub) {
+        setActiveCue(0)
+        setHold(true)
       }
     }
 
