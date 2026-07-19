@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
@@ -101,9 +102,13 @@ export function Sidebar({ className }: SidebarProps) {
         {!collapsed && (
           <div className="flex min-w-0 items-center gap-2">
             <Link href="/dashboard" className="flex min-w-0 items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-sky-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
-                <span className="text-white font-bold text-sm">AI</span>
-              </div>
+              <Image
+                src="/ucebnice-logo.png"
+                alt=""
+                width={41}
+                height={32}
+                className="h-8 w-auto shrink-0"
+              />
               <span className="truncate text-white font-semibold">Učebnice AI</span>
             </Link>
             <Link

@@ -28,17 +28,43 @@ const PATH_NODES = [
   { label: 'Neuronky', state: 'locked' },
 ] as const
 
-function IntroScreen() {
+function IntroScreen({ reducedMotion }: { reducedMotion?: boolean }) {
   return (
     <div className={`${styles.screen} ${styles.introScreen}`}>
-      <p className={styles.introEyebrow}>UČEBNICE AI</p>
-      <h1 id="landing-title" className={styles.introTitle}>
-        Nauč se programovat AI. <span>A programovat s AI.</span>
-      </h1>
-      <p className={styles.introSub}>
-        40 kapitol od prvního promptu po neuronové sítě — až k certifikátu.
-      </p>
-      <p className={styles.introStats}>40 kapitol · 400 cvičení · certifikát</p>
+      {reducedMotion ? (
+        // Static formed logo for users who opted out of self-playing motion.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          className={styles.introLogoVideo}
+          src="/media/landing/ucebnice-logo-still.jpg"
+          alt=""
+          data-testid="landing-intro-logo-still"
+        />
+      ) : (
+        // Boot shot: particles converge into the brand mark, then hold on the
+        // final frame (no loop, so there is no jump cut back to black).
+        <video
+          className={styles.introLogoVideo}
+          autoPlay
+          muted
+          playsInline
+          preload="auto"
+          aria-hidden="true"
+          data-testid="landing-intro-logo-video"
+        >
+          <source src="/media/landing/ucebnice-logo-boot.webm" type="video/webm" />
+          <source src="/media/landing/ucebnice-logo-boot.mp4" type="video/mp4" />
+        </video>
+      )}
+      <div className={styles.introCopy}>
+        <h1 id="landing-title" className={styles.introTitle}>
+          Nauč se programovat AI. <span>A programovat s AI.</span>
+        </h1>
+        <p className={styles.introSub}>
+          40 kapitol od prvního promptu po neuronové sítě — až k certifikátu.
+        </p>
+        <p className={styles.introStats}>40 kapitol · 400 cvičení · certifikát</p>
+      </div>
     </div>
   )
 }
@@ -219,7 +245,7 @@ function ArenaScreen() {
   )
 }
 
-const SCREENS: Record<string, () => React.JSX.Element> = {
+const SCREENS: Record<string, (props: { reducedMotion?: boolean }) => React.JSX.Element> = {
   intro: IntroScreen,
   course: CourseScreen,
   multimedia: MultimediaScreen,
@@ -231,13 +257,19 @@ const SCREENS: Record<string, () => React.JSX.Element> = {
   arena: ArenaScreen,
 }
 
-export function LandingScreenContent({ cueId }: { cueId: string }) {
+export function LandingScreenContent({
+  cueId,
+  reducedMotion,
+}: {
+  cueId: string
+  reducedMotion?: boolean
+}) {
   const Screen = SCREENS[cueId]
   if (!Screen) return null
 
   return (
     <div className={styles.screenFrame}>
-      <Screen />
+      <Screen reducedMotion={reducedMotion} />
       <span className={styles.notch} aria-hidden="true" />
       <span className={styles.glare} aria-hidden="true" />
     </div>
