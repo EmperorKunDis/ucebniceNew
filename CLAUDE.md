@@ -34,6 +34,7 @@ Interactive AI-powered programming education platform built with Next.js 14, Pos
 ### Development
 
 ```bash
+npm run setup            # One-command local setup: .env, deps, PostgreSQL, migrations, seed
 npm run dev              # Start development server on http://localhost:3000
 npm run build            # Create production build
 npm start                # Run production server
@@ -79,6 +80,8 @@ make compose-config      # Validate local Docker Compose config
 make compose-config-prod # Validate production Compose config
 make up                  # Start local Compose stack
 make up-prod             # Start production Compose stack on VPS
+make setup               # Same as npm run setup
+make dev                 # Run setup, then start the dev server
 make migrate             # Run Prisma migrate deploy in app container
 make logs                # View app logs
 ```

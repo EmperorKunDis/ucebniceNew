@@ -1,6 +1,6 @@
 # Makefile for Ucebnice v2.0 Docker Compose operations
 
-.PHONY: help build compose-config up down restart logs status shell migrate backup restore video-list clean test lint type-check format-check
+.PHONY: help setup dev build compose-config up down restart logs status shell migrate backup restore video-list clean test lint type-check format-check
 
 COMPOSE ?= docker compose
 COMPOSE_FILES ?= -f docker-compose.yml
@@ -15,6 +15,12 @@ help: ## Show this help message
 	@echo ''
 	@echo 'Available targets:'
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-20s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+
+setup: ## One-command local dev setup (.env, deps, database, seed)
+	bash scripts/dev-setup.sh
+
+dev: setup ## Run local dev setup and start the development server
+	npm run dev
 
 build: ## Build the application image
 	$(COMPOSE) $(COMPOSE_FILES) build $(APP_SERVICE)

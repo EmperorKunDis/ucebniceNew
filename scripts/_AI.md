@@ -17,6 +17,26 @@ Shell scripts and TypeScript utilities executed via npm scripts or directly.
 
 ## 🏗️ PATTERNS
 
+### Local dev setup
+
+```bash
+# Full local bootstrap: .env, npm install, Compose PostgreSQL, migrate deploy, seed
+npm run setup
+
+# Use an already running PostgreSQL instead of the Compose service
+SKIP_DB_CONTAINER=1 npm run setup
+
+# Migrations only, no course content
+SKIP_SEED=1 npm run setup
+```
+
+`scripts/dev-setup.sh` is idempotent and safe to re-run: it keeps an existing `.env`,
+and generates `NEXTAUTH_SECRET` only while the `.env.example` placeholder is still in
+place. It enforces the `engines` Node range (>=22.12 <23) up front, and waits for
+`pg_isready` before running `prisma migrate deploy` so migrations cannot race the
+database container. The seed path relies on `importCanonicalCourseContent` upserts, so
+repeated runs preserve the 40/400 chapter/exercise invariant.
+
 ### VPS Deploy
 
 ```bash

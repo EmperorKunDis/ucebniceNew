@@ -17,11 +17,31 @@ Interaktivní webová aplikace pro výuku programování s využitím AI, gamifi
 
 ## Prerekvizity
 
-- Node.js 20+
-- PostgreSQL databáze
-- npm nebo yarn
+- Node.js 22.12+ (ale ne 23+, viz `engines` v `package.json`)
+- Docker (pro PostgreSQL) nebo vlastní PostgreSQL 16
+- npm
 
-## Instalace
+## Rychlý start
+
+```bash
+git clone <repository-url>
+cd ucebniceNew
+npm run setup     # .env, závislosti, PostgreSQL, migrace, seed
+npm run dev
+```
+
+Nebo `make dev`, což spustí setup i dev server jedním příkazem.
+
+Aplikace poběží na `http://localhost:3000`.
+
+Přepínače pro `npm run setup`:
+
+- `SKIP_DB_CONTAINER=1` - použije už běžící PostgreSQL místo Docker Compose
+- `SKIP_SEED=1` - aplikuje migrace, ale nenaplní obsah kurzu
+
+Setup je idempotentní - existující `.env` nepřepisuje a lze ho spustit opakovaně.
+
+## Instalace krok za krokem
 
 1. **Klonování repozitáře**
 
