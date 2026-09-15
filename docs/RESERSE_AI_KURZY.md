@@ -1,7 +1,7 @@
-# Rešerše kurzů umělé inteligence (stav k srpnu 2026)
+# Rešerše kurzů umělé inteligence (stav k září 2026)
 
 Přehled dostupných kurzů AI — česky i anglicky, zdarma i placené, rozdělené podle úrovní.
-Ceny jsou orientační k **srpnu 2026** a u komerčních platforem se mění (akce, předplatné, dotace); před nákupem si je ověřte na odkazu.
+Ceny jsou orientační k **září 2026** a u komerčních platforem se mění (akce, předplatné, dotace); před nákupem si je ověřte na odkazu.
 
 ## Legenda úrovní
 

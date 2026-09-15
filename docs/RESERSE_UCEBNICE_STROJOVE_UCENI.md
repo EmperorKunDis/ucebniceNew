@@ -1,7 +1,7 @@
-# Rešerše učebnic strojového učení (stav k srpnu 2026)
+# Rešerše učebnic strojového učení (stav k září 2026)
 
 Přehled učebnic a monografií ke strojovému učení — česky i anglicky, volně dostupné i placené, rozdělené podle úrovní.
-Ceny jsou orientační k **srpnu 2026**; u knih se liší podle vydání (tištěné / e-kniha) i prodejce.
+Ceny jsou orientační k **září 2026**; u knih se liší podle vydání (tištěné / e-kniha) i prodejce.
 
 > **Klíčový rozdíl oproti kurzům:** u učebnic ML je hranice zdarma/placené netypická. Většina kanonických titulů je **legálně zdarma** ke stažení přímo od autorů nebo nakladatele (MIT Press, Springer, Stanford), a platí se jen za tištěný výtisk. Sloupec „Cena" proto rozlišuje *volně dostupný text* od *placeného tisku téže knihy*.
 
@@ -130,6 +130,6 @@ Sloupec **Tisk** uvádí, kolik stojí tištěné vydání téže knihy, pokud e
 ## 6. Poznámky k metodice
 
 - „Zdarma" zde znamená **legálně zdarma od autora nebo nakladatele** — Springer, MIT Press a Cambridge UP u řady titulů drží volnou digitální verzi vedle placeného tisku. Pirátské PDF kopie do rešerše zahrnuty nejsou.
-- Ceny tištěných vydání jsou uvedeny orientačně v měně nakladatele; ověřené k srpnu 2026 jsou Géron ($89,99), Bishop & Bishop ($89,99, Springer) a *Strojové učení pro děti* (315–420 Kč dle prodejce).
+- Ceny tištěných vydání jsou uvedeny orientačně v měně nakladatele; ověřené k září 2026 jsou Géron ($89,99), Bishop & Bishop ($89,99, Springer) a *Strojové učení pro děti* (315–420 Kč dle prodejce).
 - U českých skript platí, že jsou vázaná na konkrétní předmět a mohou se ročník od ročníku měnit; odkaz vede na stránku předmětu, ne na fixní PDF.
 - Klasiky z let 2006–2018 (Bishop PRML, Goodfellow, ESL) zůstávají referencí pro teorii, ale pro praxi s LLM je nutné je doplnit titulem z let 2024–2026.
